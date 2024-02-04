@@ -50,12 +50,14 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         default=(user_input or {}).get(CONF_USERNAME),
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT
+                            type=selector.TextSelectorType.EMAIL,
+                            autocomplete="username",
                         ),
                     ),
                     vol.Required(CONF_PASSWORD): selector.TextSelector(
                         selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.PASSWORD
+                            type=selector.TextSelectorType.PASSWORD,
+                            autocomplete="current-password",
                         ),
                     ),
                 }
