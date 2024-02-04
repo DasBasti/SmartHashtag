@@ -31,7 +31,7 @@ jobs:
 
       - name: Upgrade pip
         run: |
-          pip install --constraint=.github/workflows/constraints.txt pip
+          pip install --upgrade pip
           pip --version
 
       - name: Install Python modules
@@ -82,7 +82,7 @@ jobs:
           cache: "pip"
       - name: Install requirements
         run: |
-          pip install --constraint=.github/workflows/constraints.txt pip
+          pip install --upgrade pip
           pip install -r requirements_test.txt
       - name: Tests suite
         run: |
