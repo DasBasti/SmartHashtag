@@ -10,7 +10,6 @@ from homeassistant.const import CONF_PASSWORD
 from homeassistant.const import CONF_USERNAME
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pysmarthashtag.account import SmartAccount
 
 from .const import DOMAIN

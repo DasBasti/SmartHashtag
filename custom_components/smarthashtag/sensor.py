@@ -68,7 +68,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
     ),
 )
 
-### FIXME: Find out how the position is handled in HA
+# FIXME: Find out how the position is handled in HA
 ENTITY_POSITION_DESCRIPTIONS = (
     SensorEntityDescription(
         key="position",
