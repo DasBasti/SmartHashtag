@@ -4,7 +4,10 @@ from __future__ import annotations
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, DOMAIN, NAME, VERSION
+from .const import ATTRIBUTION
+from .const import DOMAIN
+from .const import NAME
+from .const import VERSION
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
 

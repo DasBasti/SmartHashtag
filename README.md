@@ -8,9 +8,9 @@
 
 **This integration will set up the following platforms.**
 
-Platform | Description
--- | --
-`sensor` | Show info from your car.
+| Platform | Description              |
+| -------- | ------------------------ |
+| `sensor` | Show info from your car. |
 
 ## Installation
 
@@ -30,7 +30,7 @@ Platform | Description
 
 If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
 
-***
+---
 
 [commits-shield]: https://img.shields.io/github/commit-activity/y/ludeeus/smarthashtag.svg?style=for-the-badge
 [commits]: https://github.com/ludeeus/smarthashtag/commits/main

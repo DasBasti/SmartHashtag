@@ -1,8 +1,8 @@
 """Sensor platform for Smar #1/#3 intergration."""
 from __future__ import annotations
 
-
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntityDescription
 from pysmarthashtag.models import ValueWithUnit
 
 from .const import DOMAIN

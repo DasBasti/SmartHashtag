@@ -1,5 +1,6 @@
 """Constants for Smart #1/#3 integration."""
-from logging import Logger, getLogger
+from logging import getLogger
+from logging import Logger
 
 LOGGER: Logger = getLogger(__package__)
 

@@ -3,14 +3,16 @@ from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD
+from homeassistant.const import CONF_USERNAME
 from homeassistant.helpers import selector
-
 from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.models import (
     SmartAPIError,
 )
-from .const import DOMAIN, LOGGER
+
+from .const import DOMAIN
+from .const import LOGGER
 
 
 class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):

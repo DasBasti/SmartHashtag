@@ -5,19 +5,16 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import (
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
 from homeassistant.exceptions import ConfigEntryAuthFailed
-
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from pysmarthashtag.account import SmartAccount
-from pysmarthashtag.models import (
-    SmartAuthError,
-    SmartRemoteServiceError,
-)
+from pysmarthashtag.models import SmartAuthError
+from pysmarthashtag.models import SmartRemoteServiceError
 
-from .const import DOMAIN, LOGGER
+from .const import DOMAIN
+from .const import LOGGER
+
 
 # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
 class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
