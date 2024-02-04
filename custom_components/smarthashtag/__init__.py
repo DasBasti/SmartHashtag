@@ -6,19 +6,20 @@ https://github.com/DasBasti/SmartHashtag
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.const import CONF_PASSWORD
+from homeassistant.const import CONF_USERNAME
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from pysmarthashtag.account import SmartAccount
 
 from .const import DOMAIN
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
-from pysmarthashtag.account import SmartAccount
-
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
-#    Platform.BINARY_SENSOR,
-#    Platform.SWITCH,
+    #    Platform.BINARY_SENSOR,
+    #    Platform.SWITCH,
 ]
 
 
