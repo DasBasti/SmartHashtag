@@ -21,7 +21,7 @@ jobs:
     name: Pre-commit
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.1
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -47,7 +47,7 @@ jobs:
     name: HACS
     steps:
       - name: Check out the repository
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v4.1.1"
 
       - name: HACS validation
         uses: "hacs/action@20.12.0"
@@ -60,7 +60,7 @@ jobs:
     name: Hassfest
     steps:
       - name: Check out the repository
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v4.1.1"
 
       - name: Hassfest validation
         uses: "home-assistant/actions/hassfest@master"
@@ -74,7 +74,7 @@ jobs:
     name: Run tests
     steps:
       - name: Check out code from GitHub
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v4.1.1"
       - name: Setup Python ${{ matrix.python-version }}
         uses: "actions/setup-python@v5"
         with:
