@@ -84,13 +84,26 @@ ENTITY_POSITION_DESCRIPTIONS = (
 
 
 ENTITY_TIRE_DESCRIPTIONS = (
-    # FIXME: sort out tire module in library
-    # SensorEntityDescription(
-    #    key="temperature",
-    #    name="Tire temperature",
-    #    icon="mdi:thermometer",
-    #    tires=["driver_front", "driver_rear", "passenger_front", "passenger_rear"],
-    # ),
+    SensorEntityDescription(
+        key="temperature_0",
+        name="Tire temperature driver front",
+        icon="mdi:thermometer",
+    ),
+    SensorEntityDescription(
+        key="temperature_1",
+        name="Tire temperature driver rear",
+        icon="mdi:thermometer",
+    ),
+    SensorEntityDescription(
+        key="temperature_2",
+        name="Tire temperature passender front",
+        icon="mdi:thermometer",
+    ),
+    SensorEntityDescription(
+        key="temperature_3",
+        name="Tire temperature passenger rear",
+        icon="mdi:thermometer",
+    ),
     # FIXME: If 0.1.3 is public use this
     #    SensorEntityDescription(
     #        key="tire_pressure",
@@ -120,22 +133,13 @@ async def async_setup_entry(hass, entry, async_add_devices):
         for entity_description in ENTITY_BATTERY_DESCRIPTIONS
     )
 
-
-#    for entity_description in ENTITY_TIRE_DESCRIPTIONS:
-#        for idx, tire in enumerate(entity_description.options):
-#            this_entity_description = dataclasses.replace(
-#                entity_description,
-#                key=f"{entity_description.key}_{tire}",
-#                tire_idx=idx,
-#            )
-#            async_add_devices(
-#                [
-#                    SmartHashtagTireSensor(
-#                        coordinator=coordinator,
-#                        entity_description=this_entity_description,
-#                    )
-#                ]
-#            )
+    async_add_devices(
+        SmartHashtagTireSensor(
+            coordinator=coordinator,
+            entity_description=entity_description,
+        )
+        for entity_description in ENTITY_TIRE_DESCRIPTIONS
+    )
 
 
 class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
@@ -190,15 +194,19 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the native value of the sensor."""
+        key = "_".join(self.entity_description.key.split("_")[:-1])
+        tire_idx = int(self.entity_description.key.split("_")[-1])
         return getattr(
             self.coordinator.account.vehicles[0].tires,
-            self.entity_description.base_key,
-        )[self.entity_description.tire_idx].value
+            key,
+        )[tire_idx].value
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
+        key = "_".join(self.entity_description.key.split("_")[:-1])
+        tire_idx = int(self.entity_description.key.split("_")[-1])
         return getattr(
             self.coordinator.account.vehicles[0].tires,
-            self.entity_description.base_key,
-        )[self.entity_description.tire_idx].unit
+            key,
+        )[tire_idx].unit
