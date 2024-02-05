@@ -32,9 +32,9 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 
 ---
 
-[commits-shield]: https://img.shields.io/github/commit-activity/y/ludeeus/smarthashtag.svg?style=for-the-badge
-[commits]: https://github.com/ludeeus/smarthashtag/commits/main
-[license-shield]: https://img.shields.io/github/license/ludeeus/smarthashtag.svg?style=for-the-badge
+[commits-shield]: https://img.shields.io/github/commit-activity/y/DasBasti/smarthashtag.svg?style=for-the-badge
+[commits]: https://github.com/DasBasti/smarthashtag/commits/main
+[license-shield]: https://img.shields.io/github/license/DasBasti/smarthashtag.svg?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-Bastian%20Neumann%20%40DasBasti-blue.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/ludeeus/smarthashtag.svg?style=for-the-badge
-[releases]: https://github.com/ludeeus/smarthashtag/releases
+[releases-shield]: https://img.shields.io/github/release/DasBasti/smarthashtag.svg?style=for-the-badge
+[releases]: https://github.com/DasBasti/smarthashtag/releases
