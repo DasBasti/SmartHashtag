@@ -3,8 +3,14 @@ name: Manage labels
 on:
   push:
     branches:
-      - main
-      - master
+      - "main"
+    paths:
+      - ".github/labels.yml"
+      - ".github/workflows/labels.yml"
+  pull_request:
+    paths:
+      - ".github/labels.yml"
+      - ".github/workflows/labels.yml"
 
 jobs:
   labeler:
@@ -18,3 +24,9 @@ jobs:
         uses: crazy-max/ghaction-github-labeler@v5.0.0
         with:
           skip-delete: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          yaml-file: .github/labels.yml
+          dry-run: ${{ github.event_name == 'pull_request' }}
+          exclude: |
+            help*
+            *issue
