@@ -104,13 +104,26 @@ ENTITY_TIRE_DESCRIPTIONS = (
         name="Tire temperature passenger rear",
         icon="mdi:thermometer",
     ),
-    # FIXME: If 0.1.3 is public use this
-    #    SensorEntityDescription(
-    #        key="tire_pressure",
-    #        name="Tire pressure",
-    #        icon="mdi:gauge",
-    #        options=["driver_front", "driver_rear", "passenger_front", "passenger_rear"],
-    #    ),
+    SensorEntityDescription(
+        key="tire_pressure_0",
+        name="Tire pressure front driver",
+        icon="mdi:gauge",
+    ),
+    SensorEntityDescription(
+        key="tire_pressure_1",
+        name="Tire pressure rear driver",
+        icon="mdi:gauge",
+    ),
+    SensorEntityDescription(
+        key="tire_pressure_2",
+        name="Tire pressure front passenger",
+        icon="mdi:gauge",
+    ),
+    SensorEntityDescription(
+        key="tire_pressure_3",
+        name="Tire pressure rear passenger",
+        icon="mdi:gauge",
+    ),
 )
 
 ENTITY_UPDATE_DESCRIPTIONS = (
@@ -118,6 +131,11 @@ ENTITY_UPDATE_DESCRIPTIONS = (
         key="last_update",
         name="Last update",
         icon="mdi:update",
+    ),
+    SensorEntityDescription(
+        key="odometer",
+        name="ODO",
+        icon="mdi:counter",
     ),
 )
 
@@ -139,6 +157,14 @@ async def async_setup_entry(hass, entry, async_add_devices):
             entity_description=entity_description,
         )
         for entity_description in ENTITY_TIRE_DESCRIPTIONS
+    )
+
+    async_add_devices(
+        SmartHashtagUpdateSensor(
+            coordinator=coordinator,
+            entity_description=entity_description,
+        )
+        for entity_description in ENTITY_UPDATE_DESCRIPTIONS
     )
 
 
@@ -210,3 +236,39 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
             self.coordinator.account.vehicles[0].tires,
             key,
         )[tire_idx].unit
+
+
+class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
+    """Tire Status class."""
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
+        self.entity_description = entity_description
+
+    @property
+    def native_value(self) -> float:
+        """Return the native value of the sensor."""
+        data = getattr(
+            self.coordinator.account.vehicles[0],
+            self.entity_description.key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.value
+        return data
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of the sensor."""
+        data = getattr(
+            self.coordinator.account.vehicles[0],
+            self.entity_description.key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return None
