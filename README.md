@@ -36,5 +36,5 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 [commits]: https://github.com/DasBasti/smarthashtag/commits/main
 [license-shield]: https://img.shields.io/github/license/DasBasti/smarthashtag.svg?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-Bastian%20Neumann%20%40DasBasti-blue.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/DasBasti/smarthashtag.svg?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/v/release/DasBasti/smarthashtag.svg?style=for-the-badge&include_prereleases
 [releases]: https://github.com/DasBasti/smarthashtag/releases
