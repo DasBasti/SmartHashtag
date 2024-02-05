@@ -137,6 +137,17 @@ ENTITY_UPDATE_DESCRIPTIONS = (
         name="ODO",
         icon="mdi:counter",
     ),
+    SensorEntityDescription(
+        key="service_daysToService",
+        name="Service due in",
+        icon="mdi:calendar-check",
+        native_unit_of_measurement="days",
+    ),
+    SensorEntityDescription(
+        key="service_distanceToService",
+        name="Service due in",
+        icon="mdi:map-marker-distance",
+    ),
 )
 
 
@@ -254,10 +265,14 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the native value of the sensor."""
-        data = getattr(
-            self.coordinator.account.vehicles[0],
-            self.entity_description.key,
-        )
+        if self.entity_description.key.startswith("service"):
+            key = self.entity_description.key.split("_")[-1]
+            data = self.coordinator.account.vehicles[0].service.get(key)
+        else:
+            data = getattr(
+                self.coordinator.account.vehicles[0],
+                self.entity_description.key,
+            )
         if isinstance(data, ValueWithUnit):
             return data.value
         return data
@@ -265,10 +280,14 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        data = getattr(
-            self.coordinator.account.vehicles[0],
-            self.entity_description.key,
-        )
+        if self.entity_description.key.startswith("service"):
+            key = self.entity_description.key.split("_")[-1]
+            data = self.coordinator.account.vehicles[0].service.get(key)
+        else:
+            data = getattr(
+                self.coordinator.account.vehicles[0],
+                self.entity_description.key,
+            )
         if isinstance(data, ValueWithUnit):
             return data.unit
-        return None
+        return self.entity_description.native_unit_of_measurement
