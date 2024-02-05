@@ -1,6 +1,8 @@
 """Sensor platform for Smar #1/#3 intergration."""
 from __future__ import annotations
 
+from datetime import timedelta
+
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.sensor import SensorEntityDescription
 from pysmarthashtag.models import ValueWithUnit
@@ -198,6 +200,13 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
         data = getattr(
             self.coordinator.account.vehicles[0].battery, self.entity_description.key
         )
+
+        if self.entity_description.key == "charging_current":
+            if data.value != 0:
+                self.coordinator.update_interval = timedelta(seconds=30)
+            else:
+                self.coordinator.update_interval = timedelta(minutes=5)
+
         if isinstance(data, ValueWithUnit):
             return data.value
 
