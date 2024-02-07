@@ -15,8 +15,8 @@ from .const import DOMAIN
 from .const import LOGGER
 
 
-class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Blueprint."""
+class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+    """Config flow for Smart #1 / #3 integration."""
 
     VERSION = 1
 
