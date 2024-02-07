@@ -1,5 +1,6 @@
 """Sensor platform for Smar #1/#3 intergration."""
 from __future__ import annotations
+import dataclasses
 
 from datetime import timedelta
 
@@ -128,7 +129,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
     ),
 )
 
-ENTITY_UPDATE_DESCRIPTIONS = (
+ENTITY_GENERAL_DESCRIPTIONS = (
     SensorEntityDescription(
         key="last_update",
         name="Last update",
@@ -153,32 +154,50 @@ ENTITY_UPDATE_DESCRIPTIONS = (
 )
 
 
+def remove_vin_from_key(key: str) -> str:
+    """Remove the vin from the key."""
+    return "_".join(key.split("_")[1:])
+
+
+def vin_from_key(key: str) -> str:
+    """Get the vin from the key."""
+    return key.split("_")[0]
+
+
 async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_devices(
-        SmartHashtagBatteryRangeSensor(
-            coordinator=coordinator,
-            entity_description=entity_description,
-        )
-        for entity_description in ENTITY_BATTERY_DESCRIPTIONS
-    )
 
-    async_add_devices(
-        SmartHashtagTireSensor(
-            coordinator=coordinator,
-            entity_description=entity_description,
+    for vehicle in coordinator.account.vehicles:
+        async_add_devices(
+            SmartHashtagBatteryRangeSensor(
+                coordinator=coordinator,
+                entity_description=dataclasses.replace(
+                    entity_description, key=f"{vehicle}_{entity_description.key}"
+                ),
+            )
+            for entity_description in ENTITY_BATTERY_DESCRIPTIONS
         )
-        for entity_description in ENTITY_TIRE_DESCRIPTIONS
-    )
 
-    async_add_devices(
-        SmartHashtagUpdateSensor(
-            coordinator=coordinator,
-            entity_description=entity_description,
+        async_add_devices(
+            SmartHashtagTireSensor(
+                coordinator=coordinator,
+                entity_description=dataclasses.replace(
+                    entity_description, key=f"{vehicle}_{entity_description.key}"
+                ),
+            )
+            for entity_description in ENTITY_TIRE_DESCRIPTIONS
         )
-        for entity_description in ENTITY_UPDATE_DESCRIPTIONS
-    )
+
+        async_add_devices(
+            SmartHashtagUpdateSensor(
+                coordinator=coordinator,
+                entity_description=dataclasses.replace(
+                    entity_description, key=f"{vehicle}_{entity_description.key}"
+                ),
+            )
+            for entity_description in ENTITY_GENERAL_DESCRIPTIONS
+        )
 
 
 class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
@@ -198,10 +217,13 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
     def native_value(self) -> int:
         """Return the native value of the sensor."""
         data = getattr(
-            self.coordinator.account.vehicles[0].battery, self.entity_description.key
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).battery,
+            remove_vin_from_key(self.entity_description.key),
         )
 
-        if self.entity_description.key == "charging_current":
+        if "charging_current" in self.entity_description.key:
             if data.value != 0:
                 self.coordinator.update_interval = timedelta(seconds=30)
             else:
@@ -216,7 +238,10 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
         data = getattr(
-            self.coordinator.account.vehicles[0].battery, self.entity_description.key
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).battery,
+            remove_vin_from_key(self.entity_description.key),
         )
         if isinstance(data, ValueWithUnit):
             return data.unit
@@ -240,20 +265,24 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the native value of the sensor."""
-        key = "_".join(self.entity_description.key.split("_")[:-1])
+        key = "_".join(self.entity_description.key.split("_")[1:-1])
         tire_idx = int(self.entity_description.key.split("_")[-1])
         return getattr(
-            self.coordinator.account.vehicles[0].tires,
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).tires,
             key,
         )[tire_idx].value
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        key = "_".join(self.entity_description.key.split("_")[:-1])
+        key = "_".join(self.entity_description.key.split("_")[1:-1])
         tire_idx = int(self.entity_description.key.split("_")[-1])
         return getattr(
-            self.coordinator.account.vehicles[0].tires,
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).tires,
             key,
         )[tire_idx].unit
 
@@ -274,13 +303,15 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the native value of the sensor."""
-        if self.entity_description.key.startswith("service"):
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        if key.startswith("service"):
             key = self.entity_description.key.split("_")[-1]
-            data = self.coordinator.account.vehicles[0].service.get(key)
+            data = self.coordinator.account.vehicles.get(vin).service[key]
         else:
             data = getattr(
-                self.coordinator.account.vehicles[0],
-                self.entity_description.key,
+                self.coordinator.account.vehicles.get(vin),
+                remove_vin_from_key(self.entity_description.key),
             )
         if isinstance(data, ValueWithUnit):
             return data.value
@@ -289,13 +320,15 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        if self.entity_description.key.startswith("service"):
-            key = self.entity_description.key.split("_")[-1]
-            data = self.coordinator.account.vehicles[0].service.get(key)
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        if key.startswith("service"):
+            key = key.split("_")[-1]
+            data = self.coordinator.account.vehicles.get(vin).service[key]
         else:
             data = getattr(
-                self.coordinator.account.vehicles[0],
-                self.entity_description.key,
+                self.coordinator.account.vehicles.get(vin),
+                key,
             )
         if isinstance(data, ValueWithUnit):
             return data.unit
