@@ -1,18 +1,42 @@
 # Smart #1 and #3 Integration
 
 [![GitHub Release][releases-shield]][releases]
-[![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
 
-![Project Maintenance][maintenance-shield]
+[![CodeQL Validation][codeql-shield]][codeql]
+[![Dependency Validation][tests-shield]][tests]
 
 **This integration will set up the following platforms.**
 
-| Platform | Description              |
-| -------- | ------------------------ |
-| `sensor` | Show info from your car. |
+| Sensor Name                 | Sensor Type             | Unit of Measurement | Attributes | Notes                                    |
+| --------------------------- | ----------------------- | ------------------- | ---------- | ---------------------------------------- |
+| `Last Update`               | Last data update        | Timestamp           |            | Data age in Web API                      |
+| `Odometer`                  | Total distance traveled | km                  |            |                                          |
+| `Days to next service`      | Duration                | d                   |            |                                          |
+| `Distance to next service`  | Distance                | km                  |            |                                          |
+| `Remaining Range`           | Distance                | km                  |            |                                          |
+| `Range at full battery`     | Distance                | km                  |            |                                          |
+| `Remaining Battery Charge`  | Percent                 | %                   |            |                                          |
+| `Charger Connection Status` | Number                  | ?                   |            | Need to determine what number means what |
+| `Is Charger Connected`      | Boolen                  | True, False         |            |                                          |
+| `Charging Voltage`          | Volts at Charging Port  | V                   |            |                                          |
+| `Charging Current`          | Ampere at Charging Port | A                   |            |                                          |
+| `Charging Power`            | Power going to Battery  | W                   |            |                                          |
+| `Charging Time remaining`   | Duration                | min                 |            |                                          |
+| `Charging Target Percent`   | Percent State of Charge | %                   |            | Not yet available                        |
+| `Tire Temperature`          | Temperature             | °C                  |            |                                          |
+| `Tire Pressure`             | Pressure                | kPa                 |            |                                          |
 
 ## Installation
+
+### Using HACS (Recommended)
+
+1. Add this repository to your custom repositories
+1. Search for and install "Smart #1/#3 Integration" in HACS.
+1. Restart Home Assistant.
+1. In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "Smart"
+
+### Manually Copy Files
 
 1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
 1. If you do not have a `custom_components` directory (folder) there, you need to create it.
@@ -20,17 +44,16 @@
 1. Download _all_ the files from the `custom_components/smarthashtag/` directory (folder) in this repository.
 1. Place the files you downloaded in the new directory (folder) you created.
 1. Restart Home Assistant
-1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Smart #1"
-
-## Configuration is done in the UI
-
-<!---->
+1. In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "Smart"
 
 ## Contributions are welcome!
 
+We need to add more sensor values from the JSON aquired form the Web API. Please have a look at [pySmartHashtag](https://github.com/DasBasti/pySmartHashtag).
 If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
 
 ---
+
+![Project Maintenance][maintenance-shield]
 
 [commits-shield]: https://img.shields.io/github/commit-activity/y/DasBasti/smarthashtag.svg?style=for-the-badge
 [commits]: https://github.com/DasBasti/smarthashtag/commits/main
@@ -38,3 +61,7 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 [maintenance-shield]: https://img.shields.io/badge/maintainer-Bastian%20Neumann%20%40DasBasti-blue.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/v/release/DasBasti/smarthashtag.svg?style=for-the-badge&include_prereleases
 [releases]: https://github.com/DasBasti/smarthashtag/releases
+[codeql-shield]: https://github.com/DasBasti/smarthashtag/actions/workflows/codeql-analysis.yml/badge.svg?style=for-the-badge
+[codeql]: https://github.com/DasBasti/smarthashtag/actions/workflows/codeql-analysis.yml
+[tests-shield]: https://github.com/DasBasti/SmartHashtag/actions/workflows/tests.yml/badge.svg
+[tests]: https://github.com/DasBasti/SmartHashtag/actions/workflows/tests.yml
