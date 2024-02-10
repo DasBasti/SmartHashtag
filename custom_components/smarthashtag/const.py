@@ -5,10 +5,10 @@ from logging import Logger
 LOGGER: Logger = getLogger(__package__)
 
 # Base component constants
-NAME = "Smart #1/#3 Integration"
+NAME = "Smart"
 DOMAIN = "smarthashtag"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 ATTRIBUTION = "Data provided by http://smart.com/"
 ISSUE_URL = "https://github.com/DasBasti/SmartHashtag/issues"
