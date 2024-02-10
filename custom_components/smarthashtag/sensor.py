@@ -268,6 +268,10 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             else:
                 self.coordinator.update_interval = timedelta(minutes=5)
 
+        if "charging_power" in self.entity_description.key:
+            if data.value < 0.0:
+                return data.value * -1.0
+
         if isinstance(data, ValueWithUnit):
             return data.value
 
@@ -318,12 +322,18 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
         """Return the unit of measurement of the sensor."""
         key = "_".join(self.entity_description.key.split("_")[1:-1])
         tire_idx = int(self.entity_description.key.split("_")[-1])
-        return getattr(
+        data = getattr(
             self.coordinator.account.vehicles.get(
                 vin_from_key(self.entity_description.key)
             ).tires,
             key,
-        )[tire_idx].unit
+        )[tire_idx]
+
+        # FIXME: if pysmarthashtag is updated to return the unit as °C remove this
+        if data.unit == "C":
+            return "°C"
+
+        return data.unit
 
 
 class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
