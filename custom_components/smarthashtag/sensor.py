@@ -1,13 +1,18 @@
 """Sensor platform for Smar #1/#3 intergration."""
 from __future__ import annotations
+import dataclasses
 
 from datetime import timedelta
 
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.components.sensor import SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorEntityDescription,
+    SensorDeviceClass,
+)
+
 from pysmarthashtag.models import ValueWithUnit
 
-from .const import DOMAIN
+from .const import CONF_VEHICLE, DOMAIN
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
 
@@ -16,16 +21,21 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         key="remaining_range",
         name="Remaining Range",
         icon="mdi:road-variant",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
         key="remaining_range_at_full_charge",
         name="Remaining Range at full battery",
         icon="mdi:road-variant",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
         key="remaining_battery_percent",
         name="Remaining battery charge",
         icon="mdi:percent",
+        device_class=SensorDeviceClass.BATTERY,
     ),
     # FIXME: Sort out type issue with None and Strings
     #    SensorEntityDescription(
@@ -47,26 +57,34 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         key="charging_voltage",
         name="Charging voltage",
         icon="mdi:car-battery",
+        device_class=SensorDeviceClass.VOLTAGE,
     ),
     SensorEntityDescription(
         key="charging_current",
         name="Charging current",
         icon="mdi:car-battery",
+        device_class=SensorDeviceClass.CURRENT,
+        native_unit_of_measurement="A",
     ),
     SensorEntityDescription(
         key="charging_power",
         name="Charging power",
         icon="mdi:car-battery",
+        device_class=SensorDeviceClass.POWER,
+        native_unit_of_measurement="W",
     ),
     SensorEntityDescription(
         key="charging_time_remaining",
         name="Charging time remaining",
         icon="mdi:clock-outline",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="min",
     ),
     SensorEntityDescription(
         key="charging_target_soc",
         name="Target state of charge",
         icon="mdi:percent",
+        device_class=SensorDeviceClass.BATTERY,
     ),
 )
 
@@ -90,76 +108,112 @@ ENTITY_TIRE_DESCRIPTIONS = (
         key="temperature_0",
         name="Tire temperature driver front",
         icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement="°C",
     ),
     SensorEntityDescription(
         key="temperature_1",
         name="Tire temperature driver rear",
         icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement="°C",
     ),
     SensorEntityDescription(
         key="temperature_2",
         name="Tire temperature passender front",
         icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement="°C",
     ),
     SensorEntityDescription(
         key="temperature_3",
         name="Tire temperature passenger rear",
         icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement="°C",
     ),
     SensorEntityDescription(
         key="tire_pressure_0",
         name="Tire pressure front driver",
         icon="mdi:gauge",
+        device_class=SensorDeviceClass.PRESSURE,
+        native_unit_of_measurement="hPa",
     ),
     SensorEntityDescription(
         key="tire_pressure_1",
         name="Tire pressure rear driver",
         icon="mdi:gauge",
+        device_class=SensorDeviceClass.PRESSURE,
+        native_unit_of_measurement="hPa",
     ),
     SensorEntityDescription(
         key="tire_pressure_2",
         name="Tire pressure front passenger",
         icon="mdi:gauge",
+        device_class=SensorDeviceClass.PRESSURE,
+        native_unit_of_measurement="hPa",
     ),
     SensorEntityDescription(
         key="tire_pressure_3",
         name="Tire pressure rear passenger",
         icon="mdi:gauge",
+        device_class=SensorDeviceClass.PRESSURE,
+        native_unit_of_measurement="hPa",
     ),
 )
 
-ENTITY_UPDATE_DESCRIPTIONS = (
+ENTITY_GENERAL_DESCRIPTIONS = (
     SensorEntityDescription(
         key="last_update",
         name="Last update",
         icon="mdi:update",
+        device_class=SensorDeviceClass.TIMESTAMP,
     ),
     SensorEntityDescription(
         key="odometer",
-        name="ODO",
+        name="Odometer",
         icon="mdi:counter",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
         key="service_daysToService",
         name="Service due in",
         icon="mdi:calendar-check",
-        native_unit_of_measurement="days",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="d",
     ),
     SensorEntityDescription(
         key="service_distanceToService",
         name="Service due in",
         icon="mdi:map-marker-distance",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
     ),
 )
+
+
+def remove_vin_from_key(key: str) -> str:
+    """Remove the vin from the key."""
+    return "_".join(key.split("_")[1:])
+
+
+def vin_from_key(key: str) -> str:
+    """Get the vin from the key."""
+    return key.split("_")[0]
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
+    vehicle = hass.data[DOMAIN][CONF_VEHICLE]
+
     async_add_devices(
         SmartHashtagBatteryRangeSensor(
             coordinator=coordinator,
-            entity_description=entity_description,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
         )
         for entity_description in ENTITY_BATTERY_DESCRIPTIONS
     )
@@ -167,7 +221,9 @@ async def async_setup_entry(hass, entry, async_add_devices):
     async_add_devices(
         SmartHashtagTireSensor(
             coordinator=coordinator,
-            entity_description=entity_description,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
         )
         for entity_description in ENTITY_TIRE_DESCRIPTIONS
     )
@@ -175,9 +231,11 @@ async def async_setup_entry(hass, entry, async_add_devices):
     async_add_devices(
         SmartHashtagUpdateSensor(
             coordinator=coordinator,
-            entity_description=entity_description,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
         )
-        for entity_description in ENTITY_UPDATE_DESCRIPTIONS
+        for entity_description in ENTITY_GENERAL_DESCRIPTIONS
     )
 
 
@@ -198,14 +256,21 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
     def native_value(self) -> int:
         """Return the native value of the sensor."""
         data = getattr(
-            self.coordinator.account.vehicles[0].battery, self.entity_description.key
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).battery,
+            remove_vin_from_key(self.entity_description.key),
         )
 
-        if self.entity_description.key == "charging_current":
+        if "charging_current" in self.entity_description.key:
             if data.value != 0:
                 self.coordinator.update_interval = timedelta(seconds=30)
             else:
                 self.coordinator.update_interval = timedelta(minutes=5)
+
+        if "charging_power" in self.entity_description.key:
+            if data.value == -0.0:
+                return 0.0
 
         if isinstance(data, ValueWithUnit):
             return data.value
@@ -216,7 +281,10 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
         data = getattr(
-            self.coordinator.account.vehicles[0].battery, self.entity_description.key
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).battery,
+            remove_vin_from_key(self.entity_description.key),
         )
         if isinstance(data, ValueWithUnit):
             return data.unit
@@ -240,22 +308,32 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the native value of the sensor."""
-        key = "_".join(self.entity_description.key.split("_")[:-1])
+        key = "_".join(self.entity_description.key.split("_")[1:-1])
         tire_idx = int(self.entity_description.key.split("_")[-1])
         return getattr(
-            self.coordinator.account.vehicles[0].tires,
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).tires,
             key,
         )[tire_idx].value
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        key = "_".join(self.entity_description.key.split("_")[:-1])
+        key = "_".join(self.entity_description.key.split("_")[1:-1])
         tire_idx = int(self.entity_description.key.split("_")[-1])
-        return getattr(
-            self.coordinator.account.vehicles[0].tires,
+        data = getattr(
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).tires,
             key,
-        )[tire_idx].unit
+        )[tire_idx]
+
+        # FIXME: if pysmarthashtag is updated to return the unit as °C remove this
+        if data.unit == "C":
+            return "°C"
+
+        return data.unit
 
 
 class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
@@ -274,13 +352,15 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the native value of the sensor."""
-        if self.entity_description.key.startswith("service"):
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        if key.startswith("service"):
             key = self.entity_description.key.split("_")[-1]
-            data = self.coordinator.account.vehicles[0].service.get(key)
+            data = self.coordinator.account.vehicles.get(vin).service[key]
         else:
             data = getattr(
-                self.coordinator.account.vehicles[0],
-                self.entity_description.key,
+                self.coordinator.account.vehicles.get(vin),
+                remove_vin_from_key(self.entity_description.key),
             )
         if isinstance(data, ValueWithUnit):
             return data.value
@@ -289,13 +369,15 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        if self.entity_description.key.startswith("service"):
-            key = self.entity_description.key.split("_")[-1]
-            data = self.coordinator.account.vehicles[0].service.get(key)
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        if key.startswith("service"):
+            key = key.split("_")[-1]
+            data = self.coordinator.account.vehicles.get(vin).service[key]
         else:
             data = getattr(
-                self.coordinator.account.vehicles[0],
-                self.entity_description.key,
+                self.coordinator.account.vehicles.get(vin),
+                key,
             )
         if isinstance(data, ValueWithUnit):
             return data.unit
