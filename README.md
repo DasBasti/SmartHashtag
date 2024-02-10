@@ -46,6 +46,10 @@
 1. Restart Home Assistant
 1. In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "Smart"
 
+### Finally
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=smarthashtag)
+
 ## Contributions are welcome!
 
 We need to add more sensor values from the JSON aquired form the Web API. Please have a look at [pySmartHashtag](https://github.com/DasBasti/pySmartHashtag).
