@@ -1,6 +1,6 @@
 """Adds config flow for Smart #1/#3 integration."""
 from __future__ import annotations
-from typing import Final, KeysView
+from typing import KeysView
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -12,11 +12,10 @@ from pysmarthashtag.models import (
     SmartAPIError,
 )
 
-from .const import DOMAIN
+from .const import DOMAIN, NAME
 from .const import LOGGER
-
-CONF_VEHICLE: Final = "vehicle"
-CONF_VEHICLES: Final = "vehicles"
+from .const import CONF_VEHICLE
+from .const import CONF_VEHICLES
 
 
 class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -77,7 +76,7 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if len(self.init_info[CONF_VEHICLES]) == 1 or user_input is not None:
             if user_input is None:
                 user_input = {CONF_VEHICLE: self.init_info[CONF_VEHICLES][0]}
-            name = user_input[CONF_VEHICLE].lower()
+            name = f"{NAME} {user_input[CONF_VEHICLE]}"
             await self.async_set_unique_id(name)
             return self.async_create_entry(
                 title=name,
