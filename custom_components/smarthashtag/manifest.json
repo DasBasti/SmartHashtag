@@ -1,6 +1,6 @@
 {
   "domain": "smarthashtag",
-  "name": "Smart Hashtag",
+  "name": "Smart",
   "codeowners": ["@DasBasti"],
   "config_flow": true,
   "documentation": "https://github.com/DasBasti/SmartHashtag",
