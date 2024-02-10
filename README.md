@@ -2,7 +2,6 @@
 
 [![GitHub Release][releases-shield]][releases]
 [![License][license-shield]](LICENSE)
-
 [![CodeQL Validation][codeql-shield]][codeql]
 [![Dependency Validation][tests-shield]][tests]
 
@@ -53,15 +52,15 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 
 ---
 
-![Project Maintenance][maintenance-shield]
+[![Project Maintenance][maintenance-shield]](https://platinenmacher.tech)
 
-[commits-shield]: https://img.shields.io/github/commit-activity/y/DasBasti/smarthashtag.svg?style=for-the-badge
+[commits-shield]: https://img.shields.io/github/commit-activity/y/DasBasti/smarthashtag.svg
 [commits]: https://github.com/DasBasti/smarthashtag/commits/main
-[license-shield]: https://img.shields.io/github/license/DasBasti/smarthashtag.svg?style=for-the-badge
-[maintenance-shield]: https://img.shields.io/badge/maintainer-Bastian%20Neumann%20%40DasBasti-blue.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/v/release/DasBasti/smarthashtag.svg?style=for-the-badge&include_prereleases
+[license-shield]: https://img.shields.io/github/license/DasBasti/smarthashtag.svg
+[maintenance-shield]: https://img.shields.io/badge/maintainer-Bastian%20Neumann%20%40DasBasti-blue.svg
+[releases-shield]: https://img.shields.io/github/v/release/DasBasti/smarthashtag.svg
 [releases]: https://github.com/DasBasti/smarthashtag/releases
-[codeql-shield]: https://github.com/DasBasti/smarthashtag/actions/workflows/codeql-analysis.yml/badge.svg?style=for-the-badge
+[codeql-shield]: https://github.com/DasBasti/smarthashtag/actions/workflows/codeql-analysis.yml/badge.svg
 [codeql]: https://github.com/DasBasti/smarthashtag/actions/workflows/codeql-analysis.yml
 [tests-shield]: https://github.com/DasBasti/SmartHashtag/actions/workflows/tests.yml/badge.svg
 [tests]: https://github.com/DasBasti/SmartHashtag/actions/workflows/tests.yml
