@@ -1,6 +1,7 @@
 """Constants for Smart #1/#3 integration."""
 from logging import getLogger
 from logging import Logger
+from typing import Final
 
 LOGGER: Logger = getLogger(__package__)
 
@@ -39,3 +40,6 @@ If you have any issues with this you need to open an issue here:
 {ISSUE_URL}
 -------------------------------------------------------------------
 """
+
+CONF_VEHICLE: Final = "vehicle"
+CONF_VEHICLES: Final = "vehicles"

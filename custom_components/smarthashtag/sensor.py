@@ -12,7 +12,7 @@ from homeassistant.components.sensor import (
 
 from pysmarthashtag.models import ValueWithUnit
 
-from .const import DOMAIN
+from .const import CONF_VEHICLE, DOMAIN
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
 
@@ -206,37 +206,37 @@ def vin_from_key(key: str) -> str:
 async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
+    vehicle = hass.data[DOMAIN][CONF_VEHICLE]
 
-    for vehicle in coordinator.account.vehicles:
-        async_add_devices(
-            SmartHashtagBatteryRangeSensor(
-                coordinator=coordinator,
-                entity_description=dataclasses.replace(
-                    entity_description, key=f"{vehicle}_{entity_description.key}"
-                ),
-            )
-            for entity_description in ENTITY_BATTERY_DESCRIPTIONS
+    async_add_devices(
+        SmartHashtagBatteryRangeSensor(
+            coordinator=coordinator,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
         )
+        for entity_description in ENTITY_BATTERY_DESCRIPTIONS
+    )
 
-        async_add_devices(
-            SmartHashtagTireSensor(
-                coordinator=coordinator,
-                entity_description=dataclasses.replace(
-                    entity_description, key=f"{vehicle}_{entity_description.key}"
-                ),
-            )
-            for entity_description in ENTITY_TIRE_DESCRIPTIONS
+    async_add_devices(
+        SmartHashtagTireSensor(
+            coordinator=coordinator,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
         )
+        for entity_description in ENTITY_TIRE_DESCRIPTIONS
+    )
 
-        async_add_devices(
-            SmartHashtagUpdateSensor(
-                coordinator=coordinator,
-                entity_description=dataclasses.replace(
-                    entity_description, key=f"{vehicle}_{entity_description.key}"
-                ),
-            )
-            for entity_description in ENTITY_GENERAL_DESCRIPTIONS
+    async_add_devices(
+        SmartHashtagUpdateSensor(
+            coordinator=coordinator,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
         )
+        for entity_description in ENTITY_GENERAL_DESCRIPTIONS
+    )
 
 
 class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
@@ -269,8 +269,8 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
                 self.coordinator.update_interval = timedelta(minutes=5)
 
         if "charging_power" in self.entity_description.key:
-            if data.value < 0.0:
-                return data.value * -1.0
+            if data.value == -0.0:
+                return 0.0
 
         if isinstance(data, ValueWithUnit):
             return data.value
