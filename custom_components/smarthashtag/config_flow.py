@@ -41,7 +41,7 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 _errors["base"] = "auth"
             else:
                 self.init_info = user_input
-                self.init_info[CONF_VEHICLES] = vehicles
+                self.init_info[CONF_VEHICLES] = list(vehicles)
                 return await self.async_step_vehicle()
 
         return self.async_show_form(
@@ -51,7 +51,6 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_USERNAME,
                         default=(user_input or {}).get(CONF_USERNAME),
-                        description={"suggested_value": "username"},
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.EMAIL,
@@ -59,7 +58,7 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         ),
                     ),
                     vol.Required(
-                        CONF_PASSWORD, description={"suggested_value": "password"}
+                        CONF_PASSWORD,
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD,
@@ -75,23 +74,20 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self,
         user_input: dict | None = None,
     ) -> config_entries.FlowResult:
-        if user_input is not None:
+        if len(self.init_info[CONF_VEHICLES]) == 1 or user_input is not None:
+            if user_input is None:
+                user_input = {CONF_VEHICLE: self.init_info[CONF_VEHICLES][0]}
+            name = user_input[CONF_VEHICLE].lower()
+            await self.async_set_unique_id(name)
             return self.async_create_entry(
-                title=user_input[CONF_USERNAME],
+                title=name,
                 data={**self.init_info, **user_input},
             )
 
-        return await self.async_show_form(
+        return self.async_show_form(
             step_id="vehicle",
             data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_VEHICLE): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=self.init_info[CONF_VEHICLES],
-                            mode=selector.SelectSelectorMode.DROPDOWN,
-                        )
-                    )
-                }
+                {vol.Required(CONF_VEHICLE): vol.In(self.init_info[CONF_VEHICLES])}
             ),
         )
 
