@@ -162,12 +162,39 @@ ENTITY_TIRE_DESCRIPTIONS = (
     ),
 )
 
-ENTITY_GENERAL_DESCRIPTIONS = (
+ENTITY_MAINTENANCE_DESCRIPTIONS = (
     SensorEntityDescription(
-        key="last_update",
-        name="Last update",
-        icon="mdi:update",
-        device_class=SensorDeviceClass.TIMESTAMP,
+        key="main_battery_state_of_charge",
+        name="Main battery state of charge",
+        icon="mdi:car-battery",
+    ),
+    SensorEntityDescription(
+        key="main_battery_charge_level",
+        name="Main battery charge level",
+        icon="mdi:car-battery",
+        device_class=SensorDeviceClass.BATTERY,
+    ),
+    SensorEntityDescription(
+        key="main_battery_energy_level",
+        name="Main battery energy level",
+        icon="mdi:car-battery",
+    ),
+    SensorEntityDescription(
+        key="main_battery_state_of_health",
+        name="Main battery state of health",
+        icon="mdi:car-battery",
+    ),
+    SensorEntityDescription(
+        key="main_batter_power_level",
+        name="Main battery power level",
+        icon="mdi:car-battery",
+    ),
+    SensorEntityDescription(
+        key="main_battery_voltage",
+        name="Main battery voltage",
+        icon="mdi:car-battery",
+        device_class=SensorDeviceClass.VOLTAGE,
+        native_unit_of_measurement="V",
     ),
     SensorEntityDescription(
         key="odometer",
@@ -177,18 +204,49 @@ ENTITY_GENERAL_DESCRIPTIONS = (
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
-        key="service_daysToService",
+        key="days_to_service",
         name="Service due in",
         icon="mdi:calendar-check",
         device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement="d",
     ),
     SensorEntityDescription(
-        key="service_distanceToService",
+        key="engine_hours_to_service",
         name="Service due in",
-        icon="mdi:map-marker-distance",
+        icon="mdi:calendar-check",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="h",
+    ),
+    SensorEntityDescription(
+        key="distance_to_service",
+        name="Service due in",
+        icon="mdi:calendar-check",
         device_class=SensorDeviceClass.DISTANCE,
         native_unit_of_measurement="km",
+    ),
+    SensorEntityDescription(
+        key="break_fluid_level_status",
+        name="Break fluid level status",
+        icon="mdi:car-brake-fluid-level",
+    ),
+    SensorEntityDescription(
+        key="washer_fluid_level_status",
+        name="Washer fluid level status",
+        icon="mdi:wiper-wash",
+    ),
+    SensorEntityDescription(
+        key="service_warning_status",
+        name="Service warning status",
+        icon="mdi:account-wrench",
+    ),
+)
+
+ENTITY_GENERAL_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="last_update",
+        name="Last update",
+        icon="mdi:update",
+        device_class=SensorDeviceClass.TIMESTAMP,
     ),
 )
 
@@ -236,6 +294,16 @@ async def async_setup_entry(hass, entry, async_add_devices):
             ),
         )
         for entity_description in ENTITY_GENERAL_DESCRIPTIONS
+    )
+
+    async_add_devices(
+        SmartHashtagMaintenanceSensor(
+            coordinator=coordinator,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
+        )
+        for entity_description in ENTITY_MAINTENANCE_DESCRIPTIONS
     )
 
 
@@ -379,6 +447,86 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                 self.coordinator.account.vehicles.get(vin),
                 key,
             )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return self.entity_description.native_unit_of_measurement
+
+
+class SmartHashtagMaintenanceSensor(SmartHashtagEntity, SensorEntity):
+    """Tire Status class."""
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
+        self.entity_description = entity_description
+
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the native value of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).maintenance,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.value
+        return data
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).maintenance,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return self.entity_description.native_unit_of_measurement
+
+
+class SmartHashtagRunningSensor(SmartHashtagEntity, SensorEntity):
+    """Tire Status class."""
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
+        self.entity_description = entity_description
+
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the native value of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).running,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.value
+        return data
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).running,
+            key,
+        )
         if isinstance(data, ValueWithUnit):
             return data.unit
         return self.entity_description.native_unit_of_measurement
