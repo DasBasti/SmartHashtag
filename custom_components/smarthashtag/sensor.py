@@ -250,6 +250,155 @@ ENTITY_GENERAL_DESCRIPTIONS = (
     ),
 )
 
+ENTITY_RUNNING_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="ahbc_status",
+        name="Adaptive high beam control",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="goodbye",
+        name="Goodbye Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="home_safe",
+        name="Home Safe Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="corner_light",
+        name="Corner Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="front_fog_light",
+        name="Front Fog Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="stop_light",
+        name="Stop Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="trip_meter1",
+        name="Trip meter 1",
+        icon="mdi:counter",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
+    ),
+    SensorEntityDescription(
+        key="trip_meter2",
+        name="Trip meter 2",
+        icon="mdi:counter",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
+    ),
+    SensorEntityDescription(
+        key="approach",
+        name="Approach Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="high_beam",
+        name="High Beam Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="engine_coolant_level_status",
+        name="Engine coolant level status",
+        icon="mdi:car-coolant-level",
+    ),
+    SensorEntityDescription(
+        key="low_beam",
+        name="Low Beam Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="position_light_rear",
+        name="Position Light Rear",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="light_show",
+        name="Light Show",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="welcome",
+        name="Welcome Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="drl",
+        name="Daytime running light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="ahl",
+        name="Adaptive headlight",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="trun_indicator_left",
+        name="Turn indicator left",
+        icon="mdi:ar-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="trun_indicator_right",
+        name="Turn indicator right",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="adaptive_front_light",
+        name="Adaptive front light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="dbl",
+        name="Double Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="average_speed",
+        name="Average speed",
+        icon="mdi:speedometer",
+        device_class=SensorDeviceClass.SPEED,
+        native_unit_of_measurement="km/h",
+    ),
+    SensorEntityDescription(
+        key="position_light_front",
+        name="Position Light Front",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="reverse_light",
+        name="Reverse Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="highway_light",
+        name="Highway Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="rear_fog_light",
+        name="Rear Fog Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="flash_light",
+        name="Flash Light",
+        icon="mdi:car-parking-lights",
+    ),
+    SensorEntityDescription(
+        key="all_weather_light",
+        name="All Weather Light",
+        icon="mdi:car-parking-lights",
+    ),
+)
+
 
 def remove_vin_from_key(key: str) -> str:
     """Remove the vin from the key."""
@@ -304,6 +453,16 @@ async def async_setup_entry(hass, entry, async_add_devices):
             ),
         )
         for entity_description in ENTITY_MAINTENANCE_DESCRIPTIONS
+    )
+
+    async_add_devices(
+        SmartHashtagRunningSensor(
+            coordinator=coordinator,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
+        )
+        for entity_description in ENTITY_RUNNING_DESCRIPTIONS
     )
 
 
