@@ -15,6 +15,7 @@ class SmartHashtagEntity(CoordinatorEntity):
     """BlueprintEntity class."""
 
     _attr_attribution = ATTRIBUTION
+    _attr_has_entity_name = True
 
     def __init__(self, coordinator: SmartHashtagDataUpdateCoordinator) -> None:
         """Initialize."""

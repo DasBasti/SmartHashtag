@@ -4,8 +4,12 @@ import dataclasses
 
 from datetime import timedelta
 
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.components.sensor import SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorEntityDescription,
+    SensorDeviceClass,
+)
+
 from pysmarthashtag.models import ValueWithUnit
 
 from .const import DOMAIN
@@ -17,16 +21,21 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         key="remaining_range",
         name="Remaining Range",
         icon="mdi:road-variant",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
         key="remaining_range_at_full_charge",
         name="Remaining Range at full battery",
         icon="mdi:road-variant",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
         key="remaining_battery_percent",
         name="Remaining battery charge",
         icon="mdi:percent",
+        device_class=SensorDeviceClass.BATTERY,
     ),
     # FIXME: Sort out type issue with None and Strings
     #    SensorEntityDescription(
@@ -48,26 +57,34 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         key="charging_voltage",
         name="Charging voltage",
         icon="mdi:car-battery",
+        device_class=SensorDeviceClass.VOLTAGE,
     ),
     SensorEntityDescription(
         key="charging_current",
         name="Charging current",
         icon="mdi:car-battery",
+        device_class=SensorDeviceClass.CURRENT,
+        native_unit_of_measurement="A",
     ),
     SensorEntityDescription(
         key="charging_power",
         name="Charging power",
         icon="mdi:car-battery",
+        device_class=SensorDeviceClass.POWER,
+        native_unit_of_measurement="W",
     ),
     SensorEntityDescription(
         key="charging_time_remaining",
         name="Charging time remaining",
         icon="mdi:clock-outline",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="min",
     ),
     SensorEntityDescription(
         key="charging_target_soc",
         name="Target state of charge",
         icon="mdi:percent",
+        device_class=SensorDeviceClass.BATTERY,
     ),
 )
 
@@ -91,41 +108,57 @@ ENTITY_TIRE_DESCRIPTIONS = (
         key="temperature_0",
         name="Tire temperature driver front",
         icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement="°C",
     ),
     SensorEntityDescription(
         key="temperature_1",
         name="Tire temperature driver rear",
         icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement="°C",
     ),
     SensorEntityDescription(
         key="temperature_2",
         name="Tire temperature passender front",
         icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement="°C",
     ),
     SensorEntityDescription(
         key="temperature_3",
         name="Tire temperature passenger rear",
         icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement="°C",
     ),
     SensorEntityDescription(
         key="tire_pressure_0",
         name="Tire pressure front driver",
         icon="mdi:gauge",
+        device_class=SensorDeviceClass.PRESSURE,
+        native_unit_of_measurement="hPa",
     ),
     SensorEntityDescription(
         key="tire_pressure_1",
         name="Tire pressure rear driver",
         icon="mdi:gauge",
+        device_class=SensorDeviceClass.PRESSURE,
+        native_unit_of_measurement="hPa",
     ),
     SensorEntityDescription(
         key="tire_pressure_2",
         name="Tire pressure front passenger",
         icon="mdi:gauge",
+        device_class=SensorDeviceClass.PRESSURE,
+        native_unit_of_measurement="hPa",
     ),
     SensorEntityDescription(
         key="tire_pressure_3",
         name="Tire pressure rear passenger",
         icon="mdi:gauge",
+        device_class=SensorDeviceClass.PRESSURE,
+        native_unit_of_measurement="hPa",
     ),
 )
 
@@ -134,22 +167,28 @@ ENTITY_GENERAL_DESCRIPTIONS = (
         key="last_update",
         name="Last update",
         icon="mdi:update",
+        device_class=SensorDeviceClass.TIMESTAMP,
     ),
     SensorEntityDescription(
         key="odometer",
-        name="ODO",
+        name="Odometer",
         icon="mdi:counter",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
         key="service_daysToService",
         name="Service due in",
         icon="mdi:calendar-check",
-        native_unit_of_measurement="days",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement="d",
     ),
     SensorEntityDescription(
         key="service_distanceToService",
         name="Service due in",
         icon="mdi:map-marker-distance",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement="km",
     ),
 )
 
