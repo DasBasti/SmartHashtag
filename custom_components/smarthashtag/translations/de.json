@@ -1,0 +1,25 @@
+{
+  "config": {
+    "flow_title": "Smart #1/#3",
+    "step": {
+      "user": {
+        "description": "Smart.com Login https://id.smart.com",
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort"
+        }
+      },
+      "vehicle": {
+        "description": "Fahrzeug VIN auswählen",
+        "data": {
+          "vehicle": "Vehicle Identification Number"
+        }
+      }
+    },
+    "error": {
+      "auth": "Authentifizierung fehlgeschlagen, bitte überprüfen Sie Ihre Anmeldeinformationen und versuchen Sie es erneut."
+    },
+    "abort": {
+    }
+  }
+}
