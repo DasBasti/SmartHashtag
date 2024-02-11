@@ -19,7 +19,6 @@
     "error": {
       "auth": "Auth failed, please check your username and password"
     },
-    "abort": {
-    }
+    "abort": {}
   }
 }
