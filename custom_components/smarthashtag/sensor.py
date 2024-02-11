@@ -343,7 +343,7 @@ ENTITY_RUNNING_DESCRIPTIONS = (
     SensorEntityDescription(
         key="trun_indicator_left",
         name="Turn indicator left",
-        icon="mdi:ar-parking-lights",
+        icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="trun_indicator_right",
