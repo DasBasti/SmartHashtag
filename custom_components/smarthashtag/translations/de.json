@@ -20,5 +20,16 @@
       "auth": "Authentifizierung fehlgeschlagen, bitte überprüfen Sie Ihre Anmeldeinformationen und versuchen Sie es erneut."
     },
     "abort": {}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Sekunden zwischen den Scans",
+          "charging_interval": "Sekunden zwischen den Scans während des Ladens",
+          "driving_interval": "Sekunden zwischen den Scans während der Fahrt"
+        }
+      }
+    }
   }
 }

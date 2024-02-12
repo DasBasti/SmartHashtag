@@ -4,15 +4,29 @@ from typing import KeysView
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD
-from homeassistant.const import CONF_USERNAME
+from homeassistant.const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    CONF_SCAN_INTERVAL,
+)
+from homeassistant.core import callback
 from homeassistant.helpers import selector
+from homeassistant.helpers import config_validation as cv
 from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.models import (
     SmartAPIError,
 )
 
-from .const import DOMAIN, NAME
+from .const import (
+    CONF_CHARGING_INTERVAL,
+    CONF_DRIVING_INTERVAL,
+    DEFAULT_CHARGING_INTERVAL,
+    DEFAULT_DRIVING_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    MIN_SCAN_INTERVAL,
+    NAME,
+)
 from .const import LOGGER
 from .const import CONF_VEHICLE
 from .const import CONF_VEHICLES
@@ -99,3 +113,46 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         await client.login()
         await client.get_vehicles()
         return client.vehicles.keys()
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
+
+
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle a option flow for Smart."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(self, user_input=None):
+        """Handle options flow."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        data_schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_SCAN_INTERVAL,
+                    default=self.config_entry.options.get(
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    ),
+                ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
+                vol.Optional(
+                    CONF_CHARGING_INTERVAL,
+                    default=self.config_entry.options.get(
+                        CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
+                    ),
+                ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
+                vol.Optional(
+                    CONF_DRIVING_INTERVAL,
+                    default=self.config_entry.options.get(
+                        CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
+                    ),
+                ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=data_schema)
