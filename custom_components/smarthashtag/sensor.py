@@ -9,10 +9,21 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorDeviceClass,
 )
-
+from homeassistant.const import (
+    CONF_SCAN_INTERVAL,
+)
 from pysmarthashtag.models import ValueWithUnit
 
-from .const import CONF_VEHICLE, DOMAIN
+from .const import (
+    CONF_CHARGING_INTERVAL,
+    CONF_DRIVING_INTERVAL,
+    CONF_VEHICLE,
+    DEFAULT_CHARGING_INTERVAL,
+    DEFAULT_DRIVING_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    MIN_SCAN_INTERVAL,
+)
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
 
@@ -247,6 +258,11 @@ ENTITY_GENERAL_DESCRIPTIONS = (
         name="Last update",
         icon="mdi:update",
         device_class=SensorDeviceClass.TIMESTAMP,
+    ),
+    SensorEntityDescription(
+        key="engine_state",
+        name="Engine state",
+        icon="mdi:car-engine",
     ),
 )
 
@@ -491,9 +507,17 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
 
         if "charging_current" in self.entity_description.key:
             if data.value != 0:
-                self.coordinator.update_interval = timedelta(seconds=30)
+                self.coordinator.update_interval = timedelta(
+                    seconds=self.coordinator.config_entry.options.get(
+                        CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
+                    )
+                )
             else:
-                self.coordinator.update_interval = timedelta(minutes=5)
+                self.coordinator.update_interval = timedelta(
+                    seconds=self.coordinator.config_entry.options.get(
+                        MIN_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    )
+                )
 
         if "charging_power" in self.entity_description.key:
             if data.value == -0.0:
@@ -589,6 +613,21 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                 self.coordinator.account.vehicles.get(vin),
                 remove_vin_from_key(self.entity_description.key),
             )
+
+        if key == "engine_state":
+            if data == "running":
+                self.coordinator.update_interval = timedelta(
+                    seconds=self.coordinator.config_entry.options.get(
+                        CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
+                    )
+                )
+            else:
+                self.coordinator.update_interval = timedelta(
+                    seconds=self.coordinator.config_entry.options.get(
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    )
+                )
+
         if isinstance(data, ValueWithUnit):
             return data.value
         return data

@@ -20,5 +20,16 @@
       "auth": "Auth failed, please check your username and password"
     },
     "abort": {}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Seconds between each scan",
+          "charging_interval": "Seconds between each scan while charging",
+          "driving_interval": "Seconds between each scan while driving"
+        }
+      }
+    }
   }
 }
