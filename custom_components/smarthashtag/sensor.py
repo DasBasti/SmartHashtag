@@ -30,6 +30,7 @@ from .entity import SmartHashtagEntity
 ENTITY_BATTERY_DESCRIPTIONS = (
     SensorEntityDescription(
         key="remaining_range",
+        translation_key="remaining_range",
         name="Remaining Range",
         icon="mdi:road-variant",
         device_class=SensorDeviceClass.DISTANCE,
@@ -37,6 +38,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="remaining_range_at_full_charge",
+        translation_key="remaining_range_at_full_charge",
         name="Remaining Range at full battery",
         icon="mdi:road-variant",
         device_class=SensorDeviceClass.DISTANCE,
@@ -44,6 +46,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="remaining_battery_percent",
+        translation_key="remaining_battery_percent",
         name="Remaining battery charge",
         icon="mdi:percent",
         device_class=SensorDeviceClass.BATTERY,
@@ -56,22 +59,26 @@ ENTITY_BATTERY_DESCRIPTIONS = (
     #    ),
     SensorEntityDescription(
         key="charger_connection_status",
+        translation_key="charger_connection_status",
         name="Charger connection status",
         icon="mdi:battery-unknown",
     ),
     SensorEntityDescription(
         key="is_charger_connected",
+        translation_key="is_charger_connected",
         name="is charger connected",
         icon="mdi:power-plug-battery",
     ),
     SensorEntityDescription(
         key="charging_voltage",
+        translation_key="charging_voltage",
         name="Charging voltage",
         icon="mdi:car-battery",
         device_class=SensorDeviceClass.VOLTAGE,
     ),
     SensorEntityDescription(
         key="charging_current",
+        translation_key="charging_current",
         name="Charging current",
         icon="mdi:car-battery",
         device_class=SensorDeviceClass.CURRENT,
@@ -79,6 +86,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="charging_power",
+        translation_key="charging_power",
         name="Charging power",
         icon="mdi:car-battery",
         device_class=SensorDeviceClass.POWER,
@@ -86,6 +94,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="charging_time_remaining",
+        translation_key="charging_time_remaining",
         name="Charging time remaining",
         icon="mdi:clock-outline",
         device_class=SensorDeviceClass.DURATION,
@@ -93,6 +102,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="charging_target_soc",
+        translation_key="charging_target_soc",
         name="Target state of charge",
         icon="mdi:percent",
         device_class=SensorDeviceClass.BATTERY,
@@ -103,11 +113,13 @@ ENTITY_BATTERY_DESCRIPTIONS = (
 ENTITY_POSITION_DESCRIPTIONS = (
     SensorEntityDescription(
         key="position",
+        translation_key="position",
         name="Postion",
         icon="mdi:map-marker",
     ),
     SensorEntityDescription(
         key="position_can_be_trusted",
+        translation_key="position_can_be_trusted",
         name="Position can be trusted",
         icon="mdi:map-marker-alert",
     ),
@@ -117,6 +129,7 @@ ENTITY_POSITION_DESCRIPTIONS = (
 ENTITY_TIRE_DESCRIPTIONS = (
     SensorEntityDescription(
         key="temperature_0",
+        translation_key="temperature_0",
         name="Tire temperature driver front",
         icon="mdi:thermometer",
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -124,6 +137,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="temperature_1",
+        translation_key="temperature_1",
         name="Tire temperature driver rear",
         icon="mdi:thermometer",
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -131,6 +145,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="temperature_2",
+        translation_key="temperature_2",
         name="Tire temperature passender front",
         icon="mdi:thermometer",
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -138,6 +153,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="temperature_3",
+        translation_key="temperature_3",
         name="Tire temperature passenger rear",
         icon="mdi:thermometer",
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -145,6 +161,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="tire_pressure_0",
+        translation_key="tire_pressure_0",
         name="Tire pressure front driver",
         icon="mdi:gauge",
         device_class=SensorDeviceClass.PRESSURE,
@@ -152,6 +169,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="tire_pressure_1",
+        translation_key="tire_pressure_1",
         name="Tire pressure rear driver",
         icon="mdi:gauge",
         device_class=SensorDeviceClass.PRESSURE,
@@ -159,6 +177,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="tire_pressure_2",
+        translation_key="tire_pressure_2",
         name="Tire pressure front passenger",
         icon="mdi:gauge",
         device_class=SensorDeviceClass.PRESSURE,
@@ -166,6 +185,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="tire_pressure_3",
+        translation_key="tire_pressure_3",
         name="Tire pressure rear passenger",
         icon="mdi:gauge",
         device_class=SensorDeviceClass.PRESSURE,
@@ -176,32 +196,38 @@ ENTITY_TIRE_DESCRIPTIONS = (
 ENTITY_MAINTENANCE_DESCRIPTIONS = (
     SensorEntityDescription(
         key="main_battery_state_of_charge",
+        translation_key="main_battery_state_of_charge",
         name="Main battery state of charge",
         icon="mdi:car-battery",
     ),
     SensorEntityDescription(
         key="main_battery_charge_level",
+        translation_key="main_battery_charge_level",
         name="Main battery charge level",
         icon="mdi:car-battery",
         device_class=SensorDeviceClass.BATTERY,
     ),
     SensorEntityDescription(
         key="main_battery_energy_level",
+        translation_key="main_battery_energy_level",
         name="Main battery energy level",
         icon="mdi:car-battery",
     ),
     SensorEntityDescription(
         key="main_battery_state_of_health",
+        translation_key="main_battery_state_of_health",
         name="Main battery state of health",
         icon="mdi:car-battery",
     ),
     SensorEntityDescription(
         key="main_batter_power_level",
+        translation_key="main_batter_power_level",
         name="Main battery power level",
         icon="mdi:car-battery",
     ),
     SensorEntityDescription(
         key="main_battery_voltage",
+        translation_key="main_battery_voltage",
         name="Main battery voltage",
         icon="mdi:car-battery",
         device_class=SensorDeviceClass.VOLTAGE,
@@ -209,6 +235,7 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="odometer",
+        translation_key="odometer",
         name="Odometer",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
@@ -216,6 +243,7 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="days_to_service",
+        translation_key="days_to_service",
         name="Service due in",
         icon="mdi:calendar-check",
         device_class=SensorDeviceClass.DURATION,
@@ -223,6 +251,7 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="engine_hours_to_service",
+        translation_key="engine_hours_to_service",
         name="Service due in",
         icon="mdi:calendar-check",
         device_class=SensorDeviceClass.DURATION,
@@ -230,6 +259,7 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="distance_to_service",
+        translation_key="distance_to_service",
         name="Service due in",
         icon="mdi:calendar-check",
         device_class=SensorDeviceClass.DISTANCE,
@@ -237,16 +267,19 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="break_fluid_level_status",
+        translation_key="break_fluid_level_status",
         name="Break fluid level status",
         icon="mdi:car-brake-fluid-level",
     ),
     SensorEntityDescription(
         key="washer_fluid_level_status",
+        translation_key="washer_fluid_level_status",
         name="Washer fluid level status",
         icon="mdi:wiper-wash",
     ),
     SensorEntityDescription(
         key="service_warning_status",
+        translation_key="service_warning_status",
         name="Service warning status",
         icon="mdi:account-wrench",
     ),
@@ -255,6 +288,7 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
 ENTITY_GENERAL_DESCRIPTIONS = (
     SensorEntityDescription(
         key="last_update",
+        translation_key="last_update",
         name="Last update",
         icon="mdi:update",
         device_class=SensorDeviceClass.TIMESTAMP,
@@ -269,36 +303,43 @@ ENTITY_GENERAL_DESCRIPTIONS = (
 ENTITY_RUNNING_DESCRIPTIONS = (
     SensorEntityDescription(
         key="ahbc_status",
+        translation_key="ahbc_status",
         name="Adaptive high beam control",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="goodbye",
+        translation_key="goodbye",
         name="Goodbye Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="home_safe",
+        translation_key="home_safe",
         name="Home Safe Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="corner_light",
+        translation_key="corner_light",
         name="Corner Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="front_fog_light",
+        translation_key="front_fog_light",
         name="Front Fog Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="stop_light",
+        translation_key="stop_light",
         name="Stop Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="trip_meter1",
+        translation_key="trip_meter1",
         name="Trip meter 1",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
@@ -306,6 +347,7 @@ ENTITY_RUNNING_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="trip_meter2",
+        translation_key="trip_meter2",
         name="Trip meter 2",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
@@ -313,71 +355,85 @@ ENTITY_RUNNING_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="approach",
+        translation_key="approach",
         name="Approach Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="high_beam",
+        translation_key="high_beam",
         name="High Beam Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="engine_coolant_level_status",
+        translation_key="engine_coolant_level_status",
         name="Engine coolant level status",
         icon="mdi:car-coolant-level",
     ),
     SensorEntityDescription(
         key="low_beam",
+        translation_key="low_beam",
         name="Low Beam Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="position_light_rear",
+        translation_key="position_light_rear",
         name="Position Light Rear",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="light_show",
+        translation_key="light_show",
         name="Light Show",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="welcome",
+        translation_key="welcome",
         name="Welcome Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="drl",
+        translation_key="drl",
         name="Daytime running light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="ahl",
+        translation_key="ahl",
         name="Adaptive headlight",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="trun_indicator_left",
+        translation_key="trun_indicator_left",
         name="Turn indicator left",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="trun_indicator_right",
+        translation_key="trun_indicator_right",
         name="Turn indicator right",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="adaptive_front_light",
+        translation_key="adaptive_front_light",
         name="Adaptive front light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="dbl",
+        translation_key="dbl",
         name="Double Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="average_speed",
+        translation_key="average_speed",
         name="Average speed",
         icon="mdi:speedometer",
         device_class=SensorDeviceClass.SPEED,
@@ -385,31 +441,37 @@ ENTITY_RUNNING_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="position_light_front",
+        translation_key="position_light_front",
         name="Position Light Front",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="reverse_light",
+        translation_key="reverse_light",
         name="Reverse Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="highway_light",
+        translation_key="highway_light",
         name="Highway Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="rear_fog_light",
+        translation_key="rear_fog_light",
         name="Rear Fog Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="flash_light",
+        translation_key="flash_light",
         name="Flash Light",
         icon="mdi:car-parking-lights",
     ),
     SensorEntityDescription(
         key="all_weather_light",
+        translation_key="all_weather_light",
         name="All Weather Light",
         icon="mdi:car-parking-lights",
     ),
