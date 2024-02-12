@@ -31,5 +31,195 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "remaining_range": {
+        "name": "Reichweite"
+      },
+      "remaining_range_at_full_charge": {
+        "name": "Reichweite bei voller Ladung"
+      },
+      "remaining_battery_percent": {
+        "name": "Batterie"
+      },
+      "charger_connection_status": {
+        "name": "Ladesanschluss"
+      },
+      "is_charger_connected": {
+        "name": "Ladegerät angeschlossen"
+      },
+      "charging_voltage": {
+        "name": "Ladespannung"
+      },
+      "charging_current": {
+        "name": "Ladestrom"
+      },
+      "charging_power": {
+        "name": "Ladeleistung"
+      },
+      "charging_time_remaining": {
+        "name": "Verbleibende Ladezeit"
+      },
+      "charging_target_soc": {
+        "name": "Ladeziel"
+      },
+      "position": {
+        "name": "Position"
+      },
+      "position_can_be_trusted": {
+        "name": "Position vertrauenswürdig"
+      },
+      "temperature_0": {
+        "name": "Temperatur Fahrerseite vorne"
+      },
+      "temperature_1": {
+        "name": "Temperatur Fahrerseite hinten"
+      },
+      "temperature_2": {
+        "name": "Temperatur Beifahrerseite vorne"
+      },
+      "temperature_3": {
+        "name": "Temperatur Beifahrerseite hinten"
+      },
+      "tire_pressure_0": {
+        "name": "Reifendruck Fahrerseite vorne"
+      },
+      "tire_pressure_1": {
+        "name": "Reifendruck Fahrerseite hinten"
+      },
+      "tire_pressure_2": {
+        "name": "Reifendruck Beifahrerseite vorne"
+      },
+      "tire_pressure_3": {
+        "name": "Reifendruck Beifahrerseite hinten"
+      },
+      "main_battery_state_of_charge": {
+        "name": "12V Batterie Ladezustand"
+      },
+      "main_battery_charge_level": {
+        "name": "12V Batterie Ladestand"
+      },
+      "main_battery_energy_level": {
+        "name": "12V Batterie Energiestand"
+      },
+      "main_battery_state_of_health": {
+        "name": "12V Batterie Zustand"
+      },
+      "main_battery_power_level": {
+        "name": "12V Batterie Leistung"
+      },
+      "main_battery_voltage": {
+        "name": "12V Batterie Spannung"
+      },
+      "odometer": {
+        "name": "Kilometerstand"
+      },
+      "days_to_service": {
+        "name": "Tage bis Service"
+      },
+      "engine_hours_to_service": {
+        "name": "Motorstunden bis Service"
+      },
+      "distance_to_service": {
+        "name": "Kilometer bis Service"
+      },
+      "break_fluid_level_status": {
+        "name": "Bremsflüssigkeitsstand"
+      },
+      "washer_fluid_level_status": {
+        "name": "Wischwasserstand"
+      },
+      "service_warning_status": {
+        "name": "Service Warnung"
+      },
+      "last_update": {
+        "name": "Letztes Daten Update"
+      },
+      "ahbc_status": {
+        "name": "Fernlichtassistent"
+      },
+      "goodbye": {
+        "name": "Goodbye Licht"
+      },
+      "home_safe": {
+        "name": "Home Safe Licht"
+      },
+      "corner_light": {
+        "name": "Kurvenlicht"
+      },
+      "front_fog_light": {
+        "name": "Nebelscheinwerfer vorne"
+      },
+      "stop_light": {
+        "name": "Bremslicht"
+      },
+      "trip_meter1": {
+        "name": "Tageskilometerzähler 1"
+      },
+      "trip_meter2": {
+        "name": "Tageskilometerzähler 2"
+      },
+      "approach": {
+        "name": "Annäherungslicht"
+      },
+      "high_beam": {
+        "name": "Fernlicht"
+      },
+      "engine_coolant_level_status": {
+        "name": "Motor Kühlmittelstand"
+      },
+      "low_beam": {
+        "name": "Abblendlicht"
+      },
+      "position_light_rear": {
+        "name": "Rücklicht"
+      },
+      "light_show": {
+        "name": "Lichtshow"
+      },
+      "welcome": {
+        "name": "Willkommenslicht"
+      },
+      "drl": {
+        "name": "Tagfahrlicht"
+      },
+      "ahl": {
+        "name": "Adaptive Scheinwerfer"
+      },
+      "turn_indicator_left": {
+        "name": "Blinker Links"
+      },
+      "turn_indicator_right": {
+        "name": "Blinker Rechts"
+      },
+      "adaptive_front_lighting": {
+        "name": "Adaptive Frontbeleuchtung"
+      },
+      "dbl": {
+        "name": "Dynamisches Blinklicht"
+      },
+      "average_speed": {
+        "name": "Durchschnittsgeschwindigkeit"
+      },
+      "position_light_front": {
+        "name": "Frontlicht"
+      },
+      "reverse_light": {
+        "name": "Rückfahrlicht"
+      },
+      "highway_light": {
+        "name": "Autobahnlicht"
+      },
+      "rear_fog_light": {
+        "name": "Nebelschlussleuchte"
+      },
+      "flash_light": {
+        "name": "Warnblinker"
+      },
+      "all_weather_light": {
+        "name": "Allwetterlicht"
+      }
+    }
   }
 }

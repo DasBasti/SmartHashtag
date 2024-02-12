@@ -31,5 +31,195 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "remaining_range": {
+        "name": "Range"
+      },
+      "remaining_range_at_full_charge": {
+        "name": "Range at full charge"
+      },
+      "remaining_battery_percent": {
+        "name": "Battery"
+      },
+      "charger_connection_status": {
+        "name": "Charger connection"
+      },
+      "is_charger_connected": {
+        "name": "Charger connected"
+      },
+      "charging_voltage": {
+        "name": "Charging voltage"
+      },
+      "charging_current": {
+        "name": "Charging current"
+      },
+      "charging_power": {
+        "name": "Charging power"
+      },
+      "charging_time_remaining": {
+        "name": "Charging time remaining"
+      },
+      "charging_target_soc": {
+        "name": "Charging target"
+      },
+      "position": {
+        "name": "Position"
+      },
+      "position_can_be_trusted": {
+        "name": "Position can be trusted"
+      },
+      "temperature_0": {
+        "name": "Tire temperature driver front"
+      },
+      "temperature_1": {
+        "name": "Tire temperature driver rear"
+      },
+      "temperature_2": {
+        "name": "Tire temperature passenger front"
+      },
+      "temperature_3": {
+        "name": "Tire temperature passenger rear"
+      },
+      "tire_pressure_0": {
+        "name": "Tire pressure driver front"
+      },
+      "tire_pressure_1": {
+        "name": "Tire pressure driver rear"
+      },
+      "tire_pressure_2": {
+        "name": "Tire pressure passenger front"
+      },
+      "tire_pressure_3": {
+        "name": "Tire pressure passenger rear"
+      },
+      "main_battery_state_of_charge": {
+        "name": "12V battery state of charge"
+      },
+      "main_battery_charge_level": {
+        "name": "12V battery charge level"
+      },
+      "main_battery_energy_level": {
+        "name": "12V battery energy level"
+      },
+      "main_battery_state_of_health": {
+        "name": "12V battery state of health"
+      },
+      "main_battery_power_level": {
+        "name": "12V battery power level"
+      },
+      "main_battery_voltage": {
+        "name": "12V battery voltage"
+      },
+      "odometer": {
+        "name": "Odometer"
+      },
+      "days_to_service": {
+        "name": "Days to service"
+      },
+      "engine_hours_to_service": {
+        "name": "Engine hours to service"
+      },
+      "distance_to_service": {
+        "name": "Distance to service"
+      },
+      "break_fluid_level_status": {
+        "name": "Break fluid level"
+      },
+      "washer_fluid_level_status": {
+        "name": "Washer fluid level"
+      },
+      "service_warning_status": {
+        "name": "Service warning"
+      },
+      "last_update": {
+        "name": "Last update"
+      },
+      "ahbc_status": {
+        "name": "Adaptive High Beam Control"
+      },
+      "goodbye": {
+        "name": "Goodbye light"
+      },
+      "home_safe": {
+        "name": "Home Safe Light"
+      },
+      "corner_light": {
+        "name": "Corner light"
+      },
+      "front_fog_light": {
+        "name": "Front fog light"
+      },
+      "stop_light": {
+        "name": "Stop light"
+      },
+      "trip_meter1": {
+        "name": "Trip meter 1"
+      },
+      "trip_meter2": {
+        "name": "Trip meter 2"
+      },
+      "approach": {
+        "name": "Approach light"
+      },
+      "high_beam": {
+        "name": "High beam"
+      },
+      "engine_coolant_level_status": {
+        "name": "Engine coolant level"
+      },
+      "low_beam": {
+        "name": "Low beam"
+      },
+      "position_light_rear": {
+        "name": "Rear position light"
+      },
+      "light_show": {
+        "name": "Light show"
+      },
+      "welcome": {
+        "name": "Welcome light"
+      },
+      "drl": {
+        "name": "Daytime running light"
+      },
+      "ahl": {
+        "name": "Adaptive headlight"
+      },
+      "turn_indicator_left": {
+        "name": "Indicator left"
+      },
+      "turn_indicator_right": {
+        "name": "Indicator right"
+      },
+      "adaptive_front_lighting": {
+        "name": "Adaptive front lighti"
+      },
+      "dbl": {
+        "name": "Dynamic bending light"
+      },
+      "average_speed": {
+        "name": "Average speed"
+      },
+      "position_light_front": {
+        "name": "Front position light"
+      },
+      "reverse_light": {
+        "name": "Reverse light"
+      },
+      "highway_light": {
+        "name": "Highway light"
+      },
+      "rear_fog_light": {
+        "name": "Rear fog light"
+      },
+      "flash_light": {
+        "name": "Flash light"
+      },
+      "all_weather_light": {
+        "name": "All weather light"
+      }
+    }
   }
 }
