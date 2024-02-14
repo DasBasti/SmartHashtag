@@ -295,8 +295,9 @@ ENTITY_GENERAL_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="engine_state",
+        translation_key="engine_state",
         name="Engine state",
-        icon="mdi:car-engine",
+        icon="mdi:engine-off",
     ),
 )
 
@@ -683,12 +684,14 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                         CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
                     )
                 )
+                self.icon = "mdi:engine"
             else:
                 self.coordinator.update_interval = timedelta(
                     seconds=self.coordinator.config_entry.options.get(
                         CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                     )
                 )
+                self.icon = "mdi:engine-off"
 
         if isinstance(data, ValueWithUnit):
             return data.value
