@@ -219,6 +219,13 @@
       },
       "all_weather_light": {
         "name": "All weather light"
+      },
+      "engine_state": {
+        "name": "Motor",
+        "state": {
+          "engine_off": "Off",
+          "engine_running": "On"
+        }
       }
     }
   }

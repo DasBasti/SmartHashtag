@@ -219,6 +219,13 @@
       },
       "all_weather_light": {
         "name": "Allwetterlicht"
+      },
+      "engine_state": {
+        "name": "Motor",
+        "state": {
+          "engine_off": "Aus",
+          "engine_running": "An"
+        }
       }
     }
   }
