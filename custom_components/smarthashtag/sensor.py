@@ -677,7 +677,7 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
             )
 
         if key == "engine_state":
-            if data == "running":
+            if data == "engine_running":
                 self.coordinator.update_interval = timedelta(
                     seconds=self.coordinator.config_entry.options.get(
                         CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
