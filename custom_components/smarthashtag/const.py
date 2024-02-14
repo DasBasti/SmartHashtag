@@ -19,7 +19,8 @@ ICON = "mdi:car-electric"
 
 # Platforms
 SENSOR = "sensor"
-PLATFORMS = [SENSOR]
+DEVICE_TRACKER = "device_tracker"
+PLATFORMS = [SENSOR, DEVICE_TRACKER]
 
 
 # Configuration and options
