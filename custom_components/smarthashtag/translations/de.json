@@ -137,22 +137,46 @@
         "name": "Letztes Daten Update"
       },
       "ahbc_status": {
-        "name": "Fernlichtassistent"
+        "name": "Fernlichtassistent",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "goodbye": {
-        "name": "Goodbye Licht"
+        "name": "Goodbye Licht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "home_safe": {
-        "name": "Home Safe Licht"
+        "name": "Home Safe Licht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "corner_light": {
-        "name": "Kurvenlicht"
+        "name": "Kurvenlicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "front_fog_light": {
-        "name": "Nebelscheinwerfer vorne"
+        "name": "Nebelscheinwerfer vorne",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "stop_light": {
-        "name": "Bremslicht"
+        "name": "Bremslicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "trip_meter1": {
         "name": "Tageskilometerzähler 1"
@@ -161,64 +185,136 @@
         "name": "Tageskilometerzähler 2"
       },
       "approach": {
-        "name": "Annäherungslicht"
+        "name": "Annäherungslicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "high_beam": {
-        "name": "Fernlicht"
+        "name": "Fernlicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "engine_coolant_level_status": {
         "name": "Motor Kühlmittelstand"
       },
       "low_beam": {
-        "name": "Abblendlicht"
+        "name": "Abblendlicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "position_light_rear": {
-        "name": "Rücklicht"
+        "name": "Rücklicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "light_show": {
-        "name": "Lichtshow"
+        "name": "Lichtshow",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "welcome": {
-        "name": "Willkommenslicht"
+        "name": "Willkommenslicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "drl": {
-        "name": "Tagfahrlicht"
+        "name": "Tagfahrlicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "ahl": {
-        "name": "Adaptive Scheinwerfer"
+        "name": "Adaptive Scheinwerfer",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "turn_indicator_left": {
-        "name": "Blinker Links"
+        "name": "Blinker Links",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "turn_indicator_right": {
-        "name": "Blinker Rechts"
+        "name": "Blinker Rechts",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
-      "adaptive_front_lighting": {
-        "name": "Adaptive Frontbeleuchtung"
+      "adaptive_front_light": {
+        "name": "Adaptive Frontbeleuchtung",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "dbl": {
-        "name": "Dynamisches Blinklicht"
+        "name": "Dynamisches Blinklicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "average_speed": {
         "name": "Durchschnittsgeschwindigkeit"
       },
       "position_light_front": {
-        "name": "Frontlicht"
+        "name": "Frontlicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "reverse_light": {
-        "name": "Rückfahrlicht"
+        "name": "Rückfahrlicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "highway_light": {
-        "name": "Autobahnlicht"
+        "name": "Autobahnlicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "rear_fog_light": {
-        "name": "Nebelschlussleuchte"
+        "name": "Nebelschlussleuchte",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "flash_light": {
-        "name": "Warnblinker"
+        "name": "Warnblinker",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "all_weather_light": {
-        "name": "Allwetterlicht"
+        "name": "Allwetterlicht",
+        "state": {
+          "0": "Aus",
+          "1": "An"
+        }
       },
       "engine_state": {
         "name": "Motor",
