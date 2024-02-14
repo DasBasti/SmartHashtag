@@ -137,22 +137,46 @@
         "name": "Last update"
       },
       "ahbc_status": {
-        "name": "Adaptive High Beam Control"
+        "name": "Adaptive High Beam Control",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "goodbye": {
-        "name": "Goodbye light"
+        "name": "Goodbye light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "home_safe": {
-        "name": "Home Safe Light"
+        "name": "Home Safe Light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "corner_light": {
-        "name": "Corner light"
+        "name": "Corner light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "front_fog_light": {
-        "name": "Front fog light"
+        "name": "Front fog light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "stop_light": {
-        "name": "Stop light"
+        "name": "Stop light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "trip_meter1": {
         "name": "Trip meter 1"
@@ -161,64 +185,136 @@
         "name": "Trip meter 2"
       },
       "approach": {
-        "name": "Approach light"
+        "name": "Approach light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "high_beam": {
-        "name": "High beam"
+        "name": "High beam",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "engine_coolant_level_status": {
         "name": "Engine coolant level"
       },
       "low_beam": {
-        "name": "Low beam"
+        "name": "Low beam",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "position_light_rear": {
-        "name": "Rear position light"
+        "name": "Rear position light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "light_show": {
-        "name": "Light show"
+        "name": "Light show",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "welcome": {
-        "name": "Welcome light"
+        "name": "Welcome light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "drl": {
-        "name": "Daytime running light"
+        "name": "Daytime running light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "ahl": {
-        "name": "Adaptive headlight"
+        "name": "Adaptive headlight",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "turn_indicator_left": {
-        "name": "Indicator left"
+        "name": "Indicator left",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "turn_indicator_right": {
-        "name": "Indicator right"
+        "name": "Indicator right",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
-      "adaptive_front_lighting": {
-        "name": "Adaptive front lighti"
+      "adaptive_front_light": {
+        "name": "Adaptive front lighting",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "dbl": {
-        "name": "Dynamic bending light"
+        "name": "Dynamic bending light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "average_speed": {
         "name": "Average speed"
       },
       "position_light_front": {
-        "name": "Front position light"
+        "name": "Front position light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "reverse_light": {
-        "name": "Reverse light"
+        "name": "Reverse light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "highway_light": {
-        "name": "Highway light"
+        "name": "Highway light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "rear_fog_light": {
-        "name": "Rear fog light"
+        "name": "Rear fog light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "flash_light": {
-        "name": "Flash light"
+        "name": "Flash light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "all_weather_light": {
-        "name": "All weather light"
+        "name": "All weather light",
+        "state": {
+          "0": "Off",
+          "1": "On"
+        }
       },
       "engine_state": {
         "name": "Motor",
