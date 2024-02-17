@@ -478,6 +478,237 @@ ENTITY_RUNNING_DESCRIPTIONS = (
     ),
 )
 
+ENTITY_CLIMATE_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="air_blower_active",
+        translation_key="air_blower_active",
+        name="Air blower active",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="cds_climate_active",
+        translation_key="cds_climate_active",
+        name="CDS climate active",
+        icon="mdi:snowflake",
+    ),
+    SensorEntityDescription(
+        key="climate_over_heat_protection_active",
+        translation_key="climate_over_heat_protection_active",
+        name="Climate over heat protection active",
+        icon="mdi:thermostat",
+    ),
+    SensorEntityDescription(
+        key="curtain_open_status",
+        translation_key="curtain_open_status",
+        name="Curtain open status",
+        icon="mdi:curtains",
+    ),
+    SensorEntityDescription(
+        key="defrosting_active",
+        translation_key="defrosting_active",
+        name="Defrosting active",
+        icon="mdi:snowflake",
+    ),
+    SensorEntityDescription(
+        key="driver_heating_detail",
+        translation_key="driver_heating_detail",
+        name="Driver heating detail",
+        icon="mdi:snowflake",
+    ),
+    SensorEntityDescription(
+        key="driver_heating_status",
+        translation_key="driver_heating_status",
+        name="Driver heating status",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="driver_ventilation_detail",
+        translation_key="driver_ventilation_detail",
+        name="Driver ventilation detail",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="driver_ventilation_status",
+        translation_key="driver_ventilation_status",
+        name="Driver ventilation status",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="exterior_temperature",
+        translation_key="exterior_temperature",
+        name="Exterior temperature",
+        icon="mdi:home-thermometer-outline",
+    ),
+    SensorEntityDescription(
+        key="frag_active",
+        translation_key="frag_active",
+        name="FRAG active",
+        icon="mdi:chat-question-outline",
+    ),
+    SensorEntityDescription(
+        key="interior_temperature",
+        translation_key="interior_temperature",
+        name="Interior temperature",
+        icon="mdi:thermometer",
+    ),
+    SensorEntityDescription(
+        key="passenger_heating_detail",
+        translation_key="passenger_heating_detail",
+        name="Passenger heating detail",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="passenger_heating_status",
+        translation_key="passenger_heating_status",
+        name="Passenger heating status",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="passenger_ventilation_detail",
+        translation_key="passenger_ventilation_detail",
+        name="Passenger ventilation detail",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="passenger_ventilation_status",
+        translation_key="passenger_ventilation_status",
+        name="Passenger ventilation status",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="pre_climate_active",
+        translation_key="pre_climate_active",
+        name="Pre climate active",
+        icon="mdi:heat-pump-outline",
+    ),
+    SensorEntityDescription(
+        key="rear_left_heating_detail",
+        translation_key="rear_left_heating_detail",
+        name="Rear left heating detail",
+        icon="mdi:heat-pump-outline",
+    ),
+    SensorEntityDescription(
+        key="rear_left_heating_status",
+        translation_key="rear_left_heating_status",
+        name="Rear left heating status",
+        icon="mdi:heat-pump-outline",
+    ),
+    SensorEntityDescription(
+        key="rear_left_ventilation_detail",
+        translation_key="rear_left_ventilation_detail",
+        name="Rear left ventilation detail",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="rear_left_ventilation_status",
+        translation_key="rear_left_ventilation_status",
+        name="Rear left ventilation status",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="rear_right_heating_detail",
+        translation_key="rear_right_heating_detail",
+        name="Rear right heating detail",
+        icon="mdi:heat-pump-outline",
+    ),
+    SensorEntityDescription(
+        key="rear_right_heating_status",
+        translation_key="rear_right_heating_status",
+        name="Rear right heating status",
+        icon="mdi:heat-pump-outline",
+    ),
+    SensorEntityDescription(
+        key="rear_right_ventilation_detail",
+        translation_key="rear_right_ventilation_detail",
+        name="Rear right ventilation detail",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="rear_right_ventilation_status",
+        translation_key="rear_right_ventilation_status",
+        name="Rear right ventilation status",
+        icon="mdi:fan",
+    ),
+    SensorEntityDescription(
+        key="steering_wheel_heating_status",
+        translation_key="steering_wheel_heating_status",
+        name="Steering wheel heating status",
+        icon="mdi:steering",
+    ),
+    SensorEntityDescription(
+        key="sun_curtain_rear_open_status",
+        translation_key="sun_curtain_rear_open_status",
+        name="Sun curtain rear open status",
+        icon="mdi:curtains",
+    ),
+    SensorEntityDescription(
+        key="sun_curtain_rear_position",
+        translation_key="sun_curtain_rear_position",
+        name="Sun curtain rear position",
+        icon="mdi:curtains",
+    ),
+    SensorEntityDescription(
+        key="sunroof_open_status",
+        translation_key="sunroof_open_status",
+        name="Sunroof open status",
+        icon="mdi:window-shutter",
+    ),
+    SensorEntityDescription(
+        key="sunroof_position",
+        translation_key="sunroof_position",
+        name="Sunroof position",
+        icon="mdi:window-shutter",
+    ),
+    SensorEntityDescription(
+        key="window_driver_position",
+        translation_key="window_driver_position",
+        name="Window driver position",
+        icon="mdi:window-open",
+    ),
+    SensorEntityDescription(
+        key="window_driver_rear_position",
+        translation_key="window_driver_rear_position",
+        name="Window driver rear position",
+        icon="mdi:window-open",
+    ),
+    SensorEntityDescription(
+        key="window_passenger_position",
+        translation_key="window_passenger_position",
+        name="Window passenger position",
+        icon="mdi:window-open",
+    ),
+    SensorEntityDescription(
+        key="window_passenger_rear_position",
+        translation_key="window_passenger_rear_position",
+        name="Window passenger rear position",
+        icon="mdi:window-open",
+    ),
+    SensorEntityDescription(
+        key="window_driver_status",
+        translation_key="window_driver_status",
+        name="Window driver status",
+        icon="mdi:window-open",
+    ),
+    SensorEntityDescription(
+        key="window_driver_rear_status",
+        translation_key="window_driver_rear_status",
+        name="Window driver rear status",
+        icon="mdi:window-open",
+    ),
+    SensorEntityDescription(
+        key="window_passenger_status",
+        translation_key="window_passenger_status",
+        name="Window passenger status",
+        icon="mdi:window-open",
+    ),
+    SensorEntityDescription(
+        key="window_passenger_rear_status",
+        translation_key="window_passenger_rear_status",
+        name="Window passenger rear status",
+        icon="mdi:window-open",
+    ),
+)
+
 
 def remove_vin_from_key(key: str) -> str:
     """Remove the vin from the key."""
@@ -542,6 +773,16 @@ async def async_setup_entry(hass, entry, async_add_devices):
             ),
         )
         for entity_description in ENTITY_RUNNING_DESCRIPTIONS
+    )
+
+    async_add_devices(
+        SmartHashtagClimateSensor(
+            coordinator=coordinator,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
+        )
+        for entity_description in ENTITY_CLIMATE_DESCRIPTIONS
     )
 
 
@@ -788,6 +1029,46 @@ class SmartHashtagRunningSensor(SmartHashtagEntity, SensorEntity):
         vin = vin_from_key(self.entity_description.key)
         data = getattr(
             self.coordinator.account.vehicles.get(vin).running,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return self.entity_description.native_unit_of_measurement
+
+
+class SmartHashtagClimateSensor(SmartHashtagEntity, SensorEntity):
+    """Tire Status class."""
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
+        self.entity_description = entity_description
+
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the native value of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).climate,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.value
+        return data
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).climate,
             key,
         )
         if isinstance(data, ValueWithUnit):
