@@ -322,6 +322,120 @@
           "engine_off": "Off",
           "engine_running": "On"
         }
+      },
+      "air_blower_active": {
+        "name": "Air blower active"
+      },
+      "cds_climate_active": {
+        "name": "CDS climate active"
+      },
+      "climate_over_heat_protection_active": {
+        "name": "Climate over heat protection active"
+      },
+      "curtain_open_status": {
+        "name": "Curtain open status"
+      },
+      "defrosting_active": {
+        "name": "Defrosting active"
+      },
+      "driver_heating_detail": {
+        "name": "Driver heating detail"
+      },
+      "driver_heating_status": {
+        "name": "Driver heating status"
+      },
+      "driver_ventilation_detail": {
+        "name": "Driver ventilation detail"
+      },
+      "driver_ventilation_status": {
+        "name": "Driver ventilation status"
+      },
+      "exterior_temperature": {
+        "name": "Exterior temperature"
+      },
+      "frag_active": {
+        "name": "FRAG active"
+      },
+      "interior_temperature": {
+        "name": "Interior temperature"
+      },
+      "passenger_heating_detail": {
+        "name": "Passenger heating detail"
+      },
+      "passenger_heating_status": {
+        "name": "Passenger heating status"
+      },
+      "passenger_ventilation_detail": {
+        "name": "Passenger ventilation detail"
+      },
+      "passenger_ventilation_status": {
+        "name": "Passenger ventilation status"
+      },
+      "pre_climate_active": {
+        "name": "Pre climate active"
+      },
+      "rear_left_heating_detail": {
+        "name": "Rear left heating detail"
+      },
+      "rear_left_heating_status": {
+        "name": "Rear left heating status"
+      },
+      "rear_left_ventilation_detail": {
+        "name": "Rear left ventilation detail"
+      },
+      "rear_left_ventilation_status": {
+        "name": "Rear left ventilation status"
+      },
+      "rear_right_heating_detail": {
+        "name": "Rear right heating detail"
+      },
+      "rear_right_heating_status": {
+        "name": "Rear right heating status"
+      },
+      "rear_right_ventilation_detail": {
+        "name": "Rear right ventilation detail"
+      },
+      "rear_right_ventilation_status": {
+        "name": "Rear right ventilation status"
+      },
+      "steering_wheel_heating_status": {
+        "name": "Steering wheel heating status"
+      },
+      "sun_curtain_rear_open_status": {
+        "name": "Sun curtain rear open status"
+      },
+      "sun_curtain_rear_position": {
+        "name": "Sun curtain rear position"
+      },
+      "sunroof_open_status": {
+        "name": "Sunroof open status"
+      },
+      "sunroof_position": {
+        "name": "Sunroof position"
+      },
+      "window_driver_position": {
+        "name": "Window driver position"
+      },
+      "window_driver_rear_position": {
+        "name": "Window driver rear position"
+      },
+      "window_passenger_position": {
+        "name": "Window passenger position"
+      },
+      "window_passenger_rear_position": {
+        "name": "Window passenger rear position"
+      },
+      "window_driver_status": {
+        "name": "Window driver status"
+      },
+      "window_driver_rear_status": {
+        "name": "Window driver rear status"
+      },
+      "window_passenger_status": {
+        "name": "Window passenger status"
+      },
+      "window_passenger_rear_status": {
+        "name": "Window passenger rear status"
       }
     }
   }

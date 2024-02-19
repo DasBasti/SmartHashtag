@@ -322,6 +322,120 @@
           "engine_off": "Aus",
           "engine_running": "An"
         }
+      },
+      "air_blower_active": {
+        "name": "Lüfter aktiv"
+      },
+      "cds_climate_active": {
+        "name": "CDS Klima aktiv"
+      },
+      "climate_over_heat_protection_active": {
+        "name": "Überhitzungsschutz aktiv"
+      },
+      "curtain_open_status": {
+        "name": "Rollo offen"
+      },
+      "defrosting_active": {
+        "name": "Enteisung aktiv"
+      },
+      "driver_heating_detail": {
+        "name": "Heizung Fahrerseite Detail"
+      },
+      "driver_heating_status": {
+        "name": "Heizung Fahrerseite Status"
+      },
+      "driver_ventilation_detail": {
+        "name": "Lüftung Fahrerseite Detail"
+      },
+      "driver_ventilation_status": {
+        "name": "Lüftung Fahrerseite Status"
+      },
+      "exterior_temperature": {
+        "name": "Außentemperatur"
+      },
+      "frag_active": {
+        "name": "FRAG aktiv"
+      },
+      "interior_temperature": {
+        "name": "Innentemperatur"
+      },
+      "passenger_heating_detail": {
+        "name": "Heizung Beifahrerseite Detail"
+      },
+      "passenger_heating_status": {
+        "name": "Heizung Beifahrerseite Status"
+      },
+      "passenger_ventilation_detail": {
+        "name": "Lüftung Beifahrerseite Detail"
+      },
+      "passenger_ventilation_status": {
+        "name": "Lüftung Beifahrerseite Status"
+      },
+      "pre_climate_active": {
+        "name": "Vorklimatisierung aktiv"
+      },
+      "rear_left_heating_detail": {
+        "name": "Heizung hinten links Detail"
+      },
+      "rear_left_heating_status": {
+        "name": "Heizung hinten links Status"
+      },
+      "rear_left_ventilation_detail": {
+        "name": "Lüftung hinten links Detail"
+      },
+      "rear_left_ventilation_status": {
+        "name": "Lüftung hinten links Status"
+      },
+      "rear_right_heating_detail": {
+        "name": "Heizung hinten rechts Detail"
+      },
+      "rear_right_heating_status": {
+        "name": "Heizung hinten rechts Status"
+      },
+      "rear_right_ventilation_detail": {
+        "name": "Lüftung hinten rechts Detail"
+      },
+      "rear_right_ventilation_status": {
+        "name": "Lüftung hinten rechts Status"
+      },
+      "steering_wheel_heating_status": {
+        "name": "Heizung Lenkrad Status"
+      },
+      "sun_curtain_rear_open_status": {
+        "name": "Sonnenrollo hinten offen"
+      },
+      "sun_curtain_rear_position": {
+        "name": "Sonnenrollo hinten Position"
+      },
+      "sunroof_open_status": {
+        "name": "Schiebedach offen"
+      },
+      "sunroof_position": {
+        "name": "Schiebedach Position"
+      },
+      "window_driver_position": {
+        "name": "Fenster Fahrerseite Position"
+      },
+      "window_driver_rear_position": {
+        "name": "Fenster Fahrerseite hinten Position"
+      },
+      "window_passenger_position": {
+        "name": "Fenster Beifahrerseite Position"
+      },
+      "window_passenger_rear_position": {
+        "name": "Fenster Beifahrerseite hinten Position"
+      },
+      "window_driver_status": {
+        "name": "Fenster Fahrerseite Status"
+      },
+      "window_driver_rear_status": {
+        "name": "Fenster Fahrerseite hinten Status"
+      },
+      "window_passenger_status": {
+        "name": "Fenster Beifahrerseite Status"
+      },
+      "window_passenger_rear_status": {
+        "name": "Fenster Beifahrerseite hinten Status"
       }
     }
   }
