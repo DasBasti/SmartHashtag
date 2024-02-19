@@ -944,7 +944,7 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
         key = remove_vin_from_key(self.entity_description.key)
         vin = vin_from_key(self.entity_description.key)
         if key.startswith("service"):
-            key = key.split("_")[-1]
+            key = key.rsplit("_", maxsplit=1)[-1]
             data = self.coordinator.account.vehicles.get(vin).service[key]
         else:
             data = getattr(
