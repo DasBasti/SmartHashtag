@@ -17,7 +17,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     entities = []
 
     entities.append(SmartVehicleLocation(coordinator, vehicle))
-    LOGGER.warning(f"Adding vehicle {vehicle} to device tracker")
+    LOGGER.debug(f"Adding vehicle {vehicle} to device tracker")
     async_add_entities(entities, update_before_add=True)
 
 
