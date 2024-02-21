@@ -7,24 +7,40 @@
 
 **This integration will set up the following platforms.**
 
-| Sensor Name                 | Sensor Type             | Unit of Measurement | Attributes | Notes                                    |
-| --------------------------- | ----------------------- | ------------------- | ---------- | ---------------------------------------- |
-| `Last Update`               | Last data update        | Timestamp           |            | Data age in Web API                      |
-| `Odometer`                  | Total distance traveled | km                  |            |                                          |
-| `Days to next service`      | Duration                | d                   |            |                                          |
-| `Distance to next service`  | Distance                | km                  |            |                                          |
-| `Remaining Range`           | Distance                | km                  |            |                                          |
-| `Range at full battery`     | Distance                | km                  |            |                                          |
-| `Remaining Battery Charge`  | Percent                 | %                   |            |                                          |
-| `Charger Connection Status` | Number                  | ?                   |            | Need to determine what number means what |
-| `Is Charger Connected`      | Boolen                  | True, False         |            |                                          |
-| `Charging Voltage`          | Volts at Charging Port  | V                   |            |                                          |
-| `Charging Current`          | Ampere at Charging Port | A                   |            |                                          |
-| `Charging Power`            | Power going to Battery  | W                   |            |                                          |
-| `Charging Time remaining`   | Duration                | min                 |            |                                          |
-| `Charging Target Percent`   | Percent State of Charge | %                   |            | Not yet available                        |
-| `Tire Temperature`          | Temperature             | °C                  |            |                                          |
-| `Tire Pressure`             | Pressure                | kPa                 |            |                                          |
+| Sensor Name                  | Sensor Type                       | Unit of Measurement | Attributes | Notes                                    |
+| ---------------------------- | --------------------------------- | ------------------- | ---------- | ---------------------------------------- |
+| `Last Update`                | Last data update                  | Timestamp           |            | Data age in Web API                      |
+| `Engine State`               | Boolean                           |                     |            | If in 'D' True else False                |
+| `Odometer`                   | Total distance traveled           | km                  |            |                                          |
+| `Days to next service`       | Duration                          | d                   |            |                                          |
+| `Distance to next service`   | Distance                          | km                  |            |                                          |
+| `Remaining Range`            | Distance                          | km                  |            |                                          |
+| `Range at full battery`      | Distance                          | km                  |            |                                          |
+| `Remaining Battery Charge`   | Percent                           | %                   |            |                                          |
+| `Charger Connection Status`  | Number                            | ?                   |            | Need to determine what number means what |
+| `Is Charger Connected`       | Boolen                            | True, False         |            |                                          |
+| `Charging Voltage`           | Volts at Charging Port            | V                   |            |                                          |
+| `Charging Current`           | Ampere at Charging Port           | A                   |            |                                          |
+| `Charging Power`             | Power going to Battery            | W                   |            |                                          |
+| `Charging Time remaining`    | Duration                          | min                 |            |                                          |
+| `Charging Target Percent`    | Percent State of Charge           | %                   |            | Not yet available                        |
+| `Tire Temperature`           | Temperature                       | °C                  |            |                                          |
+| `Tire Pressure`              | Pressure                          | kPa                 |            |                                          |
+| `12V Battery State`          | State, Voltage, Energy Level      | V, %                |            | Determine what some of the values mean   |
+| `Fluid States`               | Numerical                         |                     |            | Determine what each number means         |
+| `Light states`               | Boolean                           |                     |            | Check names of sensors                   |
+| `Trim Meter`                 | Distance                          | km                  |            | 2 different trip counter                 |
+| `Climate Sensors`            | Blower and Heating States         |                     |            | Test what the different numbers mean     |
+| `Window Status and Position` | Numerical                         |                     |            | Test what the different numbers mean     |
+| `Temperatur Sensor`          | Inner and Surrounding Temperature | °C                  |            |                                          |
+
+| Climate Name       | Climate Type | Unit of Measurement | Attributes | Notes                                   |
+| ------------------ | ------------ | ------------------- | ---------- | --------------------------------------- |
+| `Pre Conditioning` | Temperature  | °C                  |            | Works not very stable, work in progress |
+
+| Device Tracker     | Type     | Unit of Measurement | Attributes | Notes |
+| ------------------ | -------- | ------------------- | ---------- | ----- |
+| `Pre Conditioning` | Position | Geoposition         |            |       |
 
 ## Installation
 
