@@ -205,7 +205,6 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
         translation_key="main_battery_charge_level",
         name="Main battery charge level",
         icon="mdi:car-battery",
-        device_class=SensorDeviceClass.BATTERY,
     ),
     SensorEntityDescription(
         key="main_battery_energy_level",

@@ -15,7 +15,6 @@ from .const import (
     CONF_VEHICLE,
     DEFAULT_CONDITIONING_TEMP,
     DOMAIN,
-    LOGGER,
 )
 
 
@@ -100,7 +99,6 @@ class SmartConditioningMode(ClimateEntity):
     @cached_property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
-        LOGGER.warning(self._vehicle.climate.interior_temperature.value)
         if self._vehicle.climate.interior_temperature.value is not None:
             return self._vehicle.climate.interior_temperature.value
         else:
