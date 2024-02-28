@@ -706,6 +706,191 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
         name="Window passenger rear status",
         icon="mdi:window-open",
     ),
+    SensorEntityDescription(
+        key="interior_PM25_level",
+        translation_key="interior_PM25_level",
+        name="Interior PM25 level",
+        icon="mdi:air-filter",
+    ),
+    SensorEntityDescription(
+        key="interior_PM25_2_level",
+        translation_key="interior_PM25_2_level",
+        name="Interior PM25 2 level",
+        icon="mdi:air-filter",
+    ),
+    SensorEntityDescription(
+        key="exterior_PM25_level",
+        translation_key="exterior_PM25_level",
+        name="Exterior PM25 level",
+        icon="mdi:air-filter",
+    ),
+    SensorEntityDescription(
+        key="relative_humidity",
+        translation_key="relative_humidity",
+        name="Relative humidity",
+        icon="mdi:water-percent",
+        device_class=SensorDeviceClass.HUMIDITY,
+        native_unit_of_measurement="%",
+    ),
+)
+
+ENTITY_SAFETY_DESCRIPTIONS = (
+    SensorEntityDescription(
+        key="central_locking_status",
+        translation_key="central_locking_status",
+        name="Central locking status",
+        icon="mdi:lock",
+    ),
+    SensorEntityDescription(
+        key="door_lock_status_driver",
+        translation_key="door_lock_status_driver",
+        name="Door lock status driver",
+        icon="mdi:lock",
+    ),
+    SensorEntityDescription(
+        key="door_lock_status_driver_rear",
+        translation_key="door_lock_status_driver_rear",
+        name="Door lock status driver rear",
+        icon="mdi:lock",
+    ),
+    SensorEntityDescription(
+        key="door_lock_status_passenger",
+        translation_key="door_lock_status_passenger",
+        name="Door lock status passenger",
+        icon="mdi:lock",
+    ),
+    SensorEntityDescription(
+        key="door_lock_status_passenger_rear",
+        translation_key="door_lock_status_passenger_rear",
+        name="Door lock status passenger rear",
+        icon="mdi:lock",
+    ),
+    SensorEntityDescription(
+        key="door_open_status_driver",
+        translation_key="door_open_status_driver",
+        name="Door open status driver",
+        icon="mdi:door-open",
+    ),
+    SensorEntityDescription(
+        key="door_open_status_driver_rear",
+        translation_key="door_open_status_driver_rear",
+        name="Door open status driver rear",
+        icon="mdi:door-open",
+    ),
+    SensorEntityDescription(
+        key="door_open_status_passenger",
+        translation_key="door_open_status_passenger",
+        name="Door open status passenger",
+        icon="mdi:door-open",
+    ),
+    SensorEntityDescription(
+        key="door_open_status_passenger_rear",
+        translation_key="door_open_status_passenger_rear",
+        name="Door open status passenger rear",
+        icon="mdi:door-open",
+    ),
+    SensorEntityDescription(
+        key="door_pos_driver",
+        translation_key="door_pos_driver",
+        name="Door position driver",
+        icon="mdi:door-open",
+    ),
+    SensorEntityDescription(
+        key="door_pos_driver_rear",
+        translation_key="door_pos_driver_rear",
+        name="Door position driver rear",
+        icon="mdi:door-open",
+    ),
+    SensorEntityDescription(
+        key="door_pos_passenger",
+        translation_key="door_pos_passenger",
+        name="Door position passenger",
+        icon="mdi:door-open",
+    ),
+    SensorEntityDescription(
+        key="door_pos_passenger_rear",
+        translation_key="door_pos_passenger_rear",
+        name="Door position passenger rear",
+        icon="mdi:door-open",
+    ),
+    SensorEntityDescription(
+        key="electric_park_brake_status",
+        translation_key="electric_park_brake_status",
+        name="Electric park brake status",
+        icon="mdi:car-brake-parking",
+    ),
+    SensorEntityDescription(
+        key="engine_hood_open_status",
+        translation_key="engine_hood_open_status",
+        name="Engine hood open status",
+        icon="mdi:car-select",
+    ),
+    SensorEntityDescription(
+        key="seat_belt_status_driver",
+        translation_key="seat_belt_status_driver",
+        name="Seat belt status driver",
+        icon="mdi:seatbelt",
+    ),
+    SensorEntityDescription(
+        key="seat_belt_status_driver_rear",
+        translation_key="seat_belt_status_driver_rear",
+        name="Seat belt status driver rear",
+        icon="mdi:seatbelt",
+    ),
+    SensorEntityDescription(
+        key="seat_belt_status_mid_rear",
+        translation_key="seat_belt_status_mid_rear",
+        name="Seat belt status mid rear",
+        icon="mdi:seatbelt",
+    ),
+    SensorEntityDescription(
+        key="seat_belt_status_passenger",
+        translation_key="seat_belt_status_passenger",
+        name="Seat belt status passenger",
+        icon="mdi:seatbelt",
+    ),
+    SensorEntityDescription(
+        key="seat_belt_status_passenger_rear",
+        translation_key="seat_belt_status_passenger_rear",
+        name="Seat belt status passenger rear",
+        icon="mdi:seatbelt",
+    ),
+    SensorEntityDescription(
+        key="seat_belt_status_th_driver_rear",
+        translation_key="seat_belt_status_th_driver_rear",
+        name="Seat belt status th driver rear",
+        icon="mdi:seatbelt",
+    ),
+    SensorEntityDescription(
+        key="seat_belt_status_th_passenger_rear",
+        translation_key="seat_belt_status_th_passenger_rear",
+        name="Seat belt status th passenger rear",
+        icon="mdi:seatbelt",
+    ),
+    SensorEntityDescription(
+        key="srs_crash_status",
+        translation_key="srs_crash_status",
+        name="SRS crash status",
+        icon="mdi:car-brake-alert",
+    ),
+    SensorEntityDescription(
+        key="tank_flap_status",
+        translation_key="tank_flap_status",
+        name="Tank flap status",
+        icon="mdi:gas-station",
+    ),
+    SensorEntityDescription(
+        key="trunk_lock_status",
+        translation_key="trunk_lock_status",
+        name="Trunk lock status",
+        icon="mdi:lock",
+    ),
+    SensorEntityDescription(
+        key="trunk_open_status",
+        translation_key="trunk_open_status",
+        name="Trunk open status",
+        icon="mdi:car-back",
+    ),
 )
 
 
@@ -782,6 +967,16 @@ async def async_setup_entry(hass, entry, async_add_devices):
             ),
         )
         for entity_description in ENTITY_CLIMATE_DESCRIPTIONS
+    )
+
+    async_add_devices(
+        SmartHashtagSafetySensor(
+            coordinator=coordinator,
+            entity_description=dataclasses.replace(
+                entity_description, key=f"{vehicle}_{entity_description.key}"
+            ),
+        )
+        for entity_description in ENTITY_SAFETY_DESCRIPTIONS
     )
 
 
@@ -1068,6 +1263,46 @@ class SmartHashtagClimateSensor(SmartHashtagEntity, SensorEntity):
         vin = vin_from_key(self.entity_description.key)
         data = getattr(
             self.coordinator.account.vehicles.get(vin).climate,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return self.entity_description.native_unit_of_measurement
+
+
+class SmartHashtagSafetySensor(SmartHashtagEntity, SensorEntity):
+    """Safety class."""
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
+        self.entity_description = entity_description
+
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the native value of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).safety,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.value
+        return data
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).safety,
             key,
         )
         if isinstance(data, ValueWithUnit):
