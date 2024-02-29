@@ -512,7 +512,7 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
         key="driver_heating_detail",
         translation_key="driver_heating_detail",
         name="Driver heating detail",
-        icon="mdi:snowflake",
+        icon="mdi:fan",
     ),
     SensorEntityDescription(
         key="driver_heating_status",
