@@ -537,6 +537,7 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
         translation_key="exterior_temperature",
         name="Exterior temperature",
         icon="mdi:home-thermometer-outline",
+        device_class=SensorDeviceClass.TEMPERATURE,
     ),
     SensorEntityDescription(
         key="frag_active",
@@ -549,6 +550,7 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
         translation_key="interior_temperature",
         name="Interior temperature",
         icon="mdi:thermometer",
+        device_class=SensorDeviceClass.TEMPERATURE,
     ),
     SensorEntityDescription(
         key="passenger_heating_detail",
