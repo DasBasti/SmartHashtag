@@ -1040,7 +1040,7 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
         if isinstance(data, ValueWithUnit):
             return data.unit
 
-        return data
+        return self.entity_description.native_unit_of_measurement
 
 
 class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
