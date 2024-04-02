@@ -8,7 +8,7 @@ from custom_components.smarthashtag.entity import SmartHashtagEntity
 
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
-from .const import CONF_VEHICLE, DOMAIN, LOGGER
+from .const import CONF_VEHICLE, DOMAIN
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
@@ -30,6 +30,7 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
     _longitude: None | float = None
     _latitude: None | float = None
     _altitude: None | float = None
+    _battery_level: int | float | None = False
 
     def __init__(
         self,
@@ -73,6 +74,14 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         """Disable forced updated since we are polling via the coordinator updates."""
         return False
 
+    @property
+    def battery_level(self) -> int | None:
+        """Return the battery level of the device.
+
+        Percentage from 0-100.
+        """
+        return self._battery_level
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -87,19 +96,12 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         self._altitude = self.coordinator.account.vehicles.get(
             self._vehicle
         ).position.altitude
+        self._battery_level = self.coordinator.account.vehicles.get(
+            self._vehicle
+        ).battery.remaining_battery_percent.value
 
-        LOGGER.debug(
-            f"Update device tracker state {self._latitude} {self._longitude} {self._altitude}"
-        )
         self.async_write_ha_state()
 
     @callback
     def _async_track_unavailable(self) -> None:
         self.async_write_ha_state()
-
-    @property
-    def state(self) -> str:
-        """Return the state of the device."""
-        return self.coordinator.account.vehicles.get(
-            self._vehicle
-        ).position.position_can_be_trusted
