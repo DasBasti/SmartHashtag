@@ -8,7 +8,7 @@ from custom_components.smarthashtag.entity import SmartHashtagEntity
 
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
-from .const import CONF_VEHICLE, DOMAIN, LOGGER
+from .const import CONF_VEHICLE, DOMAIN
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
@@ -88,18 +88,8 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
             self._vehicle
         ).position.altitude
 
-        LOGGER.debug(
-            f"Update device tracker state {self._latitude} {self._longitude} {self._altitude}"
-        )
         self.async_write_ha_state()
 
     @callback
     def _async_track_unavailable(self) -> None:
         self.async_write_ha_state()
-
-    @property
-    def state(self) -> str:
-        """Return the state of the device."""
-        return self.coordinator.account.vehicles.get(
-            self._vehicle
-        ).position.position_can_be_trusted
