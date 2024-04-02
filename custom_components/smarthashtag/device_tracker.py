@@ -30,6 +30,7 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
     _longitude: None | float = None
     _latitude: None | float = None
     _altitude: None | float = None
+    _battery_level: int | float | None = False
 
     def __init__(
         self,
@@ -73,6 +74,14 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         """Disable forced updated since we are polling via the coordinator updates."""
         return False
 
+    @property
+    def battery_level(self) -> int | None:
+        """Return the battery level of the device.
+
+        Percentage from 0-100.
+        """
+        return self._battery_level
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -87,6 +96,9 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         self._altitude = self.coordinator.account.vehicles.get(
             self._vehicle
         ).position.altitude
+        self._battery_level = self.coordinator.account.vehicles.get(
+            self._vehicle
+        ).battery.remaining_battery_percent.value
 
         self.async_write_ha_state()
 
