@@ -44,7 +44,12 @@
         "name": "Battery"
       },
       "charger_connection_status": {
-        "name": "Charger connection"
+        "name": "Charger connection",
+        "state": {
+          "0": "not connected",
+          "2": "plugged, not charging",
+          "3": "charging"
+        }
       },
       "is_charger_connected": {
         "name": "Charger connected"
