@@ -43,6 +43,12 @@
       "remaining_battery_percent": {
         "name": "Battery"
       },
+      "charging_status": {
+        "name": "Charging status"
+      },
+      "charging_status_raw": {
+        "name": "Charging status raw value"
+      },
       "charger_connection_status": {
         "name": "Charger connection",
         "state": {
