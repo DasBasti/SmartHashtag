@@ -51,17 +51,25 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         icon="mdi:percent",
         device_class=SensorDeviceClass.BATTERY,
     ),
-    # FIXME: Sort out type issue with None and Strings
-    #    SensorEntityDescription(
-    #        key="charging_status",
-    #        name="Charging status",
-    #        icon="mdi:power-plug-battery",
-    #    ),
+    SensorEntityDescription(
+        key="charging_status",
+        translation_key="charging_status",
+        name="Charging status",
+        icon="mdi:power-plug-battery",
+    ),
+    SensorEntityDescription(
+        key="charging_status_raw",
+        translation_key="charging_status_raw",
+        name="Charging status_raw",
+        icon="mdi:power-plug-battery",
+    ),
     SensorEntityDescription(
         key="charger_connection_status",
         translation_key="charger_connection_status",
         name="Charger connection status",
         icon="mdi:battery-unknown",
+        options={0: "not connected", 2: "plugged, not charging", 3: "charging"},
+        device_class=SensorDeviceClass.ENUM,
     ),
     SensorEntityDescription(
         key="is_charger_connected",

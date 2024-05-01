@@ -43,8 +43,19 @@
       "remaining_battery_percent": {
         "name": "Batterie"
       },
+      "charging_status": {
+        "name": "Ladezustand"
+      },
+      "charging_status_raw": {
+        "name": "Ladezustand Rohwert"
+      },
       "charger_connection_status": {
-        "name": "Ladesanschluss"
+        "name": "Ladesanschluss",
+        "state": {
+          "0": "nicht verbunden",
+          "2": "verbunden, nicht ladend",
+          "3": "laden"
+        }
       },
       "is_charger_connected": {
         "name": "Ladegerät angeschlossen"
