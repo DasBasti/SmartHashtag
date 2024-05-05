@@ -56,6 +56,12 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         translation_key="charging_status",
         name="Charging status",
         icon="mdi:power-plug-battery",
+        options={
+            "CHARGING": "charging",
+            "NOT_CHARGING": "not charging",
+            "COMPLETE": "fully charged",
+        },
+        device_class=SensorDeviceClass.ENUM,
     ),
     SensorEntityDescription(
         key="charging_status_raw",

@@ -44,7 +44,12 @@
         "name": "Battery"
       },
       "charging_status": {
-        "name": "Charging status"
+        "name": "Charging status",
+        "state": {
+          "NOT_CHARGING": "not connected",
+          "COMPLETE": "done charging",
+          "CHARGING": "charging"
+        }
       },
       "charging_status_raw": {
         "name": "Charging status raw value"

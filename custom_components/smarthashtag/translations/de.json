@@ -44,7 +44,12 @@
         "name": "Batterie"
       },
       "charging_status": {
-        "name": "Ladezustand"
+        "name": "Ladezustand",
+        "options": {
+          "NOT_CHARGING": "nicht verbunden",
+          "COMPLETE": "fertig geladen",
+          "CHARGING": "laden"
+        }
       },
       "charging_status_raw": {
         "name": "Ladezustand Rohwert"
