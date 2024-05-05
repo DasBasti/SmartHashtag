@@ -45,10 +45,10 @@
       },
       "charging_status": {
         "name": "Ladezustand",
-        "options": {
-          "NOT_CHARGING": "nicht verbunden",
-          "COMPLETE": "fertig geladen",
-          "CHARGING": "laden"
+        "state": {
+          "not_charging": "nicht verbunden",
+          "complete": "fertig geladen",
+          "charging": "laden"
         }
       },
       "charging_status_raw": {

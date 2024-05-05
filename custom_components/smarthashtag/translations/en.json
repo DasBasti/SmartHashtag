@@ -46,9 +46,9 @@
       "charging_status": {
         "name": "Charging status",
         "state": {
-          "NOT_CHARGING": "not connected",
-          "COMPLETE": "done charging",
-          "CHARGING": "charging"
+          "not_charging": "not connected",
+          "complete": "done charging",
+          "charging": "charging"
         }
       },
       "charging_status_raw": {
