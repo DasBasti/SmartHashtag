@@ -447,6 +447,12 @@
       },
       "window_passenger_rear_status": {
         "name": "Window passenger rear status"
+      },
+      "interior_PM25": {
+        "name": "Interior PM25"
+      },
+      "relative_humidity": {
+        "name": "Relative humidity"
       }
     }
   }
