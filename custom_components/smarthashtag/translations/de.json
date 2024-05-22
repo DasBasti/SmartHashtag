@@ -448,7 +448,7 @@
       "window_passenger_rear_status": {
         "name": "Fenster Beifahrerseite hinten Status"
       },
-      "interior_PM25": {
+      "interior_pm25": {
         "name": "Innenraum Feinstaub"
       },
       "relative_humidity": {

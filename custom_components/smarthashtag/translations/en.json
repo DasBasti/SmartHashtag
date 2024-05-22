@@ -448,7 +448,7 @@
       "window_passenger_rear_status": {
         "name": "Window passenger rear status"
       },
-      "interior_PM25": {
+      "interior_pm25": {
         "name": "Interior PM25"
       },
       "relative_humidity": {

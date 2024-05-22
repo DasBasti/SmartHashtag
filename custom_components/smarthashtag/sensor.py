@@ -718,7 +718,7 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
     ),
     SensorEntityDescription(
         key="interior_PM25",
-        translation_key="interior_PM25",
+        translation_key="interior_pm25",
         name="Interior PM25",
         icon="mdi:air-filter",
     ),
