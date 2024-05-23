@@ -717,21 +717,9 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
         icon="mdi:window-open",
     ),
     SensorEntityDescription(
-        key="interior_PM25_level",
-        translation_key="interior_PM25_level",
-        name="Interior PM25 level",
-        icon="mdi:air-filter",
-    ),
-    SensorEntityDescription(
-        key="interior_PM25_2_level",
-        translation_key="interior_PM25_2_level",
-        name="Interior PM25 2 level",
-        icon="mdi:air-filter",
-    ),
-    SensorEntityDescription(
-        key="exterior_PM25_level",
-        translation_key="exterior_PM25_level",
-        name="Exterior PM25 level",
+        key="interior_PM25",
+        translation_key="interior_pm25",
+        name="Interior PM25",
         icon="mdi:air-filter",
     ),
     SensorEntityDescription(
