@@ -56,6 +56,12 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         translation_key="charging_status",
         name="Charging status",
         icon="mdi:power-plug-battery",
+        options={
+            "charging": "charging",
+            "not_charging": "not charging",
+            "complete": "fully charged",
+        },
+        device_class=SensorDeviceClass.ENUM,
     ),
     SensorEntityDescription(
         key="charging_status_raw",
@@ -1018,6 +1024,11 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
         if "charging_power" in self.entity_description.key:
             if data.value == -0.0:
                 return 0.0
+
+        if "charging_status" in self.entity_description.key:
+            if isinstance(data, str):
+                data = data.lower()
+            return data
 
         if isinstance(data, ValueWithUnit):
             return data.value
