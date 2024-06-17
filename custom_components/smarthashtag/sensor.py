@@ -121,6 +121,14 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         icon="mdi:percent",
         device_class=SensorDeviceClass.BATTERY,
     ),
+    SensorEntityDescription(
+        key="average_power_consumption",
+        translation_key="average_power_consumption",
+        name="Average power consumption",
+        icon="mdi:power",
+        device_class=SensorDeviceClass.POWER,
+        suggested_display_precision=1,
+    ),
 )
 
 # FIXME: Find out how the position is handled in HA
@@ -998,7 +1006,7 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
         self.entity_description = entity_description
 
     @property
-    def native_value(self) -> int:
+    def native_value(self) -> str | int | float:
         """Return the native value of the sensor."""
         data = getattr(
             self.coordinator.account.vehicles.get(
@@ -1029,6 +1037,10 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             if isinstance(data, str):
                 data = data.lower()
             return data
+
+        # invert power consumption value to display the consumed power as positive
+        if "average_power_consumption" in self.entity_description.key:
+            return data.value * -1
 
         if isinstance(data, ValueWithUnit):
             return data.value
