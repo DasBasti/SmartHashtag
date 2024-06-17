@@ -22,7 +22,6 @@ from .const import (
     DEFAULT_DRIVING_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
-    MIN_SCAN_INTERVAL,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
@@ -1025,7 +1024,7 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             else:
                 self.coordinator.update_interval = timedelta(
                     seconds=self.coordinator.config_entry.options.get(
-                        MIN_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                     )
                 )
 
