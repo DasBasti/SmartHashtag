@@ -80,6 +80,9 @@
       "charging_target_soc": {
         "name": "Charging target"
       },
+      "average_power_consumption": {
+        "name": "Average Power Consumption"
+      },
       "position": {
         "name": "Position"
       },
