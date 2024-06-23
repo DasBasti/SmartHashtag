@@ -9,7 +9,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pysmarthashtag.account import SmartAccount
-from pysmarthashtag.models import SmartAuthError
+from pysmarthashtag.models import SmartAuthError, SmartAPIError
 from pysmarthashtag.models import SmartRemoteServiceError
 
 from .const import DOMAIN
@@ -44,3 +44,5 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             raise ConfigEntryAuthFailed(exception) from exception
         except SmartRemoteServiceError as exception:
             raise UpdateFailed(exception) from exception
+        except SmartAPIError as exception:
+            LOGGER.info(f"API access failed with: {exception}")
