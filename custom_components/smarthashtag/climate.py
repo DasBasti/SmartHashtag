@@ -30,12 +30,12 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
 
 class SmartConditioningMode(ClimateEntity):
-    """Representation of a Smart vehicle location device tracker."""
+    """Representation of the Smart car climate."""
 
     type = "conditioning mode"
     _attr_max_temp = 30
     _attr_min_temp = 16
-    _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF]
+    _attr_hvac_modes = [HVACMode.HEAT_COOL, HVACMode.OFF]
     _attr_hvac_mode = HVACMode.OFF
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_supported_features = (
@@ -48,6 +48,32 @@ class SmartConditioningMode(ClimateEntity):
     _attr_should_poll = False
     _attr_icon = "mdi:thermostat-auto"
     _enable_turn_on_off_backwards_compatibility = False
+
+    @property
+    def translation_key(self):
+        return "car_climate"
+
+    @property
+    def hcav_mode(self) -> HVACMode:
+        """Return hvac operating mode: heat, cool"""
+        if self._vehicle.climate.get("pre_climate_active", False):
+            return HVACMode.HEAT_COOL
+
+        return HVACMode.OFF
+
+    @property
+    def temperature_unit(self):
+        return UnitOfTemperature.CELSIUS
+
+    @property
+    def max_temp(self):
+        """Return max temperature."""
+        return 30
+
+    @property
+    def min_temp(self):
+        """Return min temperature."""
+        return 16
 
     def __init__(
         self,
@@ -70,14 +96,12 @@ class SmartConditioningMode(ClimateEntity):
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, True
         )
-        await self.async_set_hvac_mode(HVACMode.HEAT)
 
     async def async_turn_off(self) -> None:
         """Turn off the climate system."""
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, False
         )
-        await self.async_set_hvac_mode(HVACMode.OFF)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature for the vehicle."""
@@ -90,7 +114,7 @@ class SmartConditioningMode(ClimateEntity):
         """Set new target hvac mode."""
         if hvac_mode is not None:
             self._attr_hvac_mode = hvac_mode
-            if hvac_mode == "heat":
+            if hvac_mode == HVACMode.HEAT_COOL:
                 await self.async_turn_on()
             else:
                 await self.async_turn_off()
