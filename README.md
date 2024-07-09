@@ -34,9 +34,9 @@
 | `Window Status and Position` | Numerical                         |                     |            | Test what the different numbers mean   |
 | `Temperatur Sensor`          | Inner and Surrounding Temperature | °C                  |            |                                        |
 
-| Climate Name       | Climate Type | Unit of Measurement | Attributes | Notes                                   |
-| ------------------ | ------------ | ------------------- | ---------- | --------------------------------------- |
-| `Pre Conditioning` | Temperature  | °C                  |            | Works not very stable, work in progress |
+| Climate Name       | Climate Type | Unit of Measurement | Attributes     | Notes |
+| ------------------ | ------------ | ------------------- | -------------- | ----- |
+| `Pre Conditioning` | Temperature  | °C                  | Heat/Cool, Off |       |
 
 | Device Tracker     | Type     | Unit of Measurement | Attributes | Notes |
 | ------------------ | -------- | ------------------- | ---------- | ----- |
