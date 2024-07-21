@@ -75,6 +75,11 @@ class SmartConditioningMode(ClimateEntity):
         """Return min temperature."""
         return 16
 
+    @property
+    def target_temperature(self):
+        """Return target temperature."""
+        return self._temperature
+
     def __init__(
         self,
         coordinator: SmartHashtagDataUpdateCoordinator,
@@ -123,10 +128,7 @@ class SmartConditioningMode(ClimateEntity):
     @cached_property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
-        if self._vehicle.climate.interior_temperature.value is not None:
-            return self._vehicle.climate.interior_temperature.value
-        else:
-            return self._attr_current_temperature.value
+        return self._vehicle.climate.interior_temperature.value
 
     def set_fan_mode(self, fan_mode: str) -> None:
         """Set the fan mode."""

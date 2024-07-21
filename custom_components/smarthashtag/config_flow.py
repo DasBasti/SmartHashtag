@@ -19,8 +19,10 @@ from pysmarthashtag.models import (
 
 from .const import (
     CONF_CHARGING_INTERVAL,
+    CONF_CONDITIONING_TEMP,
     CONF_DRIVING_INTERVAL,
     DEFAULT_CHARGING_INTERVAL,
+    DEFAULT_CONDITIONING_TEMP,
     DEFAULT_DRIVING_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -151,6 +153,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_DRIVING_INTERVAL,
                     default=self.config_entry.options.get(
                         CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
+                    ),
+                ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
+                vol.Optional(
+                    CONF_CONDITIONING_TEMP,
+                    default=self.config_entry.options.get(
+                        CONF_CONDITIONING_TEMP, DEFAULT_CONDITIONING_TEMP
                     ),
                 ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
             }
