@@ -366,6 +366,7 @@ ENTITY_RUNNING_DESCRIPTIONS = (
         name="Trip meter 1",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.TOTAL,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
@@ -374,6 +375,7 @@ ENTITY_RUNNING_DESCRIPTIONS = (
         name="Trip meter 2",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.TOTAL,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
