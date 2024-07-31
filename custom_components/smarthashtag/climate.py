@@ -45,7 +45,6 @@ class SmartConditioningMode(ClimateEntity):
     )
     _attr_entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
-    _attr_should_poll = False
     _attr_icon = "mdi:thermostat-auto"
     _enable_turn_on_off_backwards_compatibility = False
 
@@ -54,7 +53,7 @@ class SmartConditioningMode(ClimateEntity):
         return "car_climate"
 
     @property
-    def hcav_mode(self) -> HVACMode:
+    def hvac_mode(self) -> HVACMode:
         """Return hvac operating mode: heat, cool"""
         if self._vehicle.climate.get("pre_climate_active", False):
             return HVACMode.HEAT_COOL
