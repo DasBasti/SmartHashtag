@@ -8,6 +8,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
     SensorDeviceClass,
+    SensorStateClass,
 )
 from homeassistant.const import (
     CONF_SCAN_INTERVAL,
@@ -259,6 +260,7 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
         name="Odometer",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.TOTAL_INCREASING,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
@@ -364,6 +366,7 @@ ENTITY_RUNNING_DESCRIPTIONS = (
         name="Trip meter 1",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.TOTAL,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
@@ -372,6 +375,7 @@ ENTITY_RUNNING_DESCRIPTIONS = (
         name="Trip meter 2",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.TOTAL,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
