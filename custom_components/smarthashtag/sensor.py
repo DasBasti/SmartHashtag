@@ -8,6 +8,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
     SensorDeviceClass,
+    SensorStateClass,
 )
 from homeassistant.const import (
     CONF_SCAN_INTERVAL,
@@ -259,6 +260,7 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
         name="Odometer",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.TOTAL_INCREASING,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
