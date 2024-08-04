@@ -1,6 +1,5 @@
 """Support for Smart #1 / #3 switches."""
 
-from functools import cached_property
 from typing import Any
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
 from homeassistant.components.climate.const import HVACMode
@@ -55,10 +54,11 @@ class SmartConditioningMode(ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode:
         """Return hvac operating mode: heat, cool"""
-        if self._vehicle.climate.get("pre_climate_active", False):
-            return HVACMode.HEAT_COOL
-
-        return HVACMode.OFF
+        return (
+            HVACMode.HEAT_COOL
+            if self._vehicle.climate.pre_climate_active
+            else HVACMode.OFF
+        )
 
     @property
     def temperature_unit(self):
@@ -126,7 +126,7 @@ class SmartConditioningMode(ClimateEntity):
                 await self.async_turn_off()
         self.async_write_ha_state()
 
-    @cached_property
+    @property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
         return self._vehicle.climate.interior_temperature.value
