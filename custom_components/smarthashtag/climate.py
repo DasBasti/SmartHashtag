@@ -1,6 +1,5 @@
 """Support for Smart #1 / #3 switches."""
 
-from functools import cached_property
 from typing import Any
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
 from homeassistant.components.climate.const import HVACMode
@@ -45,7 +44,6 @@ class SmartConditioningMode(ClimateEntity):
     )
     _attr_entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
-    _attr_should_poll = False
     _attr_icon = "mdi:thermostat-auto"
     _enable_turn_on_off_backwards_compatibility = False
 
@@ -54,12 +52,13 @@ class SmartConditioningMode(ClimateEntity):
         return "car_climate"
 
     @property
-    def hcav_mode(self) -> HVACMode:
+    def hvac_mode(self) -> HVACMode:
         """Return hvac operating mode: heat, cool"""
-        if self._vehicle.climate.get("pre_climate_active", False):
-            return HVACMode.HEAT_COOL
-
-        return HVACMode.OFF
+        return (
+            HVACMode.HEAT_COOL
+            if self._vehicle.climate.pre_climate_active
+            else HVACMode.OFF
+        )
 
     @property
     def temperature_unit(self):
@@ -101,12 +100,14 @@ class SmartConditioningMode(ClimateEntity):
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, True
         )
+        self.coordinator.async_request_refresh()
 
     async def async_turn_off(self) -> None:
         """Turn off the climate system."""
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, False
         )
+        self.coordinator.async_request_refresh()
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature for the vehicle."""
@@ -125,7 +126,7 @@ class SmartConditioningMode(ClimateEntity):
                 await self.async_turn_off()
         self.async_write_ha_state()
 
-    @cached_property
+    @property
     def current_temperature(self) -> float | None:
         """Return the current temperature."""
         return self._vehicle.climate.interior_temperature.value
