@@ -100,12 +100,14 @@ class SmartConditioningMode(ClimateEntity):
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, True
         )
+        self.coordinator.async_request_refresh()
 
     async def async_turn_off(self) -> None:
         """Turn off the climate system."""
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, False
         )
+        self.coordinator.async_request_refresh()
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature for the vehicle."""
