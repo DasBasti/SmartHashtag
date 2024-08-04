@@ -260,7 +260,10 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
         name="Odometer",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        # The sensor's value never resets
+        # https://developers.home-assistant.io/docs/core/entity/sensor/#how-to-choose-state_class-and-last_reset
+        state_class=SensorStateClass.TOTAL,
+        last_reset=None,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
@@ -366,7 +369,9 @@ ENTITY_RUNNING_DESCRIPTIONS = (
         name="Trip meter 1",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
-        state_class=SensorStateClass.TOTAL,
+        # The sensor's value may reset to 0, and its value can only increase
+        # https://developers.home-assistant.io/docs/core/entity/sensor/#how-to-choose-state_class-and-last_reset
+        state_class=SensorStateClass.TOTAL_INCREASING,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
@@ -375,7 +380,9 @@ ENTITY_RUNNING_DESCRIPTIONS = (
         name="Trip meter 2",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
-        state_class=SensorStateClass.TOTAL,
+        # The sensor's value may reset to 0, and its value can only increase
+        # https://developers.home-assistant.io/docs/core/entity/sensor/#how-to-choose-state_class-and-last_reset
+        state_class=SensorStateClass.TOTAL_INCREASING,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
