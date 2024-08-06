@@ -68,7 +68,10 @@ class SmartConditioningMode(ClimateEntity):
         )
 
         # value is true, last setting is off -> keep on requesting
-        if current_mode == self._last_mode:
+        if (
+            current_mode == self._last_mode
+            and self.coordinator.update_interval.seconds == FAST_INTERVAL
+        ):
             self.coordinator.update_interval = timedelta(
                 seconds=self.coordinator.config_entry.options.get(
                     CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
