@@ -1,19 +1,25 @@
 """Support for Smart #1 / #3 switches."""
 
+from datetime import timedelta
 from typing import Any
 from homeassistant.components.climate import ClimateEntity, ClimateEntityFeature
 from homeassistant.components.climate.const import HVACMode
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
-
+from homeassistant.const import (
+    ATTR_TEMPERATURE,
+    CONF_SCAN_INTERVAL,
+    UnitOfTemperature,
+)
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
 from .const import (
     CONF_CONDITIONING_TEMP,
     CONF_VEHICLE,
     DEFAULT_CONDITIONING_TEMP,
+    DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    FAST_INTERVAL,
 )
 
 
@@ -46,6 +52,7 @@ class SmartConditioningMode(ClimateEntity):
     _attr_has_entity_name = True
     _attr_icon = "mdi:thermostat-auto"
     _enable_turn_on_off_backwards_compatibility = False
+    _last_mode = HVACMode.OFF
 
     @property
     def translation_key(self):
@@ -54,11 +61,20 @@ class SmartConditioningMode(ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode:
         """Return hvac operating mode: heat, cool"""
-        return (
+        current_mode = (
             HVACMode.HEAT_COOL
             if self._vehicle.climate.pre_climate_active
             else HVACMode.OFF
         )
+
+        # value is true, last setting is off -> keep on requesting
+        if current_mode == self._last_mode:
+            self.coordinator.update_interval = timedelta(
+                seconds=self.coordinator.config_entry.options.get(
+                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                )
+            )
+        return current_mode
 
     @property
     def temperature_unit(self):
@@ -100,14 +116,18 @@ class SmartConditioningMode(ClimateEntity):
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, True
         )
-        self.coordinator.async_request_refresh()
+        self._last_mode = HVACMode.HEAT_COOL
+        self.coordinator.update_interval = timedelta(seconds=FAST_INTERVAL)
+        await self.coordinator.async_refresh()
 
     async def async_turn_off(self) -> None:
         """Turn off the climate system."""
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, False
         )
-        self.coordinator.async_request_refresh()
+        self._last_mode = HVACMode.OFF
+        self.coordinator.update_interval = timedelta(seconds=FAST_INTERVAL)
+        await self.coordinator.async_refresh()
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature for the vehicle."""

@@ -23,6 +23,7 @@ from .const import (
     DEFAULT_DRIVING_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    FAST_INTERVAL,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
@@ -1014,6 +1015,7 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+        self._last_value = None
 
     @property
     def native_value(self) -> str | int | float:
@@ -1025,7 +1027,10 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             remove_vin_from_key(self.entity_description.key),
         )
 
-        if "charging_current" in self.entity_description.key:
+        if (
+            "charging_current" in self.entity_description.key
+            and self.coordinator.update_interval.seconds != FAST_INTERVAL
+        ):
             if data.value != 0:
                 self.coordinator.update_interval = timedelta(
                     seconds=self.coordinator.config_entry.options.get(
@@ -1038,6 +1043,7 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
                         CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                     )
                 )
+            self.hass.async_create_task(self.coordinator.async_request_refresh())
 
         if "charging_power" in self.entity_description.key:
             if data.value == -0.0:
@@ -1143,7 +1149,10 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                 remove_vin_from_key(self.entity_description.key),
             )
 
-        if key == "engine_state":
+        if (
+            key == "engine_state"
+            and self.coordinator.update_interval.seconds != FAST_INTERVAL
+        ):
             if data == "engine_running":
                 self.coordinator.update_interval = timedelta(
                     seconds=self.coordinator.config_entry.options.get(
@@ -1158,6 +1167,7 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                     )
                 )
                 self.icon = "mdi:engine-off"
+                self.hass.async_create_task(self.coordinator.async_request_refresh())
 
         if isinstance(data, ValueWithUnit):
             return data.value
