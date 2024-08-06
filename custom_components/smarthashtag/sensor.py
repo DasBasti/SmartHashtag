@@ -23,7 +23,6 @@ from .const import (
     DEFAULT_DRIVING_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
-    FAST_INTERVAL,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
@@ -1027,22 +1026,21 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             remove_vin_from_key(self.entity_description.key),
         )
 
-        if (
-            "charging_current" in self.entity_description.key
-            and self.coordinator.update_interval.seconds != FAST_INTERVAL
-        ):
+        if "charging_current" in self.entity_description.key:
+            scan_interval = self.coordinator.config_entry.options.get(
+                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+            )
+            charging_interval = self.coordinator.config_entry.options.get(
+                CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
+            )
             if data.value != 0:
-                self.coordinator.update_interval = timedelta(
-                    seconds=self.coordinator.config_entry.options.get(
-                        CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
+                if self.coordinator.update_interval.seconds == scan_interval:
+                    self.coordinator.update_interval = timedelta(
+                        seconds=charging_interval
                     )
-                )
             else:
-                self.coordinator.update_interval = timedelta(
-                    seconds=self.coordinator.config_entry.options.get(
-                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                    )
-                )
+                if self.coordinator.update_interval.seconds == charging_interval:
+                    self.coordinator.update_interval = timedelta(seconds=scan_interval)
             self.hass.async_create_task(self.coordinator.async_request_refresh())
 
         if "charging_power" in self.entity_description.key:
@@ -1149,23 +1147,22 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                 remove_vin_from_key(self.entity_description.key),
             )
 
-        if (
-            key == "engine_state"
-            and self.coordinator.update_interval.seconds != FAST_INTERVAL
-        ):
+        scan_interval = self.coordinator.config_entry.options.get(
+            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+        )
+        driving_interval = self.coordinator.config_entry.options.get(
+            CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
+        )
+        if key == "engine_state":
             if data == "engine_running":
-                self.coordinator.update_interval = timedelta(
-                    seconds=self.coordinator.config_entry.options.get(
-                        CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
+                if self.coordinator.update_interval.seconds == scan_interval:
+                    self.coordinator.update_interval = timedelta(
+                        seconds=driving_interval
                     )
-                )
                 self.icon = "mdi:engine"
             else:
-                self.coordinator.update_interval = timedelta(
-                    seconds=self.coordinator.config_entry.options.get(
-                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                    )
-                )
+                if self.coordinator.update_interval.seconds == driving_interval:
+                    self.coordinator.update_interval = timedelta(seconds=scan_interval)
                 self.icon = "mdi:engine-off"
                 self.hass.async_create_task(self.coordinator.async_request_refresh())
 
