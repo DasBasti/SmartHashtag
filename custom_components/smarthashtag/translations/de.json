@@ -27,7 +27,8 @@
         "data": {
           "scan_interval": "Sekunden zwischen den Scans",
           "charging_interval": "Sekunden zwischen den Scans während des Ladens",
-          "driving_interval": "Sekunden zwischen den Scans während der Fahrt"
+          "driving_interval": "Sekunden zwischen den Scans während der Fahrt",
+          "conditioning_temp": "Zieltemperatur Vorklimatisierung"
         }
       }
     }

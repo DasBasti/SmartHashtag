@@ -27,7 +27,8 @@
         "data": {
           "scan_interval": "Seconds between each scan",
           "charging_interval": "Seconds between each scan while charging",
-          "driving_interval": "Seconds between each scan while driving"
+          "driving_interval": "Seconds between each scan while driving",
+          "conditioning_temp": "Target temperature preconditioning"
         }
       }
     }
