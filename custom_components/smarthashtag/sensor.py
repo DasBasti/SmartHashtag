@@ -1038,10 +1038,12 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
                     self.coordinator.update_interval = timedelta(
                         seconds=charging_interval
                     )
+                    self.hass.async_create_task(
+                        self.coordinator.async_request_refresh()
+                    )
             else:
                 if self.coordinator.update_interval.seconds == charging_interval:
                     self.coordinator.update_interval = timedelta(seconds=scan_interval)
-            self.hass.async_create_task(self.coordinator.async_request_refresh())
 
         if "charging_power" in self.entity_description.key:
             if data.value == -0.0:
@@ -1159,12 +1161,12 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                     self.coordinator.update_interval = timedelta(
                         seconds=driving_interval
                     )
+                self.hass.async_create_task(self.coordinator.async_request_refresh())
                 self.icon = "mdi:engine"
             else:
                 if self.coordinator.update_interval.seconds == driving_interval:
                     self.coordinator.update_interval = timedelta(seconds=scan_interval)
                 self.icon = "mdi:engine-off"
-                self.hass.async_create_task(self.coordinator.async_request_refresh())
 
         if isinstance(data, ValueWithUnit):
             return data.value
