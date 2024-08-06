@@ -68,7 +68,10 @@ class SmartConditioningMode(ClimateEntity):
         )
 
         # value is true, last setting is off -> keep on requesting
-        if current_mode == self._last_mode:
+        if (
+            current_mode == self._last_mode
+            and self.coordinator.update_interval.seconds == FAST_INTERVAL
+        ):
             self.coordinator.update_interval = timedelta(
                 seconds=self.coordinator.config_entry.options.get(
                     CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
@@ -118,7 +121,7 @@ class SmartConditioningMode(ClimateEntity):
         )
         self._last_mode = HVACMode.HEAT_COOL
         self.coordinator.update_interval = timedelta(seconds=FAST_INTERVAL)
-        await self.coordinator.async_refresh()
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self) -> None:
         """Turn off the climate system."""
@@ -127,7 +130,7 @@ class SmartConditioningMode(ClimateEntity):
         )
         self._last_mode = HVACMode.OFF
         self.coordinator.update_interval = timedelta(seconds=FAST_INTERVAL)
-        await self.coordinator.async_refresh()
+        await self.coordinator.async_request_refresh()
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature for the vehicle."""
