@@ -10,9 +10,6 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass,
 )
-from homeassistant.const import (
-    CONF_SCAN_INTERVAL,
-)
 from pysmarthashtag.models import ValueWithUnit
 
 from .const import (
@@ -21,7 +18,6 @@ from .const import (
     CONF_VEHICLE,
     DEFAULT_CHARGING_INTERVAL,
     DEFAULT_DRIVING_INTERVAL,
-    DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
@@ -1124,23 +1120,18 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
         )
 
         if "charging_current" in self.entity_description.key:
-            scan_interval = self.coordinator.config_entry.options.get(
-                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-            )
-            charging_interval = self.coordinator.config_entry.options.get(
-                CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
-            )
             if data.value != 0:
-                if self.coordinator.update_interval.seconds == scan_interval:
-                    self.coordinator.update_interval = timedelta(
-                        seconds=charging_interval
-                    )
-                    self.hass.async_create_task(
-                        self.coordinator.async_request_refresh()
-                    )
+                self.coordinator.set_update_interval(
+                    "charging",
+                    timedelta(
+                        seconds=self.coordinator.config_entry.options.get(
+                            CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
+                        )
+                    ),
+                )
+                self.hass.async_create_task(self.coordinator.async_request_refresh())
             else:
-                if self.coordinator.update_interval.seconds == charging_interval:
-                    self.coordinator.update_interval = timedelta(seconds=scan_interval)
+                self.coordinator.reset_update_interval("charging")
 
         if "charging_power" in self.entity_description.key:
             if data.value == -0.0:
@@ -1246,23 +1237,20 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                 remove_vin_from_key(self.entity_description.key),
             )
 
-        scan_interval = self.coordinator.config_entry.options.get(
-            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-        )
-        driving_interval = self.coordinator.config_entry.options.get(
-            CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
-        )
         if key == "engine_state":
             if data == "engine_running":
-                if self.coordinator.update_interval.seconds == scan_interval:
-                    self.coordinator.update_interval = timedelta(
-                        seconds=driving_interval
-                    )
+                self.coordinator.set_update_interval(
+                    "driving",
+                    timedelta(
+                        seconds=self.coordinator.config_entry.options.get(
+                            CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
+                        )
+                    ),
+                )
                 self.hass.async_create_task(self.coordinator.async_request_refresh())
                 self.icon = "mdi:engine"
             else:
-                if self.coordinator.update_interval.seconds == driving_interval:
-                    self.coordinator.update_interval = timedelta(seconds=scan_interval)
+                self.coordinator.reset_update_interval("driving")
                 self.icon = "mdi:engine-off"
 
         if isinstance(data, ValueWithUnit):
