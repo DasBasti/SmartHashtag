@@ -30,6 +30,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         name="Remaining Range",
         icon="mdi:road-variant",
         device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
@@ -38,6 +39,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         name="Remaining Range at full battery",
         icon="mdi:road-variant",
         device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
@@ -46,6 +48,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         name="Remaining battery charge",
         icon="mdi:percent",
         device_class=SensorDeviceClass.BATTERY,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="charging_status",
@@ -87,6 +90,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         name="Charging voltage",
         icon="mdi:car-battery",
         device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="charging_current",
@@ -95,6 +99,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         icon="mdi:car-battery",
         device_class=SensorDeviceClass.CURRENT,
         native_unit_of_measurement="A",
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="charging_power",
@@ -103,6 +108,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         icon="mdi:car-battery",
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement="W",
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="charging_time_remaining",
@@ -126,6 +132,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         name="Average power consumption",
         icon="mdi:power",
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
     ),
 )
@@ -156,6 +163,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement="°C",
         entity_registry_enabled_default=False,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="temperature_1",
@@ -165,6 +173,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement="°C",
         entity_registry_enabled_default=False,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="temperature_2",
@@ -174,6 +183,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement="°C",
         entity_registry_enabled_default=False,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="temperature_3",
@@ -183,6 +193,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
         device_class=SensorDeviceClass.TEMPERATURE,
         native_unit_of_measurement="°C",
         entity_registry_enabled_default=False,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="tire_pressure_0",
@@ -191,6 +202,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
         icon="mdi:gauge",
         device_class=SensorDeviceClass.PRESSURE,
         native_unit_of_measurement="hPa",
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="tire_pressure_1",
@@ -199,6 +211,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
         icon="mdi:gauge",
         device_class=SensorDeviceClass.PRESSURE,
         native_unit_of_measurement="hPa",
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="tire_pressure_2",
@@ -207,6 +220,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
         icon="mdi:gauge",
         device_class=SensorDeviceClass.PRESSURE,
         native_unit_of_measurement="hPa",
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="tire_pressure_3",
@@ -215,6 +229,7 @@ ENTITY_TIRE_DESCRIPTIONS = (
         icon="mdi:gauge",
         device_class=SensorDeviceClass.PRESSURE,
         native_unit_of_measurement="hPa",
+        state_class=SensorStateClass.MEASUREMENT,
     ),
 )
 
@@ -260,6 +275,7 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
         name="Main battery voltage",
         icon="mdi:car-battery",
         device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="V",
     ),
     SensorEntityDescription(
@@ -268,9 +284,9 @@ ENTITY_MAINTENANCE_DESCRIPTIONS = (
         name="Odometer",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
-        # The sensor's value never resets
+        # The sensor's value never goes backward
         # https://developers.home-assistant.io/docs/core/entity/sensor/#how-to-choose-state_class-and-last_reset
-        state_class=SensorStateClass.TOTAL,
+        state_class=SensorStateClass.TOTAL_INCREASING,
         last_reset=None,
         native_unit_of_measurement="km",
     ),
@@ -386,9 +402,7 @@ ENTITY_RUNNING_DESCRIPTIONS = (
         name="Trip meter 1",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
-        # The sensor's value may reset to 0, and its value can only increase
-        # https://developers.home-assistant.io/docs/core/entity/sensor/#how-to-choose-state_class-and-last_reset
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
@@ -397,9 +411,7 @@ ENTITY_RUNNING_DESCRIPTIONS = (
         name="Trip meter 2",
         icon="mdi:counter",
         device_class=SensorDeviceClass.DISTANCE,
-        # The sensor's value may reset to 0, and its value can only increase
-        # https://developers.home-assistant.io/docs/core/entity/sensor/#how-to-choose-state_class-and-last_reset
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="km",
     ),
     SensorEntityDescription(
@@ -499,6 +511,7 @@ ENTITY_RUNNING_DESCRIPTIONS = (
         name="Average speed",
         icon="mdi:speedometer",
         device_class=SensorDeviceClass.SPEED,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="km/h",
     ),
     SensorEntityDescription(
@@ -615,6 +628,7 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
         name="Exterior temperature",
         icon="mdi:home-thermometer-outline",
         device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="frag_active",
@@ -629,6 +643,7 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
         name="Interior temperature",
         icon="mdi:thermometer",
         device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="passenger_heating_detail",
@@ -816,6 +831,7 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
         name="Interior PM25",
         icon="mdi:air-filter",
         entity_registry_enabled_default=False,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="relative_humidity",
@@ -823,6 +839,7 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
         name="Relative humidity",
         icon="mdi:water-percent",
         device_class=SensorDeviceClass.HUMIDITY,
+        state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="%",
         entity_registry_enabled_default=False,
     ),
