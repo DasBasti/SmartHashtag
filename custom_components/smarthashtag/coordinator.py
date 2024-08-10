@@ -8,11 +8,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.const import CONF_SCAN_INTERVAL
 from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.models import SmartAuthError, SmartAPIError
 from pysmarthashtag.models import SmartRemoteServiceError
 
-from .const import DOMAIN
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
 from .const import LOGGER
 
 
@@ -35,6 +36,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             name=DOMAIN,
             update_interval=timedelta(minutes=5),
         )
+        self._update_intervals = {}
 
     async def _async_update_data(self):
         """Update data via library."""
@@ -46,3 +48,23 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(exception) from exception
         except SmartAPIError as exception:
             LOGGER.info(f"API access failed with: {exception}")
+
+    def set_update_interval(self, key: str, deltatime: timedelta) -> None:
+        """Update intervals by key and select the shortest"""
+        LOGGER.info(f"Updatefrequency set for {key}: {deltatime}")
+        self._update_intervals[key] = deltatime
+        sorted_intervals = list(self._update_intervals.values())
+        sorted_intervals.sort()
+        if sorted_intervals:
+            self.update_interval = sorted_intervals[0]
+
+    def reset_update_interval(self, key: str):
+        """Reset interval for this key to default"""
+        self.set_update_interval(
+            key,
+            timedelta(
+                seconds=self.config_entry.options.get(
+                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                )
+            ),
+        )

@@ -8,7 +8,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.const import (
     ATTR_TEMPERATURE,
-    CONF_SCAN_INTERVAL,
     UnitOfTemperature,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
@@ -17,7 +16,6 @@ from .const import (
     CONF_CONDITIONING_TEMP,
     CONF_VEHICLE,
     DEFAULT_CONDITIONING_TEMP,
-    DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     FAST_INTERVAL,
 )
@@ -68,15 +66,9 @@ class SmartConditioningMode(ClimateEntity):
         )
 
         # value is true, last setting is off -> keep on requesting
-        if (
-            current_mode == self._last_mode
-            and self.coordinator.update_interval.seconds == FAST_INTERVAL
-        ):
-            self.coordinator.update_interval = timedelta(
-                seconds=self.coordinator.config_entry.options.get(
-                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                )
-            )
+        if current_mode == self._last_mode:
+            self.coordinator.reset_update_interval("climate")
+
         return current_mode
 
     @property
@@ -120,7 +112,9 @@ class SmartConditioningMode(ClimateEntity):
             self._temperature, True
         )
         self._last_mode = HVACMode.HEAT_COOL
-        self.coordinator.update_interval = timedelta(seconds=FAST_INTERVAL)
+        self.coordinator.set_update_interval(
+            "climate", timedelta(seconds=FAST_INTERVAL)
+        )
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self) -> None:
@@ -129,7 +123,9 @@ class SmartConditioningMode(ClimateEntity):
             self._temperature, False
         )
         self._last_mode = HVACMode.OFF
-        self.coordinator.update_interval = timedelta(seconds=FAST_INTERVAL)
+        self.coordinator.set_update_interval(
+            "climate", timedelta(seconds=FAST_INTERVAL)
+        )
         await self.coordinator.async_request_refresh()
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
