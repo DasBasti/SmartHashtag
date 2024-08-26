@@ -57,8 +57,10 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         icon="mdi:power-plug-battery",
         options={
             "charging": "charging",
-            "not_charging": "not charging",
             "complete": "fully charged",
+            "dc_charging": "DC charging",
+            "default": "default",
+            "not_charging": "not charging",
         },
         device_class=SensorDeviceClass.ENUM,
     ),
