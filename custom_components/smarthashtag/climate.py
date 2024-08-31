@@ -18,6 +18,7 @@ from .const import (
     DEFAULT_CONDITIONING_TEMP,
     DOMAIN,
     FAST_INTERVAL,
+    LOGGER,
 )
 
 
@@ -101,10 +102,13 @@ class SmartConditioningMode(ClimateEntity):
         self._vehicle = self.coordinator.account.vehicles[vehicle]
         self._attr_name = f"Smart {vehicle} Conditioning"
         self._attr_unique_id = f"{self._attr_unique_id}_{vehicle}"
-        self._temperature = self.coordinator.config_entry.options.get(
-            CONF_CONDITIONING_TEMP, DEFAULT_CONDITIONING_TEMP
-        )
-        self._attr_target_temperature = self._temperature
+        try:
+            self._temperature = self.coordinator.config_entry.options.get(
+                CONF_CONDITIONING_TEMP, DEFAULT_CONDITIONING_TEMP
+            )
+            self._attr_target_temperature = self._temperature
+        except Exception as e:
+            LOGGER.error(f"Cannot access coordinator config: {e}")
 
     async def async_turn_on(self) -> None:
         """Turn on the climate system."""
