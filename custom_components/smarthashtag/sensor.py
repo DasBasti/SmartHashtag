@@ -76,7 +76,12 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         translation_key="charger_connection_status",
         name="Charger connection status",
         icon="mdi:battery-unknown",
-        options={0: "not connected", 2: "plugged, not charging", 3: "charging"},
+        options={
+            0: "not connected",
+            1: "tbd",
+            2: "plugged, not charging",
+            3: "charging",
+        },
         device_class=SensorDeviceClass.ENUM,
         entity_registry_enabled_default=False,
     ),
