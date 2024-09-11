@@ -5,43 +5,6 @@
 [![CodeQL Validation][codeql-shield]][codeql]
 [![Dependency Validation][tests-shield]][tests]
 
-**This integration will set up the following platforms.**
-
-| Sensor Name                  | Sensor Type                       | Unit of Measurement | Attributes | Notes                                  |
-| ---------------------------- | --------------------------------- | ------------------- | ---------- | -------------------------------------- |
-| `Last Update`                | Last data update                  | Timestamp           |            | Data age in Web API                    |
-| `Engine State`               | Boolean                           |                     |            | If in 'D' True else False              |
-| `Odometer`                   | Total distance traveled           | km                  |            |                                        |
-| `Days to next service`       | Duration                          | d                   |            |                                        |
-| `Distance to next service`   | Distance                          | km                  |            |                                        |
-| `Remaining Range`            | Distance                          | km                  |            |                                        |
-| `Range at full battery`      | Distance                          | km                  |            |                                        |
-| `Remaining Battery Charge`   | Percent                           | %                   |            |                                        |
-| `Charger Connection Status`  | Number                            | ?                   |            |                                        |
-| `Is Charger Connected`       | Boolen                            | True, False         |            |                                        |
-| `Charging Voltage`           | Volts at Charging Port            | V                   |            |                                        |
-| `Charging Current`           | Ampere at Charging Port           | A                   |            |                                        |
-| `Charging Power`             | Power going to Battery            | W                   |            |                                        |
-| `Charging Time remaining`    | Duration                          | min                 |            |                                        |
-| `Charging Target Percent`    | Percent State of Charge           | %                   |            | Not yet available                      |
-| `Tire Temperature`           | Temperature                       | °C                  |            |                                        |
-| `Tire Pressure`              | Pressure                          | kPa                 |            |                                        |
-| `12V Battery State`          | State, Voltage, Energy Level      | V, %                |            | Determine what some of the values mean |
-| `Fluid States`               | Numerical                         |                     |            | Determine what each number means       |
-| `Light states`               | Boolean                           |                     |            | Check names of sensors                 |
-| `Trim Meter`                 | Distance                          | km                  |            | 2 different trip counter               |
-| `Climate Sensors`            | Blower and Heating States         |                     |            | Test what the different numbers mean   |
-| `Window Status and Position` | Numerical                         |                     |            | Test what the different numbers mean   |
-| `Temperatur Sensor`          | Inner and Surrounding Temperature | °C                  |            |                                        |
-
-| Climate Name       | Climate Type | Unit of Measurement | Attributes     | Notes |
-| ------------------ | ------------ | ------------------- | -------------- | ----- |
-| `Pre Conditioning` | Temperature  | °C                  | Heat/Cool, Off |       |
-
-| Device Tracker     | Type     | Unit of Measurement | Attributes | Notes |
-| ------------------ | -------- | ------------------- | ---------- | ----- |
-| `Pre Conditioning` | Position | Geoposition         |            |       |
-
 ## Installation
 
 ### Using HACS (Recommended)
@@ -64,6 +27,64 @@
 ### Finally
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=smarthashtag)
+
+## Connect to ABRP
+
+[@chriscatuk](https://github.com/chriscatuk) integrated [A Better Route Planner](https://abetterrouteplanner.com/) with data from this component. To automatically send the information everytime the component updates, add this to your automations.
+
+```yaml
+# based on https://documenter.getpostman.com/view/7396339/SWTK5a8w
+alias: ABRP updates
+trigger:
+  - platform: state
+    entity_id:
+      - sensor.smart_last_update
+action:
+  - action: rest_command.abrp
+    data:
+      token: 99999999-aaaa-aaaa-bbbb-eeeeeeeeee # generated for each car in ABRP app
+      api_key: 8888888-2222-44444-bbbb-333333333 # obtained from contact@iternio.com , see https://documenter.getpostman.com/view/7396339/SWTK5a8w
+      utc: "{{ as_timestamp(states('sensor.smart_last_update')) | int }}"
+      soc: "{{ states('sensor.smart_battery', rounded=False, with_unit=False) | default('') }}"
+      soh: 100
+      power: >
+            {% if states('sensor.smart_charging_power', rounded=False, with_unit=False) | default(0) | float > 0 %}
+                -{{ states('sensor.smart_charging_power', rounded=False, with_unit=False) }}
+            {% endif %}
+      speed: ""
+      lat: "{{ state_attr('device_tracker.smart_none', 'latitude') | default('') }}"
+      lon: "{{ state_attr('device_tracker.smart_none', 'longitude') | default('') }}"
+      elevation: "{{ state_attr('device_tracker.smart_none', 'altitude').value | default('') }}")
+      is_charging: >
+        {% if states('sensor.smart_charging_status') == 'charging' or
+        states('sensor.smart_charging_status') == 'DC charging' %}
+            1
+        {% else %}
+            0
+        {% endif %}
+      is_dcfc: |
+        {% if states('sensor.smart_charging_status') == 'DC charging' %}
+            1
+        {% else %}
+            0
+        {% endif %}
+
+      is_parked: "{{ states('sensor.smart_electric_park_brake_status') | default(0) }}"
+      ext_temp: "{{ states('sensor.smart_exterior_temperature', rounded=False, with_unit=False) | default('') }}"
+      odometer: "{{ states('sensor.smart_odometer', rounded=False, with_unit=False) | default('') }}"
+      est_battery_range: "{{ states('sensor.smart_range', rounded=False, with_unit=False) | default('') }}"
+```
+
+And this to your `configuration.yaml` to create the `rest_command`.
+
+```yaml
+rest_command:
+  abrp:
+    url: https://api.iternio.com/1/tlm/send?token={{ token }}&tlm={"utc":"{{ utc }}","soc":"{{ soc }}","soh":"{{ soh }}","power":"{{ power }}","speed":"{{ speed }}","lat":"{{ lat }}","lon":"{{ lon }}","is_charging":"{{ is_charging }}","is_dcfc":"{{ is_dcfc }}","is_parked":"{{ is_parked }}","elevation":"{{ elevation }}","ext_temp":"{{ ext_temp }}","odometer":"{{ odometer }}","est_battery_range":"{{ est_battery_range }}"}
+    method: post
+    headers:
+      Authorization: "APIKEY {{ api_key }}"
+```
 
 ## Contributions are welcome!
 
