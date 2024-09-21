@@ -59,6 +59,7 @@
         "name": "Charger connection",
         "state": {
           "0": "not connected",
+          "1": "dc connected",
           "2": "plugged, not charging",
           "3": "charging"
         }

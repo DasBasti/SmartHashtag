@@ -59,6 +59,7 @@
         "name": "Ladesanschluss",
         "state": {
           "0": "nicht verbunden",
+          "1": "dc verbunden",
           "2": "verbunden, nicht ladend",
           "3": "laden"
         }
