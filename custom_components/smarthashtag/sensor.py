@@ -1168,7 +1168,9 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
 
         # invert power consumption value to display the consumed power as positive
         if "average_power_consumption" in self.entity_description.key:
-            return data.value * -1
+            if data.value:
+                return data.value * -1
+            return data
 
         if isinstance(data, ValueWithUnit):
             return data.value
