@@ -34,27 +34,34 @@
 
 ```yaml
 # based on https://documenter.getpostman.com/view/7396339/SWTK5a8w
-alias: ABRP updates
-trigger:
-  - platform: state
-    entity_id:
+alias: ABRP update
+description: ""
+triggers:
+  - entity_id:
       - sensor.smart_last_update
-action:
+    trigger: state
+conditions: []
+actions:
   - action: rest_command.abrp
     data:
       token: 99999999-aaaa-aaaa-bbbb-eeeeeeeeee # generated for each car in ABRP app
       api_key: 8888888-2222-44444-bbbb-333333333 # obtained from contact@iternio.com , see https://documenter.getpostman.com/view/7396339/SWTK5a8w
-      utc: "{{ as_timestamp(states('sensor.smart_last_update')) | int }}"
-      soc: "{{ states('sensor.smart_battery', rounded=False, with_unit=False) | default('') }}"
+      utc: "{{ as_timestamp(now()) | int }}"
+      soc: >-
+        {{ states('sensor.smart_battery', rounded=False, with_unit=False) |
+        default('') }}
       soh: 100
       power: >
-            {% if states('sensor.smart_charging_power', rounded=False, with_unit=False) | default(0) | float > 0 %}
-                -{{ states('sensor.smart_charging_power', rounded=False, with_unit=False) }}
-            {% endif %}
+        {% if states('sensor.smart_charging_power', rounded=False,
+        with_unit=False) | default(0) | float > 0 %}
+            -{{ states('sensor.smart_charging_power', rounded=False, with_unit=False) | int / 1000 }}
+        {% endif %}
       speed: ""
       lat: "{{ state_attr('device_tracker.smart_none', 'latitude') | default('') }}"
       lon: "{{ state_attr('device_tracker.smart_none', 'longitude') | default('') }}"
-      elevation: "{{ state_attr('device_tracker.smart_none', 'altitude').value | default('') }}")
+      elevation: >-
+        {{ state_attr('device_tracker.smart_none', 'altitude').value |
+        default('') }}
       is_charging: >
         {% if states('sensor.smart_charging_status') == 'charging' or
         states('sensor.smart_charging_status') == 'DC charging' %}
@@ -68,11 +75,17 @@ action:
         {% else %}
             0
         {% endif %}
-
       is_parked: "{{ states('sensor.smart_electric_park_brake_status') | default(0) }}"
-      ext_temp: "{{ states('sensor.smart_exterior_temperature', rounded=False, with_unit=False) | default('') }}"
-      odometer: "{{ states('sensor.smart_odometer', rounded=False, with_unit=False) | default('') }}"
-      est_battery_range: "{{ states('sensor.smart_range', rounded=False, with_unit=False) | default('') }}"
+      ext_temp: >-
+        {{ states('sensor.smart_exterior_temperature', rounded=False,
+        with_unit=False) | default('') }}
+      odometer: >-
+        {{ states('sensor.smart_odometer', rounded=False, with_unit=False) |
+        default('') }}
+      est_battery_range: >-
+        {{ states('sensor.smart_range', rounded=False, with_unit=False) |
+        default('') }}
+mode: single
 ```
 
 And this to your `configuration.yaml` to create the `rest_command`.
