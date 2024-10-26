@@ -46,7 +46,7 @@ actions:
     data:
       token: 99999999-aaaa-aaaa-bbbb-eeeeeeeeee # generated for each car in ABRP app
       api_key: 8888888-2222-44444-bbbb-333333333 # obtained from contact@iternio.com , see https://documenter.getpostman.com/view/7396339/SWTK5a8w
-      utc: "{{ as_timestamp(now()) | int }}"
+      utc: "{{ as_timestamp(states('sensor.smart_last_update')) | int }}"
       soc: >-
         {{ states('sensor.smart_battery', rounded=False, with_unit=False) |
         default('') }}
