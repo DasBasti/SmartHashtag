@@ -1,5 +1,5 @@
 colorlog==6.7.0
 homeassistant>=2024
 pip
-ruff==0.7.1
+ruff==0.8.1
 pre-commit
