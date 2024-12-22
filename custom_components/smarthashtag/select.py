@@ -1,6 +1,6 @@
 """Support for Smart selects."""
 
-from homeassistant.components.select import SelectEntity
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.core import HomeAssistant
 
 from pysmarthashtag.control.climate import HeatingLocation
@@ -17,6 +17,35 @@ STEERING_HEATER_OPTIONS = [
 ]
 
 STEERING_HEATER_OPTIONS_MAP = {"Off": 0, "Low": 1, "Mid": 2, "High": 3}
+HEATING_LOCATION_NAMES = {
+    HeatingLocation.STEERING_WHEEL: "Steering Wheel",
+    HeatingLocation.DRIVER_SEAT: "Driver Seat",
+    HeatingLocation.PASSENGER_SEAT: "Passenger Seat",
+}
+
+SELECT_DESCRIPTIONS = {
+    HeatingLocation.STEERING_WHEEL: SelectEntityDescription(
+        options=STEERING_HEATER_OPTIONS,
+        key="steering_wheel_heater",
+        translation_key="steering_wheel_heater",
+        name="Steering Wheel Heating",
+        icon="mdi:steering",
+    ),
+    HeatingLocation.DRIVER_SEAT: SelectEntityDescription(
+        options=STEERING_HEATER_OPTIONS,
+        key="driver_seat_heater",
+        translation_key="driver_seat_heater",
+        name="Driver Seat Heating",
+        icon="mdi:car-seat-heater",
+    ),
+    HeatingLocation.PASSENGER_SEAT: SelectEntityDescription(
+        options=STEERING_HEATER_OPTIONS,
+        key="passenger_seat_heater",
+        translation_key="passenger_seat_heater",
+        name="Passenger Seat Heating",
+        icon="mdi:car-seat-heater",
+    ),
+}
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
@@ -26,13 +55,8 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     vehicle = hass.data[DOMAIN][CONF_VEHICLE]
     entities = []
 
-    entities.append(SmartPreHeatedSteeringWheel(coordinator, vehicle))
-    entities.append(
-        SmartPreHeatedSeat(coordinator, vehicle, HeatingLocation.DRIVER_SEAT)
-    )
-    entities.append(
-        SmartPreHeatedSeat(coordinator, vehicle, HeatingLocation.PASSENGER_SEAT)
-    )
+    for location in HeatingLocation:
+        entities.append(SmartPreHeatedLocation(coordinator, vehicle, location))
 
     async_add_entities(entities, update_before_add=True)
 
@@ -50,9 +74,12 @@ class SmartPreHeatedLocation(SelectEntity):
         super().__init__()
         self.coordinator = coordinator
         self._vehicle = self.coordinator.account.vehicles[vehicle]
-        self._attr_name = f"Smart {vehicle} Conditioning"
-        self._attr_unique_id = f"{self._attr_unique_id}_{vehicle}_{location}"
+        self._attr_name = (
+            f"Smart {vehicle} Conditioning {HEATING_LOCATION_NAMES[location]}"
+        )
+        self._attr_unique_id = f"{vehicle}_preconditioning_{HEATING_LOCATION_NAMES[location].lower().replace(' ', '_')}"
         self._location = location
+        self.entity_description = SELECT_DESCRIPTIONS[location]
 
     def select_option(self, option: str, **kwargs):
         """Change the selected option."""
@@ -82,23 +109,3 @@ class SmartPreHeatedLocation(SelectEntity):
     def options(self):
         """Return heated seat options."""
         return STEERING_HEATER_OPTIONS
-
-
-class SmartPreHeatedSteeringWheel(SmartPreHeatedLocation):
-    """Representation of a Smart heated steering wheel select."""
-
-    type = "heated steering wheel"
-    _attr_icon = "mdi:steering"
-
-    def __init__(self, coordinator, vehicle):
-        super().__init__(coordinator, vehicle, HeatingLocation.STEERING_WHEEL)
-
-
-class SmartPreHeatedSeat(SmartPreHeatedLocation):
-    """Representation of a Smart heated steering wheel select."""
-
-    type = "heated seat"
-    _attr_icon = "mdi:car-seat-heater"
-
-    def __init__(self, coordinator, vehicle, seat):
-        super().__init__(coordinator, vehicle, seat)
