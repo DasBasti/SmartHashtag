@@ -34,6 +34,22 @@
     }
   },
   "entity": {
+    "climate": {
+      "car_climate": {
+        "name": "Klimaanlage"
+      }
+    },
+    "select": {
+      "steering_wheel_heater": {
+        "name": "Lenkradheizung"
+      },
+      "driver_seat_heater": {
+        "name": "Fahrersitzheizung"
+      },
+      "passenger_seat_heater": {
+        "name": "Beifahrersitzheizung"
+      }
+    },
     "sensor": {
       "remaining_range": {
         "name": "Reichweite"
