@@ -1,5 +1,6 @@
 """Support for Smart selects."""
 
+from typing import Literal
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.core import HomeAssistant
 
@@ -81,9 +82,19 @@ class SmartPreHeatedLocation(SelectEntity):
         self.entity_description = SELECT_DESCRIPTIONS[location]
 
         # reload the last selected level
+        try:
+            self._vehicle.climate_control.set_heating_level(
+                self._location, self._get_level_for_location(self._location)
+            )
+        except Exception as e:
+            LOGGER.warning("Failed to set initial heating level: %s", str(e))
+
+    def _get_level_for_location(self, location: HeatingLocation) -> Literal[0, 1, 2, 3]:
+        """Get the heating level for the specified location."""
         if "selects" in self.coordinator.config_entry.data:
-            level = self.coordinator.config_entry.data["selects"].get(self._location, 0)
-            self._vehicle.climate_control.set_heating_level(self._location, level)
+            level = self.coordinator.config_entry.data["selects"].get(location, 0)
+            return level
+        return 0
 
     def select_option(self, option: str, **kwargs):
         """Change the selected option."""
@@ -107,7 +118,8 @@ class SmartPreHeatedLocation(SelectEntity):
     @property
     def current_option(self):
         """Return current heated steering setting."""
-        current_value = self._vehicle.climate_control.heating_levels[self._location]
+        current_value = self._get_level_for_location(self._location)
+        self._vehicle.climate_control.set_heating_level(self._location, current_value)
         current_str = next(
             (
                 key
