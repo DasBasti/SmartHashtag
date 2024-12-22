@@ -16,7 +16,7 @@ STEERING_HEATER_OPTIONS = [
     "High",
 ]
 
-STEERING_HEATER_OPTIONS_MAP = {"Off": 0, "Low": 1, "Mid": 2, "High": 3}
+HEATING_LEVEL_OPTIONS_MAP = {"Off": 0, "Low": 1, "Mid": 2, "High": 3}
 HEATING_LOCATION_NAMES = {
     HeatingLocation.STEERING_WHEEL: "Steering Wheel",
     HeatingLocation.DRIVER_SEAT: "Driver Seat",
@@ -93,7 +93,7 @@ class SmartPreHeatedLocation(SelectEntity):
                 self.coordinator.config_entry, data=new_data
             )
 
-        level: int = STEERING_HEATER_OPTIONS_MAP[option]
+        level: int = HEATING_LEVEL_OPTIONS_MAP[option]
         self._vehicle.climate_control.set_heating_level(self._location, level)
 
         # save the selected level
@@ -111,7 +111,7 @@ class SmartPreHeatedLocation(SelectEntity):
         current_str = next(
             (
                 key
-                for key, val in STEERING_HEATER_OPTIONS_MAP.items()
+                for key, val in HEATING_LEVEL_OPTIONS_MAP.items()
                 if val == current_value
             ),
             None,
