@@ -50,7 +50,6 @@ SELECT_DESCRIPTIONS = {
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Set up the Smart selects by config_entry."""
-    _ = hass.data[DOMAIN][entry.entry_id]
     coordinator = hass.data[DOMAIN][entry.entry_id]
     vehicle = hass.data[DOMAIN][CONF_VEHICLE]
     entities = []
@@ -81,11 +80,28 @@ class SmartPreHeatedLocation(SelectEntity):
         self._location = location
         self.entity_description = SELECT_DESCRIPTIONS[location]
 
+        # reload the last selected level
+        if "selects" in self.coordinator.config_entry.data:
+            level = self.coordinator.config_entry.data["selects"].get(self._location, 0)
+            self._vehicle.climate_control.set_heating_level(self._location, level)
+
     def select_option(self, option: str, **kwargs):
         """Change the selected option."""
 
+        async def update_config_entry(self, new_data):
+            self.hass.config_entries.async_update_entry(
+                self.coordinator.config_entry, data=new_data
+            )
+
         level: int = STEERING_HEATER_OPTIONS_MAP[option]
         self._vehicle.climate_control.set_heating_level(self._location, level)
+
+        # save the selected level
+        new_data = self.coordinator.config_entry.data.copy()
+        if "selects" not in new_data:
+            new_data["selects"] = {}
+        new_data["selects"][self._location] = level
+        self.hass.add_job(update_config_entry, self, new_data)
         LOGGER.debug(f"Setting {self._location} to %s", level)
 
     @property
