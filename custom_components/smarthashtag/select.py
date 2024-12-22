@@ -81,9 +81,12 @@ class SmartPreHeatedLocation(SelectEntity):
         self.entity_description = SELECT_DESCRIPTIONS[location]
 
         # reload the last selected level
-        self._vehicle.climate_control.set_heating_level(
-            self._location, self._get_level_for_location(self._location)
-        )
+        try:
+            self._vehicle.climate_control.set_heating_level(
+                self._location, self._get_level_for_location(self._location)
+            )
+        except Exception as e:
+            LOGGER.warning("Failed to set initial heating level: %s", str(e))
 
     def _get_level_for_location(self, location: HeatingLocation) -> int:
         """Get the heating level for the specified location."""
