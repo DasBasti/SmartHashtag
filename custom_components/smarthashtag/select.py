@@ -91,7 +91,10 @@ class SmartPreHeatedLocation(SelectEntity):
 
     def _get_level_for_location(self, location: HeatingLocation) -> Literal[0, 1, 2, 3]:
         """Get the heating level for the specified location."""
-        if "selects" in self.coordinator.config_entry.data:
+        if (
+            self.coordinator.config_entry
+            and "selects" in self.coordinator.config_entry.data
+        ):
             level = self.coordinator.config_entry.data["selects"].get(location, 0)
             return level
         return 0
