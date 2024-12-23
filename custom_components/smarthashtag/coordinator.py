@@ -69,3 +69,5 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
                     )
                 ),
             )
+        else:
+            LOGGER.warning("Cannot reset update interval due to missing config_entry")
