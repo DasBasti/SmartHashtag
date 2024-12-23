@@ -97,6 +97,8 @@ class SmartPreHeatedLocation(SelectEntity):
         ):
             level = self.coordinator.config_entry.data["selects"].get(location, 0)
             return level
+        else:
+            LOGGER.debug("No heating level found for %s", location)
         return 0
 
     async def async_select_option(self, option: str, **kwargs):
