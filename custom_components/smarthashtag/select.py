@@ -91,18 +91,18 @@ class SmartPreHeatedLocation(SelectEntity):
 
     def _get_level_for_location(self, location: HeatingLocation) -> Literal[0, 1, 2, 3]:
         """Get the heating level for the specified location."""
-        if "selects" in self.coordinator.config_entry.data:
+        if (
+            self.coordinator.config_entry
+            and "selects" in self.coordinator.config_entry.data
+        ):
             level = self.coordinator.config_entry.data["selects"].get(location, 0)
             return level
+        else:
+            LOGGER.debug("No heating level found for %s", location)
         return 0
 
-    def select_option(self, option: str, **kwargs):
+    async def async_select_option(self, option: str, **kwargs):
         """Change the selected option."""
-
-        async def _update_config_entry(self, new_data):
-            self.hass.config_entries.async_update_entry(
-                self.coordinator.config_entry, data=new_data
-            )
 
         level: int = HEATING_LEVEL_OPTIONS_MAP[option]
         self._vehicle.climate_control.set_heating_level(self._location, level)
@@ -112,7 +112,9 @@ class SmartPreHeatedLocation(SelectEntity):
         if "selects" not in new_data:
             new_data["selects"] = {}
         new_data["selects"][self._location] = level
-        self.hass.add_job(_update_config_entry, self, new_data)
+        self.hass.config_entries.async_update_entry(
+            self.coordinator.config_entry, data=new_data
+        )
         LOGGER.debug(f"Setting {self._location} to %s", level)
 
     @property
