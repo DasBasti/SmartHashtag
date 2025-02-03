@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Labeler
-        uses: crazy-max/ghaction-github-labeler@v5.1.0
+        uses: crazy-max/ghaction-github-labeler@v5.2.0
         with:
           skip-delete: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
