@@ -16,16 +16,17 @@ from .const import (
     CONF_CONDITIONING_TEMP,
     CONF_VEHICLE,
     DEFAULT_CONDITIONING_TEMP,
-    DOMAIN,
     FAST_INTERVAL,
     LOGGER,
 )
 
 
-async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistant, entry: SmartHashtagDataUpdateCoordinator, async_add_entities
+):
     """Set up the Smart switches by config_entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    vehicle = hass.data[DOMAIN][CONF_VEHICLE]
+    coordinator = entry.runtime_data
+    vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
     entities = []
 
     entities.append(SmartConditioningMode(coordinator, vehicle))

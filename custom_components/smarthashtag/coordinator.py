@@ -24,9 +24,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
     config_entry: ConfigEntry
 
     def __init__(
-        self,
-        hass: HomeAssistant,
-        account: SmartAccount,
+        self, hass: HomeAssistant, account: SmartAccount, *, entry: ConfigEntry
     ) -> None:
         """Initialize."""
         self.account = account
@@ -35,6 +33,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             logger=LOGGER,
             name=DOMAIN,
             update_interval=timedelta(minutes=5),
+            config_entry=entry,
         )
         self._update_intervals = {}
 

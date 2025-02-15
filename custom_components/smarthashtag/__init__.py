@@ -12,7 +12,6 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from pysmarthashtag.account import SmartAccount
 
-from .const import CONF_VEHICLE, DOMAIN
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
 PLATFORMS: list[Platform] = [
@@ -24,21 +23,25 @@ PLATFORMS: list[Platform] = [
     Platform.SELECT,
 ]
 
+type SmartHashtagConfigEntry = ConfigEntry[SmartHashtagDataUpdateCoordinator]
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: SmartHashtagConfigEntry
+) -> bool:
     """Set up this integration using UI."""
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = coordinator = SmartHashtagDataUpdateCoordinator(
+    entry.runtime_data = SmartHashtagDataUpdateCoordinator(
         hass=hass,
         account=SmartAccount(
             username=entry.data[CONF_USERNAME],
             password=entry.data[CONF_PASSWORD],
         ),
+        entry=entry,
     )
-    hass.data[DOMAIN][CONF_VEHICLE] = entry.data["vehicle"]
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    await coordinator.async_config_entry_first_refresh()
+    await entry.runtime_data.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
@@ -48,12 +51,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
-    return unloaded
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+    await hass.config_entries.async_reload(entry.entry_id)
