@@ -24,6 +24,7 @@ from .const import (
     DEFAULT_CHARGING_INTERVAL,
     DEFAULT_CONDITIONING_TEMP,
     DEFAULT_DRIVING_INTERVAL,
+    DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MIN_SCAN_INTERVAL,
@@ -118,22 +119,27 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(config_entry):  # pylint: disable=unused-argument
         """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+        return OptionsFlowHandler()
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow for Smart."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
+    @property
+    def config_entry(self):
+        return self.hass.config_entries.async_get_entry(self.handler)
 
-    async def async_step_init(self, user_input=None):
-        """Handle options flow."""
+    async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
+        """Manage the options."""
+        return await self.async_step_user()
+
+    async def async_step_user(self, user_input=None):
+        """Handle options flow initialized by the user."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            LOGGER.debug("Update Options for %s: %s", DEFAULT_NAME, user_input)
+            return self.async_create_entry(title=DEFAULT_NAME, data=user_input)
 
         data_schema = vol.Schema(
             {
@@ -163,4 +169,4 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ): vol.All(cv.positive_int, vol.Clamp(min=MIN_SCAN_INTERVAL)),
             }
         )
-        return self.async_show_form(step_id="init", data_schema=data_schema)
+        return self.async_show_form(step_id="user", data_schema=data_schema)

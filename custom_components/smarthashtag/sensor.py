@@ -18,7 +18,6 @@ from .const import (
     CONF_VEHICLE,
     DEFAULT_CHARGING_INTERVAL,
     DEFAULT_DRIVING_INTERVAL,
-    DOMAIN,
     LOGGER,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
@@ -1046,8 +1045,8 @@ def vin_from_key(key: str) -> str:
 
 async def async_setup_entry(hass, entry, async_add_devices):
     """Set up the sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    vehicle = hass.data[DOMAIN][CONF_VEHICLE]
+    coordinator = entry.runtime_data
+    vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
 
     async_add_devices(
         SmartHashtagBatteryRangeSensor(

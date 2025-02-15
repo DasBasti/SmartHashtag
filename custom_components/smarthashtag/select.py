@@ -6,9 +6,10 @@ from homeassistant.core import HomeAssistant
 
 from pysmarthashtag.control.climate import HeatingLocation
 
-from custom_components.smarthashtag.coordinator import SmartHashtagDataUpdateCoordinator
 
-from .const import CONF_VEHICLE, DOMAIN, LOGGER
+from . import SmartHashtagConfigEntry
+from .coordinator import SmartHashtagDataUpdateCoordinator
+from .const import CONF_VEHICLE, LOGGER
 
 STEERING_HEATER_OPTIONS = [
     "Off",
@@ -49,10 +50,14 @@ SELECT_DESCRIPTIONS = {
 }
 
 
-async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: SmartHashtagConfigEntry,
+    async_add_entities,
+) -> None:
     """Set up the Smart selects by config_entry."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    vehicle = hass.data[DOMAIN][CONF_VEHICLE]
+    coordinator = entry.runtime_data
+    vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
     entities = []
 
     for location in HeatingLocation:

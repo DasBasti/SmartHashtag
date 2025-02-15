@@ -8,13 +8,13 @@ from custom_components.smarthashtag.entity import SmartHashtagEntity
 
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
-from .const import CONF_VEHICLE, DOMAIN
+from .const import CONF_VEHICLE
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """Set up the Smart device trackers by config_entry."""
-    coordinator: SmartHashtagDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-    vehicle: str = hass.data[DOMAIN][CONF_VEHICLE]
+    coordinator = entry.runtime_data
+    vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
 
     async_add_entities(
         [SmartVehicleLocation(coordinator, vehicle)], update_before_add=True
