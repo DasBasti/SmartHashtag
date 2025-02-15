@@ -13,22 +13,22 @@ from .const import CONF_VEHICLE
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """
-        Set up Smart device tracker entities for smart vehicles.
-    
-        This asynchronous function initializes and adds a SmartVehicleLocation entity using the configuration entry's
-        runtime data. It retrieves the coordinator from the entry, extracts the vehicle information from the coordinator's
-        configuration (using the CONF_VEHICLE key), and schedules the addition of the device tracker with an immediate update.
-        Finally, it triggers an asynchronous refresh of the coordinator to update the device state.
-    
-        Parameters:
-            hass (HomeAssistant): The Home Assistant instance.
-            entry (ConfigEntry): Configuration entry that contains runtime data for the device tracker.
-            async_add_entities (Callable[[List[Entity], bool], None]): Function to add device tracker entities to Home Assistant.
-                The entity is added with update_before_add set to True.
-    
-        Returns:
-            None
-        """
+    Set up Smart device tracker entities for smart vehicles.
+
+    This asynchronous function initializes and adds a SmartVehicleLocation entity using the configuration entry's
+    runtime data. It retrieves the coordinator from the entry, extracts the vehicle information from the coordinator's
+    configuration (using the CONF_VEHICLE key), and schedules the addition of the device tracker with an immediate update.
+    Finally, it triggers an asynchronous refresh of the coordinator to update the device state.
+
+    Parameters:
+        hass (HomeAssistant): The Home Assistant instance.
+        entry (ConfigEntry): Configuration entry that contains runtime data for the device tracker.
+        async_add_entities (Callable[[List[Entity], bool], None]): Function to add device tracker entities to Home Assistant.
+            The entity is added with update_before_add set to True.
+
+    Returns:
+        None
+    """
     coordinator = entry.runtime_data
     vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
 
