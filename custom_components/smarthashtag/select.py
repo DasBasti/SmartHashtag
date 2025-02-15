@@ -55,7 +55,26 @@ async def async_setup_entry(
     entry: SmartHashtagConfigEntry,
     async_add_entities,
 ) -> None:
-    """Set up the Smart selects by config_entry."""
+    """
+    Set up Smart Select entities for vehicle heating controls.
+    
+    This asynchronous function initializes Smart Pre-Heated Location entities for each
+    available heating location defined in the HeatingLocation enumeration. It retrieves the
+    coordinator from the configuration entry's runtime data and extracts the vehicle details
+    from the coordinator's configuration data using the CONF_VEHICLE key. The created
+    entities are then registered with Home Assistant via the async_add_entities callback,
+    which updates the entities before they are added.
+    
+    Parameters:
+        hass (HomeAssistant): The Home Assistant instance.
+        entry (SmartHashtagConfigEntry): The configuration entry containing runtime data for
+            the smart hashtag integration.
+        async_add_entities (Callable): A callback function to add entities to Home Assistant.
+            The entities will be updated before being added.
+    
+    Returns:
+        None
+    """
     coordinator = entry.runtime_data
     vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
     entities = []

@@ -26,7 +26,19 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(
         self, hass: HomeAssistant, account: SmartAccount, *, entry: ConfigEntry
     ) -> None:
-        """Initialize."""
+        """
+        Initialize a SmartHashtagDataUpdateCoordinator instance.
+        
+        This constructor sets up the data update coordinator with the provided Home Assistant
+        instance, Smart account, and configuration entry. It initializes the coordinator with a
+        default update interval of 5 minutes and prepares an internal dictionary to track update
+        intervals for various keys.
+        
+        Parameters:
+            hass (HomeAssistant): The Home Assistant instance.
+            account (SmartAccount): An instance used to interact with the Smart Web API.
+            entry (ConfigEntry): The configuration entry containing integration settings.
+        """
         self.account = account
         super().__init__(
             hass=hass,
@@ -38,7 +50,22 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         self._update_intervals = {}
 
     async def _async_update_data(self):
-        """Update data via library."""
+        """
+        Asynchronously fetch vehicle data from the Smart API.
+        
+        This coroutine retrieves the latest vehicle data by calling the account's
+        asynchronous get_vehicles method. Authentication and remote service issues are
+        handled by raising appropriate exceptions, while any API errors are logged and
+        result in a None return value.
+        
+        Returns:
+            Any: The vehicle data as returned by self.account.get_vehicles(), or None if a
+                 SmartAPIError is encountered.
+        
+        Raises:
+            ConfigEntryAuthFailed: If a SmartAuthError is caught, indicating an authentication failure.
+            UpdateFailed: If a SmartRemoteServiceError is raised during the data retrieval.
+        """
         try:
             return await self.account.get_vehicles()
         except SmartAuthError as exception:

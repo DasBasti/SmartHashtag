@@ -24,7 +24,23 @@ from .const import (
 async def async_setup_entry(
     hass: HomeAssistant, entry: SmartHashtagDataUpdateCoordinator, async_add_entities
 ):
-    """Set up the Smart switches by config_entry."""
+    """
+    Initialize and set up the Smart switches entities from the provided configuration entry.
+    
+    This asynchronous function extracts the coordinator from the entry's runtime data, retrieves the vehicle
+    information using the CONF_VEHICLE key from the coordinator's configuration, creates an instance of
+    SmartConditioningMode using this data, and adds the created entity to Home Assistant via the async_add_entities
+    callback with an option to update the entity before it is added.
+    
+    Parameters:
+        hass (HomeAssistant): The Home Assistant instance.
+        entry (SmartHashtagDataUpdateCoordinator): The coordinator instance containing runtime and configuration data.
+        async_add_entities (Callable): Callback function to add entities to Home Assistant. Entities added will be updated
+            before being integrated.
+    
+    Returns:
+        None
+    """
     coordinator = entry.runtime_data
     vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
     entities = []

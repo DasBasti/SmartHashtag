@@ -1044,7 +1044,28 @@ def vin_from_key(key: str) -> str:
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
-    """Set up the sensor platform."""
+    """
+    Initialize the Smart Hashtag sensor platform for Home Assistant.
+    
+    This asynchronous function sets up and registers sensor devices for a Smart Hashtag vehicle by iterating over
+    multiple predefined sensor entity descriptions. It retrieves the coordinator from the configuration entry’s runtime data,
+    extracts the vehicle identifier from the coordinator’s configuration, and creates sensor instances with updated entity
+    descriptions that incorporate the vehicle identifier. The sensors added include battery range, tire, general update,
+    maintenance, running, climate, and safety sensors.
+    
+    Parameters:
+        hass (HomeAssistant): The Home Assistant instance.
+        entry (ConfigEntry): The configuration entry that provides integration-specific data, including runtime data and
+            the vehicle configuration.
+        async_add_devices (Callable[[Iterable[SensorEntity]], None]): A callback function used to add the sensor entities
+            to Home Assistant.
+    
+    Returns:
+        None
+    
+    Example:
+        await async_setup_entry(hass, entry, async_add_devices)
+    """
     coordinator = entry.runtime_data
     vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
 
@@ -1128,7 +1149,25 @@ class SmartHashtagSensor(SmartHashtagEntity, SensorEntity):
         entity_description: SensorEntityDescription,
         data: VehicleDataBase,
     ) -> None:
-        """Initialize the sensor base class."""
+        """
+        Initialize a SmartHashtagSensor instance with the given coordinator, entity description, and vehicle data.
+        
+        This constructor initializes the sensor base class by invoking its parent constructor with the provided coordinator.
+        It sets a unique identifier for the sensor by appending the key from the entity description to the base unique ID,
+        and stores the entity description along with the vehicle data for later use in sensor value retrieval.
+        
+        Parameters:
+            coordinator (SmartHashtagDataUpdateCoordinator): The data update coordinator that manages sensor updates.
+            entity_description (SensorEntityDescription): The metadata object for the sensor containing keys, names, units, etc.
+            data (VehicleDataBase): The vehicle data source providing current sensor values and related information.
+        
+        Returns:
+            None
+        
+        Side Effects:
+            - Modifies the internal _attr_unique_id attribute by concatenating it with the entity description key.
+            - Assigns the provided entity description and vehicle data to instance attributes.
+        """
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
@@ -1136,7 +1175,18 @@ class SmartHashtagSensor(SmartHashtagEntity, SensorEntity):
 
     @property
     def native_value(self) -> float | int | str | None:
-        """Return the native value of the sensor."""
+        """
+        Return the native sensor value.
+        
+        This method extracts the sensor value from the underlying vehicle data using the key defined in the entity description.
+        It first removes the vehicle identification number (VIN) from the key with `remove_vin_from_key` and then retrieves the
+        corresponding attribute from `self._data`. If the retrieved data is an instance of `ValueWithUnit`, the method returns its
+        `value` property. If an `AttributeError` occurs during the attribute access, an error is logged and the raw data (if available)
+        is returned.
+        
+        Returns:
+            float | int | str | None: The native sensor value for display, which may be a number, string, or None if unavailable.
+        """
         try:
             key = remove_vin_from_key(self.entity_description.key)
             data = getattr(
@@ -1152,7 +1202,16 @@ class SmartHashtagSensor(SmartHashtagEntity, SensorEntity):
 
     @property
     def native_unit_of_measurement(self) -> str:
-        """Return the unit of measurement of the sensor."""
+        """Return the unit of measurement for the sensor.
+        
+        This method retrieves the sensor's data attribute by first removing the VIN from the entity's key. It then attempts
+        to access the corresponding attribute from the sensor's data object (_data). If the retrieved data is an instance 
+        of ValueWithUnit, the method returns its unit attribute. If an AttributeError occurs during data access, the error 
+        is logged and the method falls back to returning the predefined native unit of measurement from the entity description.
+        
+        Returns:
+            str: The unit of measurement for the sensor.
+        """
         try:
             key = remove_vin_from_key(self.entity_description.key)
             data = getattr(
@@ -1175,7 +1234,18 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """Initialize the sensor class."""
+        """
+        Initialize the sensor instance.
+        
+        This constructor initializes the sensor with a data update coordinator and a sensor entity description. It calls the parent class initializer with the coordinator, modifies the sensor's unique identifier by appending the sensor description key, and stores the entity description. It also sets the initial value of the last known sensor data to None.
+        
+        Parameters:
+            coordinator (SmartHashtagDataUpdateCoordinator): The coordinator managing data updates for the sensor.
+            entity_description (SensorEntityDescription): Metadata describing the sensor entity, including its key and other properties.
+        
+        Returns:
+            None
+        """
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
@@ -1357,7 +1427,23 @@ class SmartHashtagMaintenanceSensor(SmartHashtagSensor):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """Initialize the sensor class."""
+        """
+        Initialize the maintenance sensor instance with vehicle data and a unique identifier.
+        
+        This constructor extracts the maintenance data for a specific vehicle by using the coordinator's account data.
+        It retrieves the vehicle's maintenance information by extracting the VIN from the provided entity description key
+        and accessing the corresponding vehicle object. The sensor's unique identifier is then updated by appending the
+        entity description key to ensure its distinctiveness.
+        
+        Parameters:
+            coordinator (SmartHashtagDataUpdateCoordinator): The coordinator that manages data updates and provides access
+                to the account's vehicles.
+            entity_description (SensorEntityDescription): The sensor's metadata containing the key used to extract the VIN
+                and retrieve related maintenance data.
+        
+        Returns:
+            None
+        """
         super().__init__(
             coordinator=coordinator,
             entity_description=entity_description,
@@ -1377,7 +1463,22 @@ class SmartHashtagRunningSensor(SmartHashtagSensor):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """Initialize the sensor class."""
+        """
+        Initialize a SmartHashtag sensor instance with vehicle running data.
+        
+        This constructor initializes the sensor using the provided update coordinator and sensor entity description.
+        It extracts the vehicle identification number (VIN) from the entity description key using `vin_from_key`,
+        retrieves the corresponding vehicle's running data from the coordinator's account, and passes this data to the
+        base class initializer. The sensor's unique identifier is then updated by appending the entity's key to ensure
+        uniqueness.
+        
+        Parameters:
+            coordinator (SmartHashtagDataUpdateCoordinator): The coordinator managing update data for Smart Hashtag vehicles.
+            entity_description (SensorEntityDescription): The sensor description containing metadata and a unique key for data extraction.
+        
+        Returns:
+            None
+        """
         super().__init__(
             coordinator=coordinator,
             entity_description=entity_description,
@@ -1397,7 +1498,21 @@ class SmartHashtagClimateSensor(SmartHashtagSensor):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """Initialize the sensor class."""
+        """
+        Initialize the sensor with coordinated vehicle climate data.
+        
+        This constructor retrieves the climate data for the vehicle using the VIN extracted from the 
+        entity description's key, sets up a unique identifier by appending the key to the base unique ID, 
+        and stores the entity description for later use.
+        
+        Parameters:
+            coordinator (SmartHashtagDataUpdateCoordinator): The update coordinator that manages vehicle data.
+            entity_description (SensorEntityDescription): The description of the sensor entity used to extract 
+                the vehicle's VIN and identify the sensor.
+        
+        Returns:
+            None
+        """
         super().__init__(
             coordinator=coordinator,
             entity_description=entity_description,
@@ -1417,7 +1532,21 @@ class SmartHashtagSafetySensor(SmartHashtagSensor):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """Initialize the sensor class."""
+        """
+        Initialize the sensor with safety-related vehicle data.
+        
+        This constructor initializes a sensor instance by retrieving the safety data
+        for a specific vehicle. It extracts the vehicle identification number (VIN)
+        from the sensor's entity description key using the `vin_from_key` helper function,
+        and then retrieves the corresponding safety data from the coordinator's account.
+        The unique sensor ID is updated by appending the entity key to ensure uniqueness.
+        
+        Parameters:
+            coordinator (SmartHashtagDataUpdateCoordinator): The coordinator that manages
+                data updates and provides access to vehicle information.
+            entity_description (SensorEntityDescription): The description of the sensor entity,
+                including configuration details such as the unique key.
+        """
         super().__init__(
             coordinator=coordinator,
             entity_description=entity_description,

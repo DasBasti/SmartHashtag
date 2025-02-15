@@ -120,7 +120,17 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):  # pylint: disable=unused-argument
-        """Get the options flow for this handler."""
+        """
+        Return an instance of OptionsFlowHandler for managing options in the Smart integration.
+        
+        This function creates and returns a new OptionsFlowHandler object to manage the options flow. The provided configuration entry is not used in the instantiation but is maintained for compatibility with the Home Assistant interface.
+        
+        Parameters:
+            config_entry (ConfigEntry): The configuration entry for the integration (unused).
+        
+        Returns:
+            OptionsFlowHandler: A new instance responsible for handling the integration's options flow.
+        """
         return OptionsFlowHandler()
 
 
@@ -129,14 +139,46 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     @property
     def config_entry(self):
+        """
+        Retrieve the current configuration entry for the options flow.
+        
+        This property fetches the configuration entry from Home Assistant's configuration entries
+        using the handler associated with this flow. It provides a convenient way to access the active
+        configuration details for further processing within the options flow.
+        
+        Returns:
+            ConfigEntry: The active configuration entry.
+        """
         return self.hass.config_entries.async_get_entry(self.handler)
 
     async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
-        """Manage the options."""
+        """
+        Initializes the options flow for the integration.
+        
+        This asynchronous method serves as the entry point for the options configuration flow.
+        It delegates handling of user input to the async_step_user method, allowing for reuse of common
+        logic for processing and validating option settings.
+        
+        Parameters:
+            user_input (Any, optional): User-provided input data for the options update. This parameter is unused and provided only for compatibility.
+        
+        Returns:
+            Coroutine: A coroutine that resolves with the result from the async_step_user call, representing the outcome of this step in the options flow.
+        """
         return await self.async_step_user()
 
     async def async_step_user(self, user_input=None):
-        """Handle options flow initialized by the user."""
+        """
+        Handle the options configuration step during the integration's options flow.
+        
+        If user_input is provided, logs the updated options using a debug message and creates a new configuration entry with the title set to DEFAULT_NAME. If no input is provided, returns a form with a data schema for user selection. The schema enforces that the values for CONF_SCAN_INTERVAL, CONF_CHARGING_INTERVAL, CONF_DRIVING_INTERVAL, and CONF_CONDITIONING_TEMP are positive integers and not below a defined minimum (MIN_SCAN_INTERVAL). Default values are pulled from the current configuration entry options or fall back to predefined defaults.
+        
+        Parameters:
+            user_input (Optional[dict]): Dictionary containing the user-supplied options. If None, the form for entering options is displayed.
+        
+        Returns:
+            An awaitable result that either creates a new configuration entry with the provided options or presents a form for user input.
+        """
         if user_input is not None:
             LOGGER.debug("Update Options for %s: %s", DEFAULT_NAME, user_input)
             return self.async_create_entry(title=DEFAULT_NAME, data=user_input)
