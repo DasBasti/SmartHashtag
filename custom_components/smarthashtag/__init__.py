@@ -31,7 +31,24 @@ type SmartHashtagConfigEntry = ConfigEntry[SmartHashtagDataUpdateCoordinator]
 async def async_setup_entry(
     hass: HomeAssistant, entry: SmartHashtagConfigEntry
 ) -> bool:
-    """Set up this integration using UI."""
+    """
+    Initialize the Smart Hashtag integration from a UI configuration entry.
+
+    This asynchronous function sets up the integration by creating and initializing a
+    SmartHashtagDataUpdateCoordinator. It uses the Home Assistant instance along with
+    credentials (username and password) provided in the configuration entry's data to
+    instantiate a SmartAccount. The coordinator then performs an initial data refresh.
+    Afterward, the function forwards the configuration entry to all supported platforms,
+    and registers an update listener to handle future reloads of the configuration.
+
+    Parameters:
+        hass (HomeAssistant): The Home Assistant instance.
+        entry (SmartHashtagConfigEntry): The configuration entry containing integration-specific
+            data. Must include CONF_USERNAME and CONF_PASSWORD in its data dictionary.
+
+    Returns:
+        bool: True if setup was successful; otherwise, an exception may be raised during the process.
+    """
     entry.runtime_data = SmartHashtagDataUpdateCoordinator(
         hass=hass,
         account=SmartAccount(
@@ -50,10 +67,42 @@ async def async_setup_entry(
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Handle removal of an entry."""
+    """
+    Asynchronously unload the platforms associated with a Home Assistant configuration entry.
+
+    This function initiates the unloading process for all platforms specified in the
+    PLATFORMS list for the given configuration entry. It delegates the operation to Home
+    Assistant's asynchronous platform unload mechanism.
+
+    Parameters:
+        hass (HomeAssistant): The Home Assistant instance.
+        entry (ConfigEntry): The configuration entry to be unloaded.
+
+    Returns:
+        bool: True if all platforms were successfully unloaded, False otherwise.
+
+    Raises:
+        Exception: Propagates any exceptions raised during the unload process.
+    """
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload config entry."""
+    """
+    Reload the specified configuration entry.
+
+    This function triggers a reload of the configuration entry by calling Home Assistant's
+    config_entries.async_reload method using the entry's unique identifier. It is used to apply
+    configuration changes on the fly without requiring a full restart of Home Assistant.
+
+    Parameters:
+        hass (HomeAssistant): The Home Assistant instance.
+        entry (ConfigEntry): The configuration entry to be reloaded.
+
+    Returns:
+        None
+
+    Raises:
+        Exception: Propagates any exceptions raised by hass.config_entries.async_reload.
+    """
     await hass.config_entries.async_reload(entry.entry_id)
