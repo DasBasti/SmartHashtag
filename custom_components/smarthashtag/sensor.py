@@ -1498,8 +1498,10 @@ class SmartHashtagMaintenanceSensor(SmartHashtagSensor):
                     self.coordinator.account.vehicles.get(vin),
                     key,
                 )
-
-                if isinstance(data, str):
+                try:
+                    if isinstance(data, str):
+                        float(data)
+                except AttributeError:
                     raise ValueError("Value is not a number")
 
             return super().native_value
