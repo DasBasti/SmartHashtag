@@ -1254,58 +1254,69 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_value(self) -> str | int | float:
         """Return the native value of the sensor."""
-        data = getattr(
-            self.coordinator.account.vehicles.get(
-                vin_from_key(self.entity_description.key)
-            ).battery,
-            remove_vin_from_key(self.entity_description.key),
-        )
+        try:
+            data = getattr(
+                self.coordinator.account.vehicles.get(
+                    vin_from_key(self.entity_description.key)
+                ).battery,
+                remove_vin_from_key(self.entity_description.key),
+            )
 
-        if "charging_current" in self.entity_description.key:
-            if data.value != 0:
-                self.coordinator.set_update_interval(
-                    "charging",
-                    timedelta(
-                        seconds=self.coordinator.config_entry.options.get(
-                            CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
-                        )
-                    ),
-                )
-                self.hass.async_create_task(self.coordinator.async_request_refresh())
-            else:
-                self.coordinator.reset_update_interval("charging")
+            if "charging_current" in self.entity_description.key:
+                if data.value != 0:
+                    self.coordinator.set_update_interval(
+                        "charging",
+                        timedelta(
+                            seconds=self.coordinator.config_entry.options.get(
+                                CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
+                            )
+                        ),
+                    )
+                    self.hass.async_create_task(
+                        self.coordinator.async_request_refresh()
+                    )
+                else:
+                    self.coordinator.reset_update_interval("charging")
 
-        if "charging_power" in self.entity_description.key:
-            if data.value == -0.0:
-                return 0.0
+            if "charging_power" in self.entity_description.key:
+                if data.value == -0.0:
+                    return 0.0
 
-        if "charging_status" in self.entity_description.key:
-            if isinstance(data, str):
-                data = data.lower()
+            if "charging_status" in self.entity_description.key:
+                if isinstance(data, str):
+                    data = data.lower()
+                return data
+
+            # invert power consumption value to display the consumed power as positive
+            if "average_power_consumption" in self.entity_description.key:
+                if data.value:
+                    return data.value * -1
+                return data
+
+            if isinstance(data, ValueWithUnit):
+                return data.value
+
             return data
 
-        # invert power consumption value to display the consumed power as positive
-        if "average_power_consumption" in self.entity_description.key:
-            if data.value:
-                return data.value * -1
-            return data
-
-        if isinstance(data, ValueWithUnit):
-            return data.value
-
-        return data
+        except AttributeError:
+            LOGGER.error("AttributeError value: %s", self.entity_description.key)
+            return self._last_value
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        data = getattr(
-            self.coordinator.account.vehicles.get(
-                vin_from_key(self.entity_description.key)
-            ).battery,
-            remove_vin_from_key(self.entity_description.key),
-        )
-        if isinstance(data, ValueWithUnit):
-            return data.unit
+        try:
+            data = getattr(
+                self.coordinator.account.vehicles.get(
+                    vin_from_key(self.entity_description.key)
+                ).battery,
+                remove_vin_from_key(self.entity_description.key),
+            )
+            if isinstance(data, ValueWithUnit):
+                return data.unit
+
+        except AttributeError:
+            LOGGER.error("AttributeError unit: %s", self.entity_description.key)
 
         return self.entity_description.native_unit_of_measurement
 
@@ -1326,32 +1337,42 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the native value of the sensor."""
-        key = "_".join(self.entity_description.key.split("_")[1:-1])
-        tire_idx = int(self.entity_description.key.split("_")[-1])
-        return getattr(
-            self.coordinator.account.vehicles.get(
-                vin_from_key(self.entity_description.key)
-            ).tires,
-            key,
-        )[tire_idx].value
+        try:
+            key = "_".join(self.entity_description.key.split("_")[1:-1])
+            tire_idx = int(self.entity_description.key.split("_")[-1])
+            return getattr(
+                self.coordinator.account.vehicles.get(
+                    vin_from_key(self.entity_description.key)
+                ).tires,
+                key,
+            )[tire_idx].value
+
+        except AttributeError:
+            LOGGER.error("AttributeError value: %s", self.entity_description.key)
+            return None
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        key = "_".join(self.entity_description.key.split("_")[1:-1])
-        tire_idx = int(self.entity_description.key.split("_")[-1])
-        data = getattr(
-            self.coordinator.account.vehicles.get(
-                vin_from_key(self.entity_description.key)
-            ).tires,
-            key,
-        )[tire_idx]
+        try:
+            key = "_".join(self.entity_description.key.split("_")[1:-1])
+            tire_idx = int(self.entity_description.key.split("_")[-1])
+            data = getattr(
+                self.coordinator.account.vehicles.get(
+                    vin_from_key(self.entity_description.key)
+                ).tires,
+                key,
+            )[tire_idx]
 
-        # FIXME: if pysmarthashtag is updated to return the unit as °C remove this
-        if data.unit == "C":
-            return "°C"
+            # FIXME: if pysmarthashtag is updated to return the unit as °C remove this
+            if data.unit == "C":
+                return "°C"
 
-        return data.unit
+            return data.unit
+
+        except AttributeError:
+            LOGGER.error("AttributeError unit: %s", self.entity_description.key)
+            return self.entity_description.native_unit_of_measurement
 
 
 class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
@@ -1370,53 +1391,65 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the native value of the sensor."""
-        key = remove_vin_from_key(self.entity_description.key)
-        vin = vin_from_key(self.entity_description.key)
-        if key.startswith("service"):
-            key = self.entity_description.key.split("_")[-1]
-            data = self.coordinator.account.vehicles.get(vin).service[key]
-        else:
-            data = getattr(
-                self.coordinator.account.vehicles.get(vin),
-                remove_vin_from_key(self.entity_description.key),
-            )
-
-        if key == "engine_state":
-            if data == "engine_running":
-                self.coordinator.set_update_interval(
-                    "driving",
-                    timedelta(
-                        seconds=self.coordinator.config_entry.options.get(
-                            CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
-                        )
-                    ),
-                )
-                self.hass.async_create_task(self.coordinator.async_request_refresh())
-                self.icon = "mdi:engine"
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            if key.startswith("service"):
+                key = self.entity_description.key.split("_")[-1]
+                data = self.coordinator.account.vehicles.get(vin).service[key]
             else:
-                self.coordinator.reset_update_interval("driving")
-                self.icon = "mdi:engine-off"
+                data = getattr(
+                    self.coordinator.account.vehicles.get(vin),
+                    remove_vin_from_key(self.entity_description.key),
+                )
 
-        if isinstance(data, ValueWithUnit):
-            return data.value
-        return data
+            if key == "engine_state":
+                if data == "engine_running":
+                    self.coordinator.set_update_interval(
+                        "driving",
+                        timedelta(
+                            seconds=self.coordinator.config_entry.options.get(
+                                CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
+                            )
+                        ),
+                    )
+                    self.hass.async_create_task(
+                        self.coordinator.async_request_refresh()
+                    )
+                    self.icon = "mdi:engine"
+                else:
+                    self.coordinator.reset_update_interval("driving")
+                    self.icon = "mdi:engine-off"
+
+            if isinstance(data, ValueWithUnit):
+                return data.value
+            return data
+
+        except AttributeError:
+            LOGGER.error("AttributeError value: %s", self.entity_description.key)
+            return None
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        key = remove_vin_from_key(self.entity_description.key)
-        vin = vin_from_key(self.entity_description.key)
-        if key.startswith("service"):
-            key = key.rsplit("_", maxsplit=1)[-1]
-            data = self.coordinator.account.vehicles.get(vin).service[key]
-        else:
-            data = getattr(
-                self.coordinator.account.vehicles.get(vin),
-                key,
-            )
-        if isinstance(data, ValueWithUnit):
-            return data.unit
-        return self.entity_description.native_unit_of_measurement
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            if key.startswith("service"):
+                key = key.rsplit("_", maxsplit=1)[-1]
+                data = self.coordinator.account.vehicles.get(vin).service[key]
+            else:
+                data = getattr(
+                    self.coordinator.account.vehicles.get(vin),
+                    key,
+                )
+            if isinstance(data, ValueWithUnit):
+                return data.unit
+            return self.entity_description.native_unit_of_measurement
+
+        except AttributeError:
+            LOGGER.error("AttributeError unit: %s", self.entity_description.key)
+            return self.entity_description.native_unit_of_measurement
 
 
 class SmartHashtagMaintenanceSensor(SmartHashtagSensor):
@@ -1453,6 +1486,27 @@ class SmartHashtagMaintenanceSensor(SmartHashtagSensor):
         )
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+
+    @property
+    def native_value(self) -> str | int | float:
+        """Return the native value of the sensor."""
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            if key == "odometer":
+                data = getattr(
+                    self.coordinator.account.vehicles.get(vin),
+                    key,
+                )
+
+                if isinstance(data, str):
+                    raise ValueError("Value is not a number")
+
+            return super().native_value
+
+        except AttributeError:
+            LOGGER.error("AttributeError value: %s", self.entity_description.key)
+            return None
 
 
 class SmartHashtagRunningSensor(SmartHashtagSensor):
