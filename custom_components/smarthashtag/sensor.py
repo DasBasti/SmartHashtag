@@ -1501,8 +1501,8 @@ class SmartHashtagMaintenanceSensor(SmartHashtagSensor):
                 try:
                     if isinstance(data, str):
                         float(data)
-                except AttributeError:
-                    raise ValueError("Value is not a number")
+                except ValueError as err:
+                    raise ValueError("Value is not a number") from err
 
             return super().native_value
 
