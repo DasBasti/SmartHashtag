@@ -69,6 +69,8 @@ jobs:
       matrix:
         python-version: ["3.12"]
     runs-on: "ubuntu-latest"
+    permissions:
+      discussions: write
     name: Run tests
     steps:
       - name: Check out code from GitHub
