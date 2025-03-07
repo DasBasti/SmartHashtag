@@ -5,10 +5,6 @@
 [![CodeQL Validation][codeql-shield]][codeql]
 [![Dependency Validation][tests-shield]][tests]
 
-```html
-<!-- Pytest Coverage Comment:Begin -->
-\n<!-- Pytest Coverage Comment:End -->
-```
 
 ## Installation
 
