@@ -5,6 +5,11 @@
 [![CodeQL Validation][codeql-shield]][codeql]
 [![Dependency Validation][tests-shield]][tests]
 
+```html
+<!-- Pytest Coverage Comment:Begin -->
+<!-- Pytest Coverage Comment:End -->
+```
+
 ## Installation
 
 ### Using HACS (Recommended)
