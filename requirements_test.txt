@@ -1,2 +1,4 @@
 -r requirements.txt
-pytest-homeassistant-custom-component==0.13.205
+pysmarthashtag
+pytest-homeassistant-custom-component>=0.13
+pytest-cov
