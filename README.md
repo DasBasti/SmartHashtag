@@ -7,7 +7,7 @@
 
 ```html
 <!-- Pytest Coverage Comment:Begin -->
-<!-- Pytest Coverage Comment:End -->
+\n<!-- Pytest Coverage Comment:End -->
 ```
 
 ## Installation
