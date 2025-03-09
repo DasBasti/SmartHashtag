@@ -1,8 +1,8 @@
 """Unit tests for _handle_error function."""
 
-from homeassistant.core import HomeAssistant
 import pytest
 import respx
+from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.smarthashtag.const import DOMAIN

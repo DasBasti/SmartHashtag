@@ -1,12 +1,11 @@
 """SmartHashtagEntity class."""
+
 from __future__ import annotations
 
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, LOGGER
-from .const import NAME
-from .const import VERSION
+from .const import ATTRIBUTION, LOGGER, NAME, VERSION
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
 

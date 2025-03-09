@@ -3,12 +3,11 @@
 For more details about this integration, please refer to
 https://github.com/DasBasti/SmartHashtag
 """
+
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD
-from homeassistant.const import CONF_USERNAME
-from homeassistant.const import Platform
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
 from pysmarthashtag.account import SmartAccount
 

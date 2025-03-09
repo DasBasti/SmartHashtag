@@ -1,6 +1,6 @@
 """Fixtures for testing."""
-import pytest
 
+import pytest
 from pysmarthashtag.tests.conftest import smart_fixture  # noqa: F401
 
 
