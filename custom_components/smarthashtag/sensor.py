@@ -1,13 +1,14 @@
 """Sensor platform for Smar #1/#3 intergration."""
-from __future__ import annotations
-import dataclasses
 
+from __future__ import annotations
+
+import dataclasses
 from datetime import timedelta
 
 from homeassistant.components.sensor import (
+    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
-    SensorDeviceClass,
     SensorStateClass,
 )
 from pysmarthashtag.models import ValueWithUnit, VehicleDataBase

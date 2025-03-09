@@ -2,3 +2,4 @@
 pysmarthashtag
 pytest-homeassistant-custom-component>=0.13
 pytest-cov
+pytest-asyncio

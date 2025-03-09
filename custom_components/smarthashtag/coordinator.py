@@ -1,20 +1,18 @@
 """DataUpdateCoordinator for Smart #1/#3."""
+
 from __future__ import annotations
 
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.const import CONF_SCAN_INTERVAL
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pysmarthashtag.account import SmartAccount
-from pysmarthashtag.models import SmartAuthError, SmartAPIError
-from pysmarthashtag.models import SmartRemoteServiceError
+from pysmarthashtag.models import SmartAPIError, SmartAuthError, SmartRemoteServiceError
 
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
-from .const import LOGGER
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
 
 
 # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities

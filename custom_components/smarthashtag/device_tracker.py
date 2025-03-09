@@ -6,9 +6,8 @@ from homeassistant.core import HomeAssistant, callback
 
 from custom_components.smarthashtag.entity import SmartHashtagEntity
 
-from .coordinator import SmartHashtagDataUpdateCoordinator
-
 from .const import CONF_VEHICLE
+from .coordinator import SmartHashtagDataUpdateCoordinator
 
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):

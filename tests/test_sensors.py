@@ -1,7 +1,8 @@
 """Unit tests for _handle_error function."""
 
-from homeassistant.core import HomeAssistant
+import pytest
 import respx
+from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.smarthashtag.const import DOMAIN
@@ -38,6 +39,7 @@ def test_vin_from_key():
     assert vin == "TestVIN0000000001"
 
 
+@pytest.mark.asyncio()
 async def test_sensor_updates(hass: HomeAssistant, smart_fixture: respx.Router):
     """
     Test the sensors function

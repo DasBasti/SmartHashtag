@@ -1,17 +1,19 @@
 """Adds config flow for Smart #1/#3 integration."""
+
 from __future__ import annotations
+
 from typing import KeysView
 
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import (
     CONF_PASSWORD,
-    CONF_USERNAME,
     CONF_SCAN_INTERVAL,
+    CONF_USERNAME,
 )
 from homeassistant.core import callback
-from homeassistant.helpers import selector
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import selector
 from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.models import (
     SmartAPIError,
@@ -21,18 +23,18 @@ from .const import (
     CONF_CHARGING_INTERVAL,
     CONF_CONDITIONING_TEMP,
     CONF_DRIVING_INTERVAL,
+    CONF_VEHICLE,
+    CONF_VEHICLES,
     DEFAULT_CHARGING_INTERVAL,
     DEFAULT_CONDITIONING_TEMP,
     DEFAULT_DRIVING_INTERVAL,
     DEFAULT_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    LOGGER,
     MIN_SCAN_INTERVAL,
     NAME,
 )
-from .const import LOGGER
-from .const import CONF_VEHICLE
-from .const import CONF_VEHICLES
 
 
 class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
