@@ -5,7 +5,6 @@
 [![CodeQL Validation][codeql-shield]][codeql]
 [![Dependency Validation][tests-shield]][tests]
 
-
 ## Installation
 
 ### Using HACS (Recommended)
