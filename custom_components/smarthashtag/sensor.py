@@ -1168,10 +1168,13 @@ class SmartHashtagSensor(SmartHashtagEntity, SensorEntity):
             - Modifies the internal _attr_unique_id attribute by concatenating it with the entity description key.
             - Assigns the provided entity description and vehicle data to instance attributes.
         """
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
-        self.entity_description = entity_description
-        self._data = data
+        try:
+            super().__init__(coordinator)
+            self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
+            self.entity_description = entity_description
+            self._data = data
+        except Exception as err:
+            LOGGER.error(f"ValueError: {err} - Data: {data}")
 
     @property
     def native_value(self) -> float | int | str | None:
@@ -1298,8 +1301,10 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
 
             return data
 
-        except AttributeError:
-            LOGGER.error("AttributeError value: %s", self.entity_description.key)
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError value: %s (%s)", self.entity_description.key, err
+            )
             return self._last_value
 
     @property
@@ -1315,8 +1320,10 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             if isinstance(data, ValueWithUnit):
                 return data.unit
 
-        except AttributeError:
-            LOGGER.error("AttributeError unit: %s", self.entity_description.key)
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError unit: %s (%s)", self.entity_description.key, err
+            )
 
         return self.entity_description.native_unit_of_measurement
 
@@ -1347,8 +1354,10 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
                 key,
             )[tire_idx].value
 
-        except AttributeError:
-            LOGGER.error("AttributeError value: %s", self.entity_description.key)
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError value: %s (%s)", self.entity_description.key, err
+            )
             return None
 
     @property
@@ -1370,8 +1379,10 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
 
             return data.unit
 
-        except AttributeError:
-            LOGGER.error("AttributeError unit: %s", self.entity_description.key)
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError unit: %s (%s)", self.entity_description.key, err
+            )
             return self.entity_description.native_unit_of_measurement
 
 
@@ -1425,8 +1436,10 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                 return data.value
             return data
 
-        except AttributeError:
-            LOGGER.error("AttributeError value: %s", self.entity_description.key)
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError value: %s (%s)", self.entity_description.key, err
+            )
             return None
 
     @property
@@ -1447,8 +1460,10 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                 return data.unit
             return self.entity_description.native_unit_of_measurement
 
-        except AttributeError:
-            LOGGER.error("AttributeError unit: %s", self.entity_description.key)
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError unit: %s (%s)", self.entity_description.key, err
+            )
             return self.entity_description.native_unit_of_measurement
 
 
@@ -1506,8 +1521,10 @@ class SmartHashtagMaintenanceSensor(SmartHashtagSensor):
 
             return super().native_value
 
-        except AttributeError:
-            LOGGER.error("AttributeError value: %s", self.entity_description.key)
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError value: %s (%s)", self.entity_description.key, err
+            )
             return None
 
 
