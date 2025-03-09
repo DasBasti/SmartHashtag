@@ -1,0 +1,49 @@
+name: Add Release with ZIP
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create ZIP file
+        run: |
+          mkdir -p output
+          cd custom_components/smarthashtag
+          zip -r ../../output/smarthashtag.zip ./*
+
+      - name: Get release id
+        id: get_release_id
+        run: |
+          release_id=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" \
+            | jq -r '.id // empty')
+          echo "Release ID: $release_id"
+          echo "release_id=$release_id" >> $GITHUB_ENV
+
+      - name: Generate final upload URL
+        id: generate_upload_url
+        run: |
+          if [[ -n "${{ env.release_id }}" ]]; then
+            echo "generated_url=https://uploads.github.com/repos/${{ github.repository }}/releases/${{ env.release_id }}/assets?name=smarthashtag.zip" >> $GITHUB_ENV
+          fi
+
+      - name: Upload ZIP file to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ env.generated_url }}
+          asset_path: output/smarthashtag.zip
+          asset_name: smarthashtag.zip
+          asset_content_type: application/zip
