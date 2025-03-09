@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from custom_components.smarthashtag.const import DOMAIN
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_form(hass: HomeAssistant, smart_fixture: respx.Router):
     """Test we get the form."""
     await setup.async_setup_component(hass, "persistent_notification", {})
