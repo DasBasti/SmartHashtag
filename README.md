@@ -9,7 +9,6 @@
 
 ### Using HACS (Recommended)
 
-1. Add this repository to your custom repositories
 1. Search for and install "Smart #1/#3 Integration" in HACS.
 1. Restart Home Assistant.
 1. In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "Smart"
@@ -19,8 +18,8 @@
 1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
 1. If you do not have a `custom_components` directory (folder) there, you need to create it.
 1. In the `custom_components` directory (folder) create a new folder called `smarthashtag`.
-1. Download _all_ the files from the `custom_components/smarthashtag/` directory (folder) in this repository.
-1. Place the files you downloaded in the new directory (folder) you created.
+1. Download _all_ the files from the `custom_components/smarthashtag/` directory (folder) in this repository. You can download from the current [Release](https://github.com/DasBasti/SmartHashtag/releases)
+1. Extract the files you downloaded in the new directory (folder) you created.
 1. Restart Home Assistant
 1. In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "Smart"
 
