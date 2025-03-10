@@ -98,11 +98,6 @@ rest_command:
       Authorization: "APIKEY {{ api_key }}"
 ```
 
-## Code Coverage
-
-<!-- Pytest Coverage Comment:Begin -->
-\n<!-- Pytest Coverage Comment:End -->
-
 ## Contributions are welcome!
 
 We need to add more sensor values from the JSON aquired form the Web API. Please have a look at [pySmartHashtag](https://github.com/DasBasti/pySmartHashtag).
