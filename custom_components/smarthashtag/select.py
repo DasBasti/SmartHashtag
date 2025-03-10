@@ -141,7 +141,7 @@ class SmartPreHeatedLocation(SelectEntity):
         LOGGER.debug(f"Setting {self._location} to %s", level)
 
     @property
-    def current_option(self):
+    def current_option(self) -> str:
         """Return current heated steering setting."""
         current_value = self._get_level_for_location(self._location)
         self._vehicle.climate_control.set_heating_level(self._location, current_value)
@@ -154,6 +154,9 @@ class SmartPreHeatedLocation(SelectEntity):
             None,
         )
 
+        if current_str is None:
+            LOGGER.warning("Unknown heating level: %s", current_value)
+            return STEERING_HEATER_OPTIONS[0]
         options_idx = STEERING_HEATER_OPTIONS.index(current_str)
 
         return STEERING_HEATER_OPTIONS[options_idx]
