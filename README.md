@@ -101,6 +101,7 @@ rest_command:
 ## Code Coverage
 
 <!-- Pytest Coverage Comment:Begin -->
+
 \n<!-- Pytest Coverage Comment:End -->
 
 ## Contributions are welcome!
