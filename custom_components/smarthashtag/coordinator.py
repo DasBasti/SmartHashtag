@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+import async_timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
@@ -44,8 +45,18 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             name=DOMAIN,
             update_interval=timedelta(minutes=5),
             config_entry=entry,
+            always_update=False,
         )
         self._update_intervals = {}
+
+    async def _async_setup(self) -> None:
+        """
+        Asynchronously set up the data update coordinator.
+
+        This method is called when the coordinator is initialized. It sets the update interval
+        based on the configuration entry options and prepares the coordinator for data updates.
+        """
+        await self.account.get_vehicles()
 
     async def _async_update_data(self):
         """
@@ -65,7 +76,9 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             UpdateFailed: If a SmartRemoteServiceError is raised during the data retrieval.
         """
         try:
-            return await self.account.get_vehicles()
+            async with async_timeout.timeout(10):
+                await self.account.get_vehicles()
+                return True
         except SmartAuthError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except SmartRemoteServiceError as exception:
