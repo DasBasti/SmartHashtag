@@ -1199,10 +1199,11 @@ class SmartHashtagSensor(SmartHashtagEntity, SensorEntity):
             )
             if isinstance(data, ValueWithUnit):
                 return data.value
+
+            return data
+
         except AttributeError:
             LOGGER.error("AttributeError value: %s", self.entity_description.key)
-
-        return data
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -1502,31 +1503,6 @@ class SmartHashtagMaintenanceSensor(SmartHashtagSensor):
         )
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
-
-    @property
-    def native_value(self) -> str | int | float:
-        """Return the native value of the sensor."""
-        try:
-            key = remove_vin_from_key(self.entity_description.key)
-            vin = vin_from_key(self.entity_description.key)
-            if key == "odometer":
-                data = getattr(
-                    self.coordinator.account.vehicles.get(vin),
-                    key,
-                )
-                try:
-                    if isinstance(data, str):
-                        float(data)
-                except ValueError as err:
-                    raise ValueError("Value is not a number") from err
-
-            return super().native_value
-
-        except AttributeError as err:
-            LOGGER.error(
-                "AttributeError value: %s (%s)", self.entity_description.key, err
-            )
-            return None
 
 
 class SmartHashtagRunningSensor(SmartHashtagSensor):
