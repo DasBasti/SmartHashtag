@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from pysmarthashtag.models import ValueWithUnit, VehicleDataBase
+from pysmarthashtag.models import ValueWithUnit
 
 from .const import (
     CONF_CHARGING_INTERVAL,
@@ -1141,96 +1141,6 @@ async def async_setup_entry(hass, entry, async_add_devices):
     )
 
 
-class SmartHashtagSensor(SmartHashtagEntity, SensorEntity):
-    """Base Sensor class."""
-
-    def __init__(
-        self,
-        coordinator: SmartHashtagDataUpdateCoordinator,
-        entity_description: SensorEntityDescription,
-        data: VehicleDataBase,
-    ) -> None:
-        """
-        Initialize a SmartHashtagSensor instance with the given coordinator, entity description, and vehicle data.
-
-        This constructor initializes the sensor base class by invoking its parent constructor with the provided coordinator.
-        It sets a unique identifier for the sensor by appending the key from the entity description to the base unique ID,
-        and stores the entity description along with the vehicle data for later use in sensor value retrieval.
-
-        Parameters:
-            coordinator (SmartHashtagDataUpdateCoordinator): The data update coordinator that manages sensor updates.
-            entity_description (SensorEntityDescription): The metadata object for the sensor containing keys, names, units, etc.
-            data (VehicleDataBase): The vehicle data source providing current sensor values and related information.
-
-        Returns:
-            None
-
-        Side Effects:
-            - Modifies the internal _attr_unique_id attribute by concatenating it with the entity description key.
-            - Assigns the provided entity description and vehicle data to instance attributes.
-        """
-        try:
-            super().__init__(coordinator)
-            self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
-            self.entity_description = entity_description
-            self._data = data
-        except Exception as err:
-            LOGGER.error(f"ValueError: {err} - Data: {data}")
-
-    @property
-    def native_value(self) -> float | int | str | None:
-        """
-        Return the native sensor value.
-
-        This method extracts the sensor value from the underlying vehicle data using the key defined in the entity description.
-        It first removes the vehicle identification number (VIN) from the key with `remove_vin_from_key` and then retrieves the
-        corresponding attribute from `self._data`. If the retrieved data is an instance of `ValueWithUnit`, the method returns its
-        `value` property. If an `AttributeError` occurs during the attribute access, an error is logged and the raw data (if available)
-        is returned.
-
-        Returns:
-            float | int | str | None: The native sensor value for display, which may be a number, string, or None if unavailable.
-        """
-        try:
-            key = remove_vin_from_key(self.entity_description.key)
-            data = getattr(
-                self._data,
-                key,
-            )
-            if isinstance(data, ValueWithUnit):
-                return data.value
-
-            return data
-
-        except AttributeError:
-            LOGGER.error("AttributeError value: %s", self.entity_description.key)
-
-    @property
-    def native_unit_of_measurement(self) -> str:
-        """Return the unit of measurement for the sensor.
-
-        This method retrieves the sensor's data attribute by first removing the VIN from the entity's key. It then attempts
-        to access the corresponding attribute from the sensor's data object (_data). If the retrieved data is an instance
-        of ValueWithUnit, the method returns its unit attribute. If an AttributeError occurs during data access, the error
-        is logged and the method falls back to returning the predefined native unit of measurement from the entity description.
-
-        Returns:
-            str: The unit of measurement for the sensor.
-        """
-        try:
-            key = remove_vin_from_key(self.entity_description.key)
-            data = getattr(
-                self._data,
-                key,
-            )
-            if isinstance(data, ValueWithUnit):
-                return data.unit
-        except AttributeError:
-            LOGGER.error("AttributeError unit: %s", self.entity_description.key)
-
-        return self.entity_description.native_unit_of_measurement
-
-
 class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
     """Battery Sensor class."""
 
@@ -1239,25 +1149,13 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """
-        Initialize the sensor instance.
-
-        This constructor initializes the sensor with a data update coordinator and a sensor entity description. It calls the parent class initializer with the coordinator, modifies the sensor's unique identifier by appending the sensor description key, and stores the entity description. It also sets the initial value of the last known sensor data to None.
-
-        Parameters:
-            coordinator (SmartHashtagDataUpdateCoordinator): The coordinator managing data updates for the sensor.
-            entity_description (SensorEntityDescription): Metadata describing the sensor entity, including its key and other properties.
-
-        Returns:
-            None
-        """
+        """Initialize the sensor class."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
-        self._last_value = None
 
     @property
-    def native_value(self) -> str | int | float:
+    def native_value(self) -> int:
         """Return the native value of the sensor."""
         try:
             data = getattr(
@@ -1312,22 +1210,16 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        try:
-            data = getattr(
-                self.coordinator.account.vehicles.get(
-                    vin_from_key(self.entity_description.key)
-                ).battery,
-                remove_vin_from_key(self.entity_description.key),
-            )
-            if isinstance(data, ValueWithUnit):
-                return data.unit
+        data = getattr(
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).battery,
+            remove_vin_from_key(self.entity_description.key),
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
 
-        except AttributeError as err:
-            LOGGER.error(
-                "AttributeError unit: %s (%s)", self.entity_description.key, err
-            )
-
-        return self.entity_description.native_unit_of_measurement
+        return data
 
 
 class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
@@ -1360,32 +1252,25 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return None
+            return self._last_value
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        try:
-            key = "_".join(self.entity_description.key.split("_")[1:-1])
-            tire_idx = int(self.entity_description.key.split("_")[-1])
-            data = getattr(
-                self.coordinator.account.vehicles.get(
-                    vin_from_key(self.entity_description.key)
-                ).tires,
-                key,
-            )[tire_idx]
+        key = "_".join(self.entity_description.key.split("_")[1:-1])
+        tire_idx = int(self.entity_description.key.split("_")[-1])
+        data = getattr(
+            self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).tires,
+            key,
+        )[tire_idx]
 
-            # FIXME: if pysmarthashtag is updated to return the unit as °C remove this
-            if data.unit == "C":
-                return "°C"
+        # FIXME: if pysmarthashtag is updated to return the unit as °C remove this
+        if data.unit == "C":
+            return "°C"
 
-            return data.unit
-
-        except AttributeError as err:
-            LOGGER.error(
-                "AttributeError unit: %s (%s)", self.entity_description.key, err
-            )
-            return self.entity_description.native_unit_of_measurement
+        return data.unit
 
 
 class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
@@ -1442,34 +1327,74 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return None
+            return self._last_value
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        if key.startswith("service"):
+            key = key.rsplit("_", maxsplit=1)[-1]
+            data = self.coordinator.account.vehicles.get(vin).service[key]
+        else:
+            data = getattr(
+                self.coordinator.account.vehicles.get(vin),
+                key,
+            )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return self.entity_description.native_unit_of_measurement
+
+
+class SmartHashtagMaintenanceSensor(SmartHashtagEntity, SensorEntity):
+    """Tire Status class."""
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
+        self.entity_description = entity_description
+
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the native value of the sensor."""
         try:
             key = remove_vin_from_key(self.entity_description.key)
             vin = vin_from_key(self.entity_description.key)
-            if key.startswith("service"):
-                key = key.rsplit("_", maxsplit=1)[-1]
-                data = self.coordinator.account.vehicles.get(vin).service[key]
-            else:
-                data = getattr(
-                    self.coordinator.account.vehicles.get(vin),
-                    key,
-                )
+            data = getattr(
+                self.coordinator.account.vehicles.get(vin).maintenance,
+                key,
+            )
             if isinstance(data, ValueWithUnit):
-                return data.unit
-            return self.entity_description.native_unit_of_measurement
+                return data.value
+            return data
 
         except AttributeError as err:
             LOGGER.error(
-                "AttributeError unit: %s (%s)", self.entity_description.key, err
+                "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return self.entity_description.native_unit_of_measurement
+            return self._last_value
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).maintenance,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return self.entity_description.native_unit_of_measurement
 
 
-class SmartHashtagMaintenanceSensor(SmartHashtagSensor):
+class SmartHashtagRunningSensor(SmartHashtagEntity, SensorEntity):
     """Tire Status class."""
 
     def __init__(
@@ -1477,35 +1402,46 @@ class SmartHashtagMaintenanceSensor(SmartHashtagSensor):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """
-        Initialize the maintenance sensor instance with vehicle data and a unique identifier.
-
-        This constructor extracts the maintenance data for a specific vehicle by using the coordinator's account data.
-        It retrieves the vehicle's maintenance information by extracting the VIN from the provided entity description key
-        and accessing the corresponding vehicle object. The sensor's unique identifier is then updated by appending the
-        entity description key to ensure its distinctiveness.
-
-        Parameters:
-            coordinator (SmartHashtagDataUpdateCoordinator): The coordinator that manages data updates and provides access
-                to the account's vehicles.
-            entity_description (SensorEntityDescription): The sensor's metadata containing the key used to extract the VIN
-                and retrieve related maintenance data.
-
-        Returns:
-            None
-        """
-        super().__init__(
-            coordinator=coordinator,
-            entity_description=entity_description,
-            data=coordinator.account.vehicles.get(
-                vin_from_key(entity_description.key)
-            ).maintenance,
-        )
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
 
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the native value of the sensor."""
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            data = getattr(
+                self.coordinator.account.vehicles.get(vin).running,
+                key,
+            )
+            if isinstance(data, ValueWithUnit):
+                return data.value
+            return data
 
-class SmartHashtagRunningSensor(SmartHashtagSensor):
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError value: %s (%s)", self.entity_description.key, err
+            )
+            return self._last_value
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).running,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return self.entity_description.native_unit_of_measurement
+
+
+class SmartHashtagClimateSensor(SmartHashtagEntity, SensorEntity):
     """Tire Status class."""
 
     def __init__(
@@ -1513,68 +1449,46 @@ class SmartHashtagRunningSensor(SmartHashtagSensor):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """
-        Initialize a SmartHashtag sensor instance with vehicle running data.
-
-        This constructor initializes the sensor using the provided update coordinator and sensor entity description.
-        It extracts the vehicle identification number (VIN) from the entity description key using `vin_from_key`,
-        retrieves the corresponding vehicle's running data from the coordinator's account, and passes this data to the
-        base class initializer. The sensor's unique identifier is then updated by appending the entity's key to ensure
-        uniqueness.
-
-        Parameters:
-            coordinator (SmartHashtagDataUpdateCoordinator): The coordinator managing update data for Smart Hashtag vehicles.
-            entity_description (SensorEntityDescription): The sensor description containing metadata and a unique key for data extraction.
-
-        Returns:
-            None
-        """
-        super().__init__(
-            coordinator=coordinator,
-            entity_description=entity_description,
-            data=coordinator.account.vehicles.get(
-                vin_from_key(entity_description.key)
-            ).running,
-        )
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
 
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the native value of the sensor."""
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            data = getattr(
+                self.coordinator.account.vehicles.get(vin).climate,
+                key,
+            )
+            if isinstance(data, ValueWithUnit):
+                return data.value
+            return data
 
-class SmartHashtagClimateSensor(SmartHashtagSensor):
-    """Tire Status class."""
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError value: %s (%s)", self.entity_description.key, err
+            )
+            return self._last_value
 
-    def __init__(
-        self,
-        coordinator: SmartHashtagDataUpdateCoordinator,
-        entity_description: SensorEntityDescription,
-    ) -> None:
-        """
-        Initialize the sensor with coordinated vehicle climate data.
-
-        This constructor retrieves the climate data for the vehicle using the VIN extracted from the
-        entity description's key, sets up a unique identifier by appending the key to the base unique ID,
-        and stores the entity description for later use.
-
-        Parameters:
-            coordinator (SmartHashtagDataUpdateCoordinator): The update coordinator that manages vehicle data.
-            entity_description (SensorEntityDescription): The description of the sensor entity used to extract
-                the vehicle's VIN and identify the sensor.
-
-        Returns:
-            None
-        """
-        super().__init__(
-            coordinator=coordinator,
-            entity_description=entity_description,
-            data=coordinator.account.vehicles.get(
-                vin_from_key(entity_description.key)
-            ).climate,
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).climate,
+            key,
         )
-        self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
-        self.entity_description = entity_description
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return self.entity_description.native_unit_of_measurement
 
 
-class SmartHashtagSafetySensor(SmartHashtagSensor):
+class SmartHashtagSafetySensor(SmartHashtagEntity, SensorEntity):
     """Safety class."""
 
     def __init__(
@@ -1582,27 +1496,40 @@ class SmartHashtagSafetySensor(SmartHashtagSensor):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """
-        Initialize the sensor with safety-related vehicle data.
-
-        This constructor initializes a sensor instance by retrieving the safety data
-        for a specific vehicle. It extracts the vehicle identification number (VIN)
-        from the sensor's entity description key using the `vin_from_key` helper function,
-        and then retrieves the corresponding safety data from the coordinator's account.
-        The unique sensor ID is updated by appending the entity key to ensure uniqueness.
-
-        Parameters:
-            coordinator (SmartHashtagDataUpdateCoordinator): The coordinator that manages
-                data updates and provides access to vehicle information.
-            entity_description (SensorEntityDescription): The description of the sensor entity,
-                including configuration details such as the unique key.
-        """
-        super().__init__(
-            coordinator=coordinator,
-            entity_description=entity_description,
-            data=coordinator.account.vehicles.get(
-                vin_from_key(entity_description.key)
-            ).safety,
-        )
+        """Initialize the sensor class."""
+        super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+
+    @property
+    def native_value(self) -> float | int | str | None:
+        """Return the native value of the sensor."""
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            data = getattr(
+                self.coordinator.account.vehicles.get(vin).safety,
+                key,
+            )
+            if isinstance(data, ValueWithUnit):
+                return data.value
+            return data
+
+        except AttributeError as err:
+            LOGGER.error(
+                "AttributeError value: %s (%s)", self.entity_description.key, err
+            )
+            return self._last_value
+
+    @property
+    def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement of the sensor."""
+        key = remove_vin_from_key(self.entity_description.key)
+        vin = vin_from_key(self.entity_description.key)
+        data = getattr(
+            self.coordinator.account.vehicles.get(vin).safety,
+            key,
+        )
+        if isinstance(data, ValueWithUnit):
+            return data.unit
+        return self.entity_description.native_unit_of_measurement
