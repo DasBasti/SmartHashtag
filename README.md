@@ -92,7 +92,7 @@ And this to your `configuration.yaml` to create the `rest_command`.
 ```yaml
 rest_command:
   abrp:
-    url: https://api.iternio.com/1/tlm/send?token={{ token }}&tlm={"utc":"{{ utc }}","soc":"{{ soc }}","soh":"{{ soh }}","power":"{{ power }}","speed":"{{ speed }}","lat":"{{ lat }}","lon":"{{ lon }}","is_charging":"{{ is_charging }}","is_dcfc":"{{ is_dcfc }}","is_parked":"{{ is_parked }}","elevation":"{{ elevation }}","ext_temp":"{{ ext_temp }}","odometer":"{{ odometer }}","est_battery_range":"{{ est_battery_range }}"}
+    url: https://api.iternio.com/1/tlm/send?token={{ token }}&tlm={"utc":{{ utc }},"soc":"{{ soc }}","soh":"{{ soh }}","power":"{{ power }}","speed":"{{ speed }}","lat":"{{ lat }}","lon":"{{ lon }}","is_charging":"{{ is_charging }}","is_dcfc":"{{ is_dcfc }}","is_parked":"{{ is_parked }}","elevation":"{{ elevation }}","ext_temp":"{{ ext_temp }}","odometer":"{{ odometer }}","est_battery_range":"{{ est_battery_range }}"}
     method: post
     headers:
       Authorization: "APIKEY {{ api_key }}"
