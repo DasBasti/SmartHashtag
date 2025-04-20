@@ -1216,6 +1216,8 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             ).battery,
             remove_vin_from_key(self.entity_description.key),
         )
+        if "charging_status" in self.entity_description.key:
+            return None
         if isinstance(data, ValueWithUnit):
             return data.unit
 
