@@ -1355,13 +1355,35 @@ class SmartHashtagMaintenanceSensor(SmartHashtagEntity, SensorEntity):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """Initialize the sensor class."""
-        super().__init__(coordinator)
+        """
+        Initialize the maintenance sensor instance with vehicle data and a unique identifier.
+
+        This constructor extracts the maintenance data for a specific vehicle by using the coordinator's account data.
+        It retrieves the vehicle's maintenance information by extracting the VIN from the provided entity description key
+        and accessing the corresponding vehicle object. The sensor's unique identifier is then updated by appending the
+        entity description key to ensure its distinctiveness.
+
+        Parameters:
+            coordinator (SmartHashtagDataUpdateCoordinator): The coordinator that manages data updates and provides access
+                to the account's vehicles.
+            entity_description (SensorEntityDescription): The sensor's metadata containing the key used to extract the VIN
+                and retrieve related maintenance data.
+
+        Returns:
+            None
+        """
+        super().__init__(
+            coordinator=coordinator,
+            entity_description=entity_description,
+            data=coordinator.account.vehicles.get(
+                vin_from_key(entity_description.key)
+            ).maintenance,
+        )
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
 
     @property
-    def native_value(self) -> float | int | str | None:
+    def native_value(self) -> str:
         """Return the native value of the sensor."""
         try:
             key = remove_vin_from_key(self.entity_description.key)
@@ -1378,20 +1400,7 @@ class SmartHashtagMaintenanceSensor(SmartHashtagEntity, SensorEntity):
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return self._last_value
-
-    @property
-    def native_unit_of_measurement(self) -> str:
-        """Return the unit of measurement of the sensor."""
-        key = remove_vin_from_key(self.entity_description.key)
-        vin = vin_from_key(self.entity_description.key)
-        data = getattr(
-            self.coordinator.account.vehicles.get(vin).maintenance,
-            key,
-        )
-        if isinstance(data, ValueWithUnit):
-            return data.unit
-        return self.entity_description.native_unit_of_measurement
+            return None
 
 
 class SmartHashtagRunningSensor(SmartHashtagEntity, SensorEntity):
