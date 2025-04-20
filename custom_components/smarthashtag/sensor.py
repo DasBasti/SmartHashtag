@@ -1372,13 +1372,7 @@ class SmartHashtagMaintenanceSensor(SmartHashtagEntity, SensorEntity):
         Returns:
             None
         """
-        super().__init__(
-            coordinator=coordinator,
-            entity_description=entity_description,
-            data=coordinator.account.vehicles.get(
-                vin_from_key(entity_description.key)
-            ).maintenance,
-        )
+        super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
 
