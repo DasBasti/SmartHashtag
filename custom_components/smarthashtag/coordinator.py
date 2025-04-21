@@ -45,7 +45,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             name=DOMAIN,
             update_interval=timedelta(minutes=5),
             config_entry=entry,
-            always_update=False,
+            always_update=True,
         )
         self._update_intervals = {}
 
@@ -77,8 +77,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         """
         try:
             async with async_timeout.timeout(10):
-                await self.account.get_vehicles()
-                return True
+                return await self.account.get_vehicles()
         except SmartAuthError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except SmartRemoteServiceError as exception:
