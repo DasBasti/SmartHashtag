@@ -96,25 +96,7 @@ rest_command:
     method: post
     headers:
       Authorization: "APIKEY {{ api_key }}"
-    payload: >
-      {
-          "tlm": {
-              "utc": {{ utc }},
-              "soc": {{ soc }},
-              "soh": {{ soh }},
-              "power": {{ power }},
-              "speed": {{ speed }},
-              "lat": {{ lat }},
-              "lon": {{ lon }},
-              "is_charging": {{ is_charging }},
-              "is_dcfc": {{ is_dcfc }},
-              "is_parked": {{ is_parked }},
-              "elevation": {{ elevation }},
-              "ext_temp": {{ ext_temp }},
-              "odometer": {{ odometer }},
-              "est_battery_range": {{ est_battery_range }}
-          }
-      }
+    payload: {"tlm":{"utc":{{utc}},"soc":{{soc}},"soh":{{soh}},"power":{{power}},"speed":{{speed}},"lat":{{lat}},"lon":{{lon}},"is_charging":{{is_charging}},"is_dcfc":{{is_dcfc}},"is_parked":{{is_parked}},"elevation":{{elevation}},"ext_temp":{{ext_temp}},"odometer":{{odometer}},"est_battery_range":{{est_battery_range}}
 ```
 
 ## Contributions are welcome!
