@@ -3,9 +3,11 @@
 import pytest
 import respx
 from homeassistant.core import HomeAssistant
+from httpx import Request, Response
+from pysmarthashtag.tests import RESPONSE_DIR, load_response
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.smarthashtag.const import DOMAIN
+from custom_components.smarthashtag.const import DOMAIN, LOGGER
 from custom_components.smarthashtag.sensor import remove_vin_from_key, vin_from_key
 
 
@@ -66,3 +68,115 @@ async def test_sensor_updates(hass: HomeAssistant, smart_fixture: respx.Router):
 
     assert state
     assert state.state == "2024-01-23T16:44:00+00:00"
+
+
+@pytest.mark.asyncio()
+async def test_odometer_updates(hass: HomeAssistant, smart_fixture: respx.Router):
+    """
+    Test the odometer function
+
+    This loads sample data from pysmarthashtag but increases odometer value each call.
+    """
+
+    async def increase_odometer(request: Request, route: respx.Route) -> Response:
+        response = load_response(RESPONSE_DIR / "vehicle_info.json")
+        response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+            "maintenanceStatus"
+        ]["odometer"] = str(
+            route.call_count
+            + float(
+                response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+                    "maintenanceStatus"
+                ]["odometer"]
+            )
+        )
+        LOGGER.error(
+            f"I am in the increase_odometer function. Odometer: {response['data']['vehicleStatus']['additionalVehicleStatus']['maintenanceStatus']['odometer']}"
+        )
+        return Response(200, json=response)
+
+    smart_fixture.get(
+        "https://api.ecloudeu.com/remote-control/vehicle/status/TestVIN0000000001?latest=True&target=basic%2Cmore&userId=112233",
+    ).mock(side_effect=increase_odometer)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.smart_odometer")
+
+    assert state
+    assert state.state == "502"
+
+    await entry.runtime_data.async_refresh()
+
+    state = hass.states.get("sensor.smart_odometer")
+
+    assert state
+    assert state.state == "503"
+
+
+@pytest.mark.asyncio()
+async def test_battery_updates(hass: HomeAssistant, smart_fixture: respx.Router):
+    """
+    Test the odometer function
+
+    This loads sample data from pysmarthashtag but increases odometer value each call.
+    """
+
+    async def deplete_battery(request: Request, route: respx.Route) -> Response:
+        response = load_response(RESPONSE_DIR / "vehicle_info.json")
+        response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+            "electricVehicleStatus"
+        ]["chargeLevel"] = str(
+            int(
+                response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+                    "electricVehicleStatus"
+                ]["chargeLevel"]
+            )
+            - route.call_count
+        )
+        LOGGER.error(
+            f"I am in the deplete_battery function. Battery: {response['data']['vehicleStatus']['additionalVehicleStatus']['electricVehicleStatus']['chargeLevel']}"
+        )
+        return Response(200, json=response)
+
+    smart_fixture.get(
+        "https://api.ecloudeu.com/remote-control/vehicle/status/TestVIN0000000001?latest=True&target=basic%2Cmore&userId=112233",
+    ).mock(side_effect=deplete_battery)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.smart_battery")
+
+    assert state
+    assert state.state == "45"
+
+    await entry.runtime_data.async_refresh()
+
+    state = hass.states.get("sensor.smart_battery")
+
+    assert state
+    assert state.state == "44"
