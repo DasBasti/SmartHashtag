@@ -7,7 +7,7 @@ from httpx import Request, Response
 from pysmarthashtag.tests import RESPONSE_DIR, load_response
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.smarthashtag.const import DOMAIN, LOGGER
+from custom_components.smarthashtag.const import DOMAIN
 from custom_components.smarthashtag.sensor import remove_vin_from_key, vin_from_key
 
 
@@ -90,9 +90,6 @@ async def test_odometer_updates(hass: HomeAssistant, smart_fixture: respx.Router
                 ]["odometer"]
             )
         )
-        LOGGER.error(
-            f"I am in the increase_odometer function. Odometer: {response['data']['vehicleStatus']['additionalVehicleStatus']['maintenanceStatus']['odometer']}"
-        )
         return Response(200, json=response)
 
     smart_fixture.get(
@@ -145,9 +142,6 @@ async def test_battery_updates(hass: HomeAssistant, smart_fixture: respx.Router)
                 ]["chargeLevel"]
             )
             - route.call_count
-        )
-        LOGGER.error(
-            f"I am in the deplete_battery function. Battery: {response['data']['vehicleStatus']['additionalVehicleStatus']['electricVehicleStatus']['chargeLevel']}"
         )
         return Response(200, json=response)
 
