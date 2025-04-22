@@ -72,7 +72,7 @@
         "name": "Ladezustand Rohwert"
       },
       "charger_connection_status": {
-        "name": "Ladesanschluss",
+        "name": "Ladeanschluss",
         "state": {
           "0": "nicht verbunden",
           "1": "dc verbunden",
