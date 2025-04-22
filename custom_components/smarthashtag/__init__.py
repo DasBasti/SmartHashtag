@@ -16,7 +16,7 @@ from .coordinator import SmartHashtagDataUpdateCoordinator
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
     Platform.DEVICE_TRACKER,
-    #    Platform.BINARY_SENSOR,
+    Platform.BINARY_SENSOR,
     #    Platform.SWITCH,
     Platform.CLIMATE,
     Platform.SELECT,
