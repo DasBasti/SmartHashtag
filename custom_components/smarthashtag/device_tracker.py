@@ -116,7 +116,3 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         ).battery.remaining_battery_percent.value
 
         self.async_write_ha_state()
-
-    @callback
-    def _async_track_unavailable(self) -> None:
-        self.async_write_ha_state()
