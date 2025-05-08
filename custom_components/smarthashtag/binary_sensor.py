@@ -149,14 +149,24 @@ class SmartHashtagLockBinaraySensor(SmartHashtagEntity, BinarySensorEntity):
         coordinator: SmartHashtagDataUpdateCoordinator,
         entity_description: SmartHashtagBinarySensorEntityDescription,
     ) -> None:
-        """Initialize the sensor class."""
+        """
+        Initializes a binary sensor entity for a specific vehicle lock or door status.
+        
+        Associates the sensor with a data update coordinator and a binary sensor entity description,
+        setting a unique identifier based on the entity's key.
+        """
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
 
     @cached_property
     def is_on(self) -> bool | None:
-        """Return true if the binary sensor is on."""
+        """
+        Indicates whether the binary sensor is currently in the "on" state.
+        
+        Returns:
+            True if the associated vehicle component (e.g., door, lock, trunk) is open or unlocked; False if closed or locked; None if the state cannot be determined.
+        """
         key = remove_vin_from_key(self.entity_description.key)
         vin = vin_from_key(self.entity_description.key)
         state = self.entity_description.is_on_fn(
@@ -169,6 +179,11 @@ class SmartHashtagLockBinaraySensor(SmartHashtagEntity, BinarySensorEntity):
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
+    """
+    Asynchronously sets up binary sensor entities for vehicle lock and door status.
+    
+    Initializes and adds all lock-related binary sensors for the specified vehicle to Home Assistant when the integration entry is set up.
+    """
     coordinator = entry.runtime_data
     vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
 

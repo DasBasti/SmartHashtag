@@ -52,7 +52,13 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         coordinator: SmartHashtagDataUpdateCoordinator,
         vehicle: str,
     ) -> None:
-        """Initialize the device_tracker class."""
+        """
+        Initializes a Smart vehicle location tracker entity.
+        
+        Args:
+            coordinator: Coordinator managing data updates for the smart vehicle.
+            vehicle: Identifier for the vehicle being tracked.
+        """
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_location"
         self.coordinator = coordinator
@@ -99,7 +105,11 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """
+        Updates the entity's location and battery attributes from the coordinator data.
+        
+        Retrieves the latest position and battery information for the vehicle, updates the entity's longitude, latitude, altitude, and battery level, and writes the new state to Home Assistant.
+        """
         self._longitude = (
             self.coordinator.account.vehicles.get(self._vehicle).position.longitude
             / 3600000

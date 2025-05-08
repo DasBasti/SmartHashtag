@@ -126,9 +126,9 @@ async def test_odometer_updates(hass: HomeAssistant, smart_fixture: respx.Router
 @pytest.mark.asyncio()
 async def test_battery_updates(hass: HomeAssistant, smart_fixture: respx.Router):
     """
-    Test the odometer function
-
-    This loads sample data from pysmarthashtag but increases odometer value each call.
+    Tests that the smart battery sensor updates correctly as the battery charge level decreases.
+    
+    Mocks the vehicle status API to decrement the battery charge level on each call, sets up the integration, and verifies that the sensor state reflects the updated charge level after a data refresh.
     """
 
     async def deplete_battery(request: Request, route: respx.Route) -> Response:
@@ -179,12 +179,20 @@ async def test_battery_updates(hass: HomeAssistant, smart_fixture: respx.Router)
 @pytest.mark.asyncio()
 async def test_binaray_lock(hass: HomeAssistant, smart_fixture: respx.Router):
     """
-    Test the odometer function
-
-    This loads sample data from pysmarthashtag but increases odometer value each call.
+    Tests that the central locking status binary sensor is correctly set to "off" based on mocked vehicle API responses with depleted battery charge level.
     """
 
     async def deplete_battery(request: Request, route: respx.Route) -> Response:
+        """
+        Simulates battery depletion by decrementing the charge level in the vehicle status response.
+        
+        Args:
+            request: The intercepted HTTP request.
+            route: The mocked route, used to track the number of calls.
+        
+        Returns:
+            A mocked HTTP response with the charge level reduced by the number of times the route has been called.
+        """
         response = load_response(RESPONSE_DIR / "vehicle_info.json")
         response["data"]["vehicleStatus"]["additionalVehicleStatus"][
             "electricVehicleStatus"

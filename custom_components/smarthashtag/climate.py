@@ -114,7 +114,11 @@ class SmartConditioningMode(ClimateEntity):
         coordinator: SmartHashtagDataUpdateCoordinator,
         vehicle: str,
     ) -> None:
-        """Initialize the Contitioner class."""
+        """
+        Initializes the SmartConditioningMode climate entity for a specific vehicle.
+        
+        Associates the entity with the provided data update coordinator and vehicle identifier, sets the entity's name and unique ID, and initializes the target temperature from configuration options.
+        """
         super().__init__()
         self.coordinator = coordinator
         self._vehicle = self.coordinator.account.vehicles[vehicle]
