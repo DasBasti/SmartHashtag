@@ -915,6 +915,7 @@ ENTITY_SAFETY_DESCRIPTIONS = (
         translation_key="tank_flap_status",
         name="Tank flap status",
         icon="mdi:gas-station",
+        entity_registry_enabled_default=False,
     ),
 )
 
