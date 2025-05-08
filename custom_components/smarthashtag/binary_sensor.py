@@ -141,7 +141,7 @@ LOCK_ENTITIES = (
 )
 
 
-class SmartHashtagLockBinaraySensor(SmartHashtagEntity, BinarySensorEntity):
+class SmartHashtagLockBinarySensor(SmartHashtagEntity, BinarySensorEntity):
     """Safety Binary Sensor class."""
 
     def __init__(
@@ -173,7 +173,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
     vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
 
     async_add_devices(
-        SmartHashtagLockBinaraySensor(
+        SmartHashtagLockBinarySensor(
             coordinator=coordinator,
             entity_description=dataclasses.replace(
                 entity_description, key=f"{vehicle}_{entity_description.key}"
