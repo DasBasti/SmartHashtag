@@ -54,7 +54,7 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
     ) -> None:
         """Initialize the device_tracker class."""
         super().__init__(coordinator)
-        self._attr_unique_id = f"{self._attr_unique_id}_{vehicle}"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_location"
         self.coordinator = coordinator
         self._vehicle = vehicle
         self.name = f"Smart {vehicle}"

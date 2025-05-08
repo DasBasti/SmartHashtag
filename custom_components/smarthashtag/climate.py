@@ -119,7 +119,7 @@ class SmartConditioningMode(ClimateEntity):
         self.coordinator = coordinator
         self._vehicle = self.coordinator.account.vehicles[vehicle]
         self._attr_name = f"Smart {vehicle} Conditioning"
-        self._attr_unique_id = f"{self._attr_unique_id}_{vehicle}"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_climate"
         try:
             self._temperature = self.coordinator.config_entry.options.get(
                 CONF_CONDITIONING_TEMP, DEFAULT_CONDITIONING_TEMP
