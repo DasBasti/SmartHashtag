@@ -55,7 +55,16 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         This method is called when the coordinator is initialized. It sets the update interval
         based on the configuration entry options and prepares the coordinator for data updates.
         """
-        await self.account.get_vehicles()
+        try:
+            await self.account.get_vehicles()
+        except SmartAuthError as exception:
+            raise ConfigEntryAuthFailed(exception) from exception
+        except SmartRemoteServiceError as exception:
+            raise UpdateFailed(exception) from exception
+        except SmartAPIError as exception:
+            LOGGER.info(f"API access failed with: {exception}")
+        except Exception as exception:
+            raise UpdateFailed(exception) from exception
 
     async def _async_update_data(self):
         """
