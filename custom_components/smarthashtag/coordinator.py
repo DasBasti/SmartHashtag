@@ -84,6 +84,8 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(exception) from exception
         except SmartAPIError as exception:
             LOGGER.info(f"API access failed with: {exception}")
+        except Exception as exception:
+            raise UpdateFailed(exception) from exception
 
     def set_update_interval(self, key: str, deltatime: timedelta) -> None:
         """Update intervals by key and select the shortest"""
