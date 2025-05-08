@@ -177,7 +177,7 @@ async def test_battery_updates(hass: HomeAssistant, smart_fixture: respx.Router)
 
 
 @pytest.mark.asyncio()
-async def test_binaray_lock(hass: HomeAssistant, smart_fixture: respx.Router):
+async def test_binary_lock(hass: HomeAssistant, smart_fixture: respx.Router):
     """
     Test the odometer function
 
