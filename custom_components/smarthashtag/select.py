@@ -100,7 +100,7 @@ class SmartPreHeatedLocation(SelectEntity):
         self._attr_name = (
             f"Smart {vehicle} Conditioning {HEATING_LOCATION_NAMES[location]}"
         )
-        self._attr_unique_id = f"{vehicle}_preconditioning_{HEATING_LOCATION_NAMES[location].lower().replace(' ', '_')}"
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_preconditioning_{HEATING_LOCATION_NAMES[location].lower().replace(' ', '_')}"
         self._location = location
         self.entity_description = SELECT_DESCRIPTIONS[location]
 
