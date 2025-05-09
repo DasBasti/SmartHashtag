@@ -95,7 +95,7 @@ class SmartPreHeatedLocation(SelectEntity):
     ):
         """
         Initializes a select entity for controlling the heating level of a specific vehicle location.
-        
+
         Sets up entity attributes, assigns the appropriate description, and attempts to restore the last saved heating level for the given location on the vehicle's climate control system.
         """
         super().__init__()

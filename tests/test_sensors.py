@@ -127,7 +127,7 @@ async def test_odometer_updates(hass: HomeAssistant, smart_fixture: respx.Router
 async def test_battery_updates(hass: HomeAssistant, smart_fixture: respx.Router):
     """
     Tests that the smart battery sensor updates correctly as the battery charge level decreases.
-    
+
     Mocks the vehicle status API to decrement the battery charge level on each call, sets up the integration, and verifies that the sensor state reflects the updated charge level after a data refresh.
     """
 
@@ -185,11 +185,11 @@ async def test_binaray_lock(hass: HomeAssistant, smart_fixture: respx.Router):
     async def deplete_battery(request: Request, route: respx.Route) -> Response:
         """
         Simulates battery depletion by decrementing the charge level in the vehicle status response.
-        
+
         Args:
             request: The intercepted HTTP request.
             route: The mocked route, used to track the number of calls.
-        
+
         Returns:
             A mocked HTTP response with the charge level reduced by the number of times the route has been called.
         """
