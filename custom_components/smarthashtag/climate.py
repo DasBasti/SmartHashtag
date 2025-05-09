@@ -116,7 +116,7 @@ class SmartConditioningMode(ClimateEntity):
     ) -> None:
         """
         Initializes the SmartConditioningMode climate entity for a specific vehicle.
-        
+
         Associates the entity with the provided data update coordinator and vehicle identifier, sets the entity's name and unique ID, and initializes the target temperature from configuration options.
         """
         super().__init__()
