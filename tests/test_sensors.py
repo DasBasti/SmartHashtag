@@ -187,7 +187,7 @@ async def test_charging_ac_power_updates(
     """
     value_target = (0, 0)
 
-    async def deplete_battery(request: Request, route: respx.Route) -> Response:
+    async def simulate_ac_charging(request: Request, route: respx.Route) -> Response:
         response = load_response(RESPONSE_DIR / "vehicle_info.json")
         # pysmarthashtag ChargingState['CHARGING']
         response["data"]["vehicleStatus"]["additionalVehicleStatus"][
@@ -204,7 +204,7 @@ async def test_charging_ac_power_updates(
 
     smart_fixture.get(
         "https://api.ecloudeu.com/remote-control/vehicle/status/TestVIN0000000001?latest=True&target=basic%2Cmore&userId=112233",
-    ).mock(side_effect=deplete_battery)
+    ).mock(side_effect=simulate_ac_charging)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -220,14 +220,16 @@ async def test_charging_ac_power_updates(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    _ = hass.states.async_all()
-
-    value_target = (230, 2)
-    await entry.runtime_data.async_refresh()
-
     state = hass.states.get("sensor.smart_charging_status")
     assert state
     assert state.state == "charging"
+
+    state = hass.states.get("sensor.smart_charging_power")
+    assert state
+    assert state.state == "0.0"
+
+    value_target = (230, 2)
+    await entry.runtime_data.async_refresh()
 
     state = hass.states.get("sensor.smart_charging_power")
     assert state
@@ -260,7 +262,7 @@ async def test_charging_dc_power_updates(
     """
     value_target = 0
 
-    async def deplete_battery(request: Request, route: respx.Route) -> Response:
+    async def simulate_dc_charging(request: Request, route: respx.Route) -> Response:
         response = load_response(RESPONSE_DIR / "vehicle_info.json")
         # pysmarthashtag ChargingState['CHARGING']
         response["data"]["vehicleStatus"]["additionalVehicleStatus"][
@@ -274,7 +276,7 @@ async def test_charging_dc_power_updates(
 
     smart_fixture.get(
         "https://api.ecloudeu.com/remote-control/vehicle/status/TestVIN0000000001?latest=True&target=basic%2Cmore&userId=112233",
-    ).mock(side_effect=deplete_battery)
+    ).mock(side_effect=simulate_dc_charging)
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -290,14 +292,16 @@ async def test_charging_dc_power_updates(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    _ = hass.states.async_all()
-
-    value_target = 100
-    await entry.runtime_data.async_refresh()
-
     state = hass.states.get("sensor.smart_charging_status")
     assert state
     assert state.state == "dc_charging"
+
+    state = hass.states.get("sensor.smart_charging_power")
+    assert state
+    assert state.state == "0.0"
+
+    value_target = 100
+    await entry.runtime_data.async_refresh()
 
     state = hass.states.get("sensor.smart_charging_power")
     assert state
