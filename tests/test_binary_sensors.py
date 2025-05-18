@@ -26,11 +26,11 @@ SENSOR_TESTS = {
     #        "expected_value": "off",
     #    },
     #    "binary_sensor.door_open_status_driver": {
-    #        "device_class": "lock",
+    #        "device_class": "door",
     #        "expected_value": "off",
     #    },
     #    "binary_sensor.door_open_status_driver_rear": {
-    #        "device_class": "lock",
+    #        "device_class": "door",
     #        "expected_value": "off",
     #    },
     #    "binary_sensor.door_open_status_passenger": {
@@ -50,7 +50,7 @@ SENSOR_TESTS = {
     #        "expected_value": "off",
     #    },
     #    "binary_sensor.trunk_lock_status": {
-    #        "device_class": "door",
+    #        "device_class": "lock",
     #        "expected_value": "off",
     #    },
     "binary_sensor.smart_trunk_open_status": {
