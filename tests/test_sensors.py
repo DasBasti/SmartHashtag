@@ -184,6 +184,11 @@ async def test_charging_ac_power_updates(
     Test the charging power calculation function
 
     This loads sample data from pysmarthashtag but changed charging values.
+
+    Tests AC charging with various voltage/current combinations:
+    - Zero power (0V, 0A)
+    - Standard charging (230V, 2A and 3A)
+    - 3-phase high-power charging (400V, 16A)
     """
     value_target = (0, 0)
 
@@ -259,6 +264,9 @@ async def test_charging_dc_power_updates(
     Test the charging power calculation function
 
     This loads sample data from pysmarthashtag but changed charging.
+
+    Tests DC charging with different current values (0A, 100A, 150A)
+    to verify correct power calculation at 417V DC voltage.
     """
     value_target = 0
 
