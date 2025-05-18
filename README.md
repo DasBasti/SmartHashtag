@@ -54,6 +54,8 @@ actions:
         {% if states('sensor.smart_charging_power', rounded=False,
         with_unit=False) | default(0) | float > 0 %}
             -{{ states('sensor.smart_charging_power', rounded=False, with_unit=False) | int / 1000 }}
+        {% else %}
+        0
         {% endif %}
       speed: ""
       lat: "{{ state_attr('device_tracker.smart_none', 'latitude') | default('') }}"
