@@ -7,11 +7,52 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.smarthashtag.const import DOMAIN
 
+# On means open (unlocked), Off means closed (locked)
 SENSOR_TESTS = {
     "binary_sensor.smart_central_locking_status": {
         "device_class": "lock",
-        "expected_value": "on",
+        "expected_value": "off",
     },
+    #    "binary_sensor.door_lock_status_driver": {
+    #        "device_class": "lock",
+    #        "expected_value": "off",
+    #    },
+    #    "binary_sensor.oor_lock_status_driver_rear": {
+    #        "device_class": "lock",
+    #        "expected_value": "off",
+    #    },
+    #    "binary_sensor.door_lock_status_passenger": {
+    #        "device_class": "lock",
+    #        "expected_value": "off",
+    #    },
+    #    "binary_sensor.door_open_status_driver": {
+    #        "device_class": "lock",
+    #        "expected_value": "off",
+    #    },
+    #    "binary_sensor.door_open_status_driver_rear": {
+    #        "device_class": "lock",
+    #        "expected_value": "off",
+    #    },
+    #    "binary_sensor.door_open_status_passenger": {
+    #        "device_class": "door",
+    #        "expected_value": "off",
+    #    },
+    #    "binary_sensor.door_open_status_passenger_rear": {
+    #        "device_class": "door",
+    #        "expected_value": "off",
+    #    },
+    #    "binary_sensor.engine_hood_open_status": {
+    #        "device_class": "door",
+    #        "expected_value": "off",
+    #    },
+    #    "binary_sensor.electric_park_brake_status": {
+    #        "device_class": "door",
+    #        "expected_value": "off",
+    #    },
+    #    "binary_sensor.trunk_lock_status": {
+    #        "device_class": "door",
+    #        "expected_value": "off",
+    #    },
     "binary_sensor.smart_trunk_open_status": {
         "device_class": "door",
         "expected_value": "off",
@@ -50,4 +91,7 @@ async def test_binary_sensors(hass: HomeAssistant, smart_fixture: respx.Router):
             state.attributes["device_class"]
             == SENSOR_TESTS[sensor_name]["device_class"]
         )
-        assert state.state == SENSOR_TESTS[sensor_name]["expected_value"]
+        assert (
+            sensor_name + ":" + state.state
+            == sensor_name + ":" + SENSOR_TESTS[sensor_name]["expected_value"]
+        )

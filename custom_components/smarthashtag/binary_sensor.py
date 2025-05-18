@@ -30,8 +30,7 @@ LOCK_ENTITIES = (
         name="Central locking status",
         icon="mdi:lock",
         device_class=BinarySensorDeviceClass.LOCK,
-        is_on_fn=lambda state, key: state.safety.central_locking_status
-        != 0,  # tested with Smart #1 with locked state
+        is_on_fn=lambda state, key: state.safety.central_locking_status == 0,
     ),
     SmartHashtagBinarySensorEntityDescription(
         key="door_lock_status_driver",
@@ -40,7 +39,7 @@ LOCK_ENTITIES = (
         icon="mdi:lock",
         device_class=BinarySensorDeviceClass.LOCK,
         entity_registry_enabled_default=False,
-        is_on_fn=lambda state, key: state.safety.door_lock_status_driver == 1,
+        is_on_fn=lambda state, key: state.safety.door_lock_status_driver == 0,
     ),
     SmartHashtagBinarySensorEntityDescription(
         key="door_lock_status_driver_rear",
@@ -49,7 +48,7 @@ LOCK_ENTITIES = (
         icon="mdi:lock",
         device_class=BinarySensorDeviceClass.LOCK,
         entity_registry_enabled_default=False,
-        is_on_fn=lambda state, key: state.safety.door_lock_status_driver_rear == 1,
+        is_on_fn=lambda state, key: state.safety.door_lock_status_driver_rear == 0,
     ),
     SmartHashtagBinarySensorEntityDescription(
         key="door_lock_status_passenger",
@@ -58,7 +57,7 @@ LOCK_ENTITIES = (
         icon="mdi:lock",
         device_class=BinarySensorDeviceClass.LOCK,
         entity_registry_enabled_default=False,
-        is_on_fn=lambda state, key: state.safety.door_lock_status_passenger == 1,
+        is_on_fn=lambda state, key: state.safety.door_lock_status_passenger == 0,
     ),
     SmartHashtagBinarySensorEntityDescription(
         key="door_lock_status_passenger_rear",
@@ -67,7 +66,7 @@ LOCK_ENTITIES = (
         icon="mdi:lock",
         device_class=BinarySensorDeviceClass.LOCK,
         entity_registry_enabled_default=False,
-        is_on_fn=lambda state, key: state.safety.door_lock_status_passenger_rear == 1,
+        is_on_fn=lambda state, key: state.safety.door_lock_status_passenger_rear == 0,
     ),
     SmartHashtagBinarySensorEntityDescription(
         key="door_open_status_driver",
@@ -121,7 +120,7 @@ LOCK_ENTITIES = (
         icon="mdi:car-brake-parking",
         device_class=BinarySensorDeviceClass.LOCK,
         entity_registry_enabled_default=False,
-        is_on_fn=lambda state, key: state.safety.electric_park_brake_status == 1,
+        is_on_fn=lambda state, key: state.safety.electric_park_brake_status != 1,
     ),
     SmartHashtagBinarySensorEntityDescription(
         key="trunk_lock_status",
@@ -129,7 +128,7 @@ LOCK_ENTITIES = (
         name="Trunk lock status",
         device_class=BinarySensorDeviceClass.LOCK,
         icon="mdi:lock",
-        is_on_fn=lambda state, key: state.safety.trunk_lock_status == 1,
+        is_on_fn=lambda state, key: state.safety.trunk_lock_status != 1,
     ),
     SmartHashtagBinarySensorEntityDescription(
         key="trunk_open_status",
