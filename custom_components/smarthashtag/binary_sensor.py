@@ -128,7 +128,7 @@ LOCK_ENTITIES = (
         name="Trunk lock status",
         device_class=BinarySensorDeviceClass.LOCK,
         icon="mdi:lock",
-        is_on_fn=lambda state, key: state.safety.trunk_lock_status != 1,
+        is_on_fn=lambda state, key: state.safety.trunk_lock_status == 0,
     ),
     SmartHashtagBinarySensorEntityDescription(
         key="trunk_open_status",
