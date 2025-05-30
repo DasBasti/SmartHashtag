@@ -87,12 +87,6 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         entity_registry_enabled_default=False,
     ),
     SensorEntityDescription(
-        key="is_charger_connected",
-        translation_key="is_charger_connected",
-        name="is charger connected",
-        icon="mdi:power-plug-battery",
-    ),
-    SensorEntityDescription(
         key="charging_voltage",
         translation_key="charging_voltage",
         name="Charging voltage",
