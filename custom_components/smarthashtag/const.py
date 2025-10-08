@@ -9,7 +9,7 @@ LOGGER: Logger = getLogger(__package__)
 NAME = "Smart"
 DOMAIN = "smarthashtag"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.7.3"
+VERSION = "0.7.4"
 
 ATTRIBUTION = "Data provided by http://smart.com/"
 ISSUE_URL = "https://github.com/DasBasti/SmartHashtag/issues"
