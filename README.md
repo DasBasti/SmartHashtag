@@ -100,6 +100,27 @@ rest_command:
       Authorization: "APIKEY {{ api_key }}"
     payload: {"data":[{"token":"{{ token }}",{"tlm":{"utc":{{utc}},"soc":{{soc}},"soh":{{soh}},"power":{{power}},"speed":{{speed}},"lat":{{lat}},"lon":{{lon}},"is_charging":{{is_charging}},"is_dcfc":{{is_dcfc}},"is_parked":{{is_parked}},"elevation":{{elevation}},"ext_temp":{{ext_temp}},"odometer":{{odometer}},"est_battery_range":{{est_battery_range}}}]}
 ```
+## Connect to evcc
+[@andre68723](https://github.com/andre68723) mentioned that evcc also can be connected to HA vehicle integrations: https://github.com/evcc-io/evcc/discussions/22676
+```yaml
+vehicles:
+  - name: smart
+    title: "Smart #1"
+    type: homeassistant
+    uri: http://homeassistant.local:8123
+    token: "eyJ0e..."  # Langzeit-Token
+
+    sensors:
+      soc: sensor.smart_batterie                    # PFLICHT: SoC in %
+      range: sensor.smart_reichweite                # OPTIONAL: Reichweite in km
+      status: sensor.smart_ladezustand              # OPTIONAL: Ladestatus
+      limitSoc: number.smart_ladeziel               # OPTIONAL: Ladelimit in %
+      odometer: sensor.smart_kilometerstand         # OPTIONAL: Kilometerstand in km
+      climater: climate.smart_vorklimatisierung_aktiv # OPTIONAL: Klimaanlage (falls verfügbar)
+      finishTime: sensor.smart_verbleibende_ladezeit  # OPTIONAL: Ladeende-Zeit (falls verfügbar)
+
+    capacity: 62  # Batteriekapazität in kWh
+```
 
 ## Contributions are welcome!
 
