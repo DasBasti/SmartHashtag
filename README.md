@@ -76,7 +76,7 @@ actions:
         {% else %}
             0
         {% endif %}
-      is_parked: "{{ states('sensor.smart_electric_park_brake_status') | default(0) }}"
+      is_parked: "{{ states('binary_sensor.smart_electric_park_brake_status') | default(0) }}"
       ext_temp: >-
         {{ states('sensor.smart_exterior_temperature', rounded=False,
         with_unit=False) | default('') }}
