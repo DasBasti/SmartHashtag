@@ -101,6 +101,30 @@ rest_command:
     payload: {"data":[{"token":"{{ token }}",{"tlm":{"utc":{{utc}},"soc":{{soc}},"soh":{{soh}},"power":{{power}},"speed":{{speed}},"lat":{{lat}},"lon":{{lon}},"is_charging":{{is_charging}},"is_dcfc":{{is_dcfc}},"is_parked":{{is_parked}},"elevation":{{elevation}},"ext_temp":{{ext_temp}},"odometer":{{odometer}},"est_battery_range":{{est_battery_range}}}]}
 ```
 
+## Connect to EVCC
+
+[EVCC](https://github.com/evcc-io/evcc) is an extensible EV Charge Controller and home energy management system.
+```yaml
+vehicles:
+  - name: smart
+    title: "Smart #1"
+    type: homeassistant
+    uri: http://homeassistant.local:8123
+    token: "eyJ0e..."  # HA-Token
+    
+    sensors:
+      soc: sensor.smart_batterie                    # MANDATORY: SoC in %
+      range: sensor.smart_reichweite                # OPTIONAL: Range in km
+      status: sensor.smart_ladezustand              # OPTIONAL: Charging state
+      limitSoc: number.smart_ladeziel               # OPTIONAL: Charging limit in %
+      odometer: sensor.smart_kilometerstand         # OPTIONAL: Odometer in km
+      climater: climate.smart_vorklimatisierung_aktiv # OPTIONAL: Aircon
+      finishTime: sensor.smart_verbleibende_ladezeit  # OPTIONAL: Chraing time remaining
+    
+    capacity: 62  # Capacity of the battery in kWh
+```
+The sensor finishTime should be a point in time, but it seems the time span of the sensor works as well.
+
 ## Contributions are welcome!
 
 We need to add more sensor values from the JSON aquired form the Web API. Please have a look at [pySmartHashtag](https://github.com/DasBasti/pySmartHashtag).
