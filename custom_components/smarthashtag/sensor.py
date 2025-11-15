@@ -62,6 +62,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
             "dc_charging": "DC charging",
             "default": "default",
             "not_charging": "not charging",
+            "error": "Error",
         },
         device_class=SensorDeviceClass.ENUM,
     ),

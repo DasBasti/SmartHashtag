@@ -65,7 +65,8 @@
         "state": {
           "not_charging": "nicht verbunden",
           "complete": "fertig geladen",
-          "charging": "laden"
+          "charging": "laden",
+          "error": "Fehler"
         }
       },
       "charging_status_raw": {
