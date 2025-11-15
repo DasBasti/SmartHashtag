@@ -66,6 +66,8 @@
           "not_charging": "nicht verbunden",
           "complete": "fertig geladen",
           "charging": "laden",
+          "dc_charging": "DC LAden",
+          "default": "Standard",
           "error": "Fehler"
         }
       },
