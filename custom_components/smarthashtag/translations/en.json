@@ -66,6 +66,8 @@
           "not_charging": "not connected",
           "complete": "done charging",
           "charging": "charging",
+          "dc_charging": "DC charging",
+          "default": "Default",
           "error": "Error"
         }
       },
