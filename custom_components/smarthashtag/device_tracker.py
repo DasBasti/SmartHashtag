@@ -9,6 +9,9 @@ from custom_components.smarthashtag.entity import SmartHashtagEntity
 from .const import CONF_VEHICLE, LOGGER
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
+# API returns position in 1/3600000 of a degree (1/10000 arc seconds)
+POSITION_SCALE_FACTOR = 3600000
+
 
 async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     """
@@ -55,6 +58,16 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         self._vehicle = vehicle
         self.name = f"Smart {vehicle}"
 
+    def _get_vehicle_data(self):
+        """Get vehicle data from coordinator.
+
+        Returns:
+            Vehicle object or None if data is not available.
+        """
+        if self.coordinator.data is None:
+            return None
+        return self.coordinator.data.get(self._vehicle)
+
     @property
     def source_type(self):
         """Return device tracker source type."""
@@ -64,12 +77,10 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
     def longitude(self):
         """Return longitude."""
         try:
-            if self.coordinator.data is None:
-                return None
-            vehicle = self.coordinator.data.get(self._vehicle)
+            vehicle = self._get_vehicle_data()
             if vehicle is None:
                 return None
-            return vehicle.position.longitude / 3600000
+            return vehicle.position.longitude / POSITION_SCALE_FACTOR
         except AttributeError as err:
             LOGGER.error("AttributeError getting longitude: %s", err)
             return None
@@ -78,12 +89,10 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
     def latitude(self):
         """Return latitude."""
         try:
-            if self.coordinator.data is None:
-                return None
-            vehicle = self.coordinator.data.get(self._vehicle)
+            vehicle = self._get_vehicle_data()
             if vehicle is None:
                 return None
-            return vehicle.position.latitude / 3600000
+            return vehicle.position.latitude / POSITION_SCALE_FACTOR
         except AttributeError as err:
             LOGGER.error("AttributeError getting latitude: %s", err)
             return None
@@ -94,11 +103,10 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         altitude = None
         position_can_be_trusted = None
         try:
-            if self.coordinator.data is not None:
-                vehicle = self.coordinator.data.get(self._vehicle)
-                if vehicle is not None:
-                    altitude = vehicle.position.altitude
-                    position_can_be_trusted = vehicle.position.position_can_be_trusted
+            vehicle = self._get_vehicle_data()
+            if vehicle is not None:
+                altitude = vehicle.position.altitude
+                position_can_be_trusted = vehicle.position.position_can_be_trusted
         except AttributeError as err:
             LOGGER.error("AttributeError getting extra_state_attributes: %s", err)
         return {
@@ -118,9 +126,7 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         Percentage from 0-100.
         """
         try:
-            if self.coordinator.data is None:
-                return None
-            vehicle = self.coordinator.data.get(self._vehicle)
+            vehicle = self._get_vehicle_data()
             if vehicle is None:
                 return None
             return vehicle.battery.remaining_battery_percent.value

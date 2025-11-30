@@ -8,6 +8,7 @@ from pysmarthashtag.tests import RESPONSE_DIR, load_response
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.smarthashtag.const import DOMAIN
+from custom_components.smarthashtag.device_tracker import POSITION_SCALE_FACTOR
 
 
 def get_device_tracker_entity_id(hass: HomeAssistant) -> str | None:
@@ -49,12 +50,16 @@ async def test_device_tracker_uses_coordinator_data(
     state = hass.states.get(entity_id)
 
     assert state
-    # Position values from test fixture divided by 3600000
+    # Position values from test fixture divided by POSITION_SCALE_FACTOR
     # latitude: 123456789 / 3600000 = 34.293552
     # longitude: 987654321 / 3600000 = 274.348422
-    assert float(state.attributes.get("latitude")) == pytest.approx(34.293552, rel=1e-5)
+    expected_lat = 123456789 / POSITION_SCALE_FACTOR
+    expected_lon = 987654321 / POSITION_SCALE_FACTOR
+    assert float(state.attributes.get("latitude")) == pytest.approx(
+        expected_lat, rel=1e-5
+    )
     assert float(state.attributes.get("longitude")) == pytest.approx(
-        274.348422, rel=1e-5
+        expected_lon, rel=1e-5
     )
     # Altitude is a ValueWithUnit object
     altitude = state.attributes.get("altitude")
@@ -112,9 +117,11 @@ async def test_device_tracker_updates_with_coordinator(
     initial_lat = float(state.attributes.get("latitude"))
     initial_lon = float(state.attributes.get("longitude"))
 
-    # Update position values
-    position_values["latitude"] = "180000000"  # 50.0 degrees
-    position_values["longitude"] = "360000000"  # 100.0 degrees
+    # Update position values (using raw API values that will be converted)
+    # 50.0 degrees = 180000000 / POSITION_SCALE_FACTOR
+    # 100.0 degrees = 360000000 / POSITION_SCALE_FACTOR
+    position_values["latitude"] = str(50 * POSITION_SCALE_FACTOR)
+    position_values["longitude"] = str(100 * POSITION_SCALE_FACTOR)
 
     # Refresh coordinator to get new data
     await entry.runtime_data.async_refresh()
