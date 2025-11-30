@@ -11,6 +11,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
+from homeassistant.const import EntityCategory
 from pysmarthashtag.models import ValueWithUnit
 
 from .const import (
@@ -855,12 +856,16 @@ ENTITY_CLIMATE_DESCRIPTIONS = (
 )
 
 ENTITY_SAFETY_DESCRIPTIONS = (
+    # NOTE: Seatbelt sensors may not report accurate values on Smart #3 vehicles.
+    # The Smart API does not reliably update seatbelt status data.
+    # See: https://github.com/DasBasti/SmartHashtag/issues/287
     SensorEntityDescription(
         key="seat_belt_status_driver",
         translation_key="seat_belt_status_driver",
         name="Seat belt status driver",
         icon="mdi:seatbelt",
         entity_registry_enabled_default=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     SensorEntityDescription(
         key="seat_belt_status_driver_rear",
@@ -868,6 +873,7 @@ ENTITY_SAFETY_DESCRIPTIONS = (
         name="Seat belt status driver rear",
         icon="mdi:seatbelt",
         entity_registry_enabled_default=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     SensorEntityDescription(
         key="seat_belt_status_mid_rear",
@@ -875,6 +881,7 @@ ENTITY_SAFETY_DESCRIPTIONS = (
         name="Seat belt status mid rear",
         icon="mdi:seatbelt",
         entity_registry_enabled_default=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     SensorEntityDescription(
         key="seat_belt_status_passenger",
@@ -882,6 +889,7 @@ ENTITY_SAFETY_DESCRIPTIONS = (
         name="Seat belt status passenger",
         icon="mdi:seatbelt",
         entity_registry_enabled_default=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     SensorEntityDescription(
         key="seat_belt_status_passenger_rear",
@@ -889,6 +897,7 @@ ENTITY_SAFETY_DESCRIPTIONS = (
         name="Seat belt status passenger rear",
         icon="mdi:seatbelt",
         entity_registry_enabled_default=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     SensorEntityDescription(
         key="seat_belt_status_th_driver_rear",
@@ -896,6 +905,7 @@ ENTITY_SAFETY_DESCRIPTIONS = (
         name="Seat belt status th driver rear",
         icon="mdi:seatbelt",
         entity_registry_enabled_default=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     SensorEntityDescription(
         key="seat_belt_status_th_passenger_rear",
@@ -903,6 +913,7 @@ ENTITY_SAFETY_DESCRIPTIONS = (
         name="Seat belt status th passenger rear",
         icon="mdi:seatbelt",
         entity_registry_enabled_default=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     SensorEntityDescription(
         key="srs_crash_status",
