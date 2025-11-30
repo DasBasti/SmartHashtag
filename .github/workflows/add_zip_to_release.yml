@@ -70,12 +70,15 @@ jobs:
           git add custom_components/smarthashtag/const.py custom_components/smarthashtag/manifest.json
           git commit -m "chore: update version to ${{ steps.get_version.outputs.VERSION }}"
 
-          # Delete the old tag and create a new one pointing to the new commit
-          git tag -d "$GITHUB_REF_NAME"
+          # Delete the old tag locally (it exists since we checked out the tag)
+          # and create a new one pointing to the new commit with version updates
+          if git tag -l | grep -q "^$GITHUB_REF_NAME$"; then
+            git tag -d "$GITHUB_REF_NAME"
+          fi
           git tag "$GITHUB_REF_NAME"
 
-          # Push the commit to main and force-push the updated tag
-          git push origin HEAD:main
+          # Push the commit to main branch and force-push the updated tag
+          git push origin HEAD:refs/heads/main
           git push origin "$GITHUB_REF_NAME" --force
 
       - name: Create ZIP file
