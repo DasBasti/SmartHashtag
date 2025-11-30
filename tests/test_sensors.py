@@ -345,7 +345,6 @@ async def test_charging_power_retains_value_during_charging(
     async def simulate_intermittent_charging(
         request: Request, route: respx.Route
     ) -> Response:
-        nonlocal value_target, return_zero
         response = load_response(RESPONSE_DIR / "vehicle_info.json")
         # pysmarthashtag ChargingState['CHARGING']
         response["data"]["vehicleStatus"]["additionalVehicleStatus"][
