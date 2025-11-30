@@ -118,7 +118,7 @@ class SmartPreHeatedLocation(SelectEntity):
             self.coordinator.config_entry
             and "selects" in self.coordinator.config_entry.data
         ):
-            level = self.coordinator.config_entry.data["selects"].get(location, 0)
+            level = self.coordinator.config_entry.data["selects"].get(location.value, 0)
             return level
         else:
             LOGGER.debug("No heating level found for %s", location)
@@ -134,7 +134,7 @@ class SmartPreHeatedLocation(SelectEntity):
         new_data = self.coordinator.config_entry.data.copy()
         if "selects" not in new_data:
             new_data["selects"] = {}
-        new_data["selects"][self._location] = level
+        new_data["selects"][self._location.value] = level
         self.hass.config_entries.async_update_entry(
             self.coordinator.config_entry, data=new_data
         )
