@@ -115,7 +115,6 @@ async def test_binary_sensor_updates(hass: HomeAssistant, smart_fixture: respx.R
     central_locking_value = "2"  # Initial locked state
 
     async def toggle_central_locking(request: Request, route: respx.Route) -> Response:
-        nonlocal central_locking_value
         response = load_response(RESPONSE_DIR / "vehicle_info.json")
         response["data"]["vehicleStatus"]["additionalVehicleStatus"][
             "drivingSafetyStatus"
