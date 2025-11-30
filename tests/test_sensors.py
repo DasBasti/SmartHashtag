@@ -321,3 +321,110 @@ async def test_charging_dc_power_updates(
     state = hass.states.get("sensor.smart_charging_power")
     assert state
     assert state.state == "62550"
+
+
+@pytest.mark.asyncio()
+async def test_charging_power_retains_value_during_charging(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test that charging power retains last valid value when API returns 0 during active charging.
+
+    This test simulates the scenario where:
+    1. Car starts charging with 0W (as per initial API response)
+    2. Then receives valid power reading (460W)
+    3. API temporarily returns 0W while charging status is still "CHARGING"
+    4. The sensor should retain the last valid value (460W) instead of jumping to 0W
+
+    This addresses issue #292: Charging power sometimes stays at 0W during charging.
+    """
+    # Start with 0 values (default), then switch to valid values, then back to 0
+    value_target = (0, 0)
+    return_zero = False
+
+    async def simulate_intermittent_charging(
+        request: Request, route: respx.Route
+    ) -> Response:
+        nonlocal value_target, return_zero
+        response = load_response(RESPONSE_DIR / "vehicle_info.json")
+        # pysmarthashtag ChargingState['CHARGING']
+        response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+            "electricVehicleStatus"
+        ]["chargerState"] = "2"
+
+        if return_zero:
+            # Simulate API returning 0 values while still charging
+            response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+                "electricVehicleStatus"
+            ]["chargeUAct"] = "0.0"
+            response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+                "electricVehicleStatus"
+            ]["chargeIAct"] = "0.0"
+        else:
+            response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+                "electricVehicleStatus"
+            ]["chargeUAct"] = str(float(value_target[0]))
+            response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+                "electricVehicleStatus"
+            ]["chargeIAct"] = str(float(value_target[1]))
+
+        return Response(200, json=response)
+
+    smart_fixture.get(
+        "https://api.ecloudeu.com/remote-control/vehicle/status/TestVIN0000000001?latest=True&target=basic%2Cmore&userId=112233",
+    ).mock(side_effect=simulate_intermittent_charging)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Verify initial charging state (starting with 0W)
+    state = hass.states.get("sensor.smart_charging_status")
+    assert state
+    assert state.state == "charging"
+
+    state = hass.states.get("sensor.smart_charging_power")
+    assert state
+    assert state.state == "0.0"
+
+    # Now set valid charging power
+    value_target = (230, 2)  # 460W
+    await entry.runtime_data.async_refresh()
+
+    state = hass.states.get("sensor.smart_charging_power")
+    assert state
+    assert state.state == "460.0"
+
+    # Now simulate API returning 0 while still in charging state
+    return_zero = True
+    await entry.runtime_data.async_refresh()
+
+    # Charging status should still be charging
+    state = hass.states.get("sensor.smart_charging_status")
+    assert state
+    assert state.state == "charging"
+
+    # Charging power should retain the last valid value (460W) instead of jumping to 0
+    state = hass.states.get("sensor.smart_charging_power")
+    assert state
+    assert state.state == "460.0"
+
+    # Restore valid values to verify sensor can update again
+    return_zero = False
+    value_target = (230, 3)  # 690W
+    await entry.runtime_data.async_refresh()
+
+    # Should now show the new valid value
+    state = hass.states.get("sensor.smart_charging_power")
+    assert state
+    assert state.state == "690.0"
