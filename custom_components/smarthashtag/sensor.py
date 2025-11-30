@@ -1040,15 +1040,17 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+        self._last_valid_value = None
 
     @property
     def native_value(self) -> int:
         """Return the native value of the sensor."""
         try:
+            vehicle = self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            )
             data = getattr(
-                self.coordinator.account.vehicles.get(
-                    vin_from_key(self.entity_description.key)
-                ).battery,
+                vehicle.battery,
                 remove_vin_from_key(self.entity_description.key),
             )
 
@@ -1071,6 +1073,15 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             if "charging_power" in self.entity_description.key:
                 if data.value == -0.0:
                     return 0.0
+                # When charging is active but power reads as 0, retain last valid value
+                charging_status = vehicle.battery.charging_status
+                is_charging = charging_status in ("CHARGING", "DC_CHARGING")
+                if is_charging and (data.value is None or data.value == 0):
+                    if self._last_valid_value is not None:
+                        return self._last_valid_value
+                # Store valid non-zero values for future use
+                if data.value is not None and data.value != 0:
+                    self._last_valid_value = data.value
 
             if "charging_status" in self.entity_description.key:
                 if isinstance(data, str):
@@ -1092,7 +1103,7 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return self._last_value
+            return self._last_valid_value
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -1125,6 +1136,7 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+        self._last_valid_value = None
 
     @property
     def native_value(self) -> float:
@@ -1143,7 +1155,7 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return self._last_value
+            return self._last_valid_value
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -1176,6 +1188,7 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+        self._last_valid_value = None
 
     @property
     def native_value(self) -> float:
@@ -1218,7 +1231,7 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return self._last_value
+            return self._last_valid_value
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -1300,6 +1313,7 @@ class SmartHashtagRunningSensor(SmartHashtagEntity, SensorEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+        self._last_valid_value = None
 
     @property
     def native_value(self) -> float | int | str | None:
@@ -1319,7 +1333,7 @@ class SmartHashtagRunningSensor(SmartHashtagEntity, SensorEntity):
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return self._last_value
+            return self._last_valid_value
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -1347,6 +1361,7 @@ class SmartHashtagClimateSensor(SmartHashtagEntity, SensorEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+        self._last_valid_value = None
 
     @property
     def native_value(self) -> float | int | str | None:
@@ -1366,7 +1381,7 @@ class SmartHashtagClimateSensor(SmartHashtagEntity, SensorEntity):
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return self._last_value
+            return self._last_valid_value
 
     @property
     def native_unit_of_measurement(self) -> str:
@@ -1394,6 +1409,7 @@ class SmartHashtagSafetySensor(SmartHashtagEntity, SensorEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+        self._last_valid_value = None
 
     @property
     def native_value(self) -> float | int | str | None:
@@ -1413,7 +1429,7 @@ class SmartHashtagSafetySensor(SmartHashtagEntity, SensorEntity):
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return self._last_value
+            return self._last_valid_value
 
     @property
     def native_unit_of_measurement(self) -> str:
