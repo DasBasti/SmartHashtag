@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Extract version from tag
         id: get_version
@@ -58,6 +60,23 @@ jobs:
             exit 1
           fi
           echo "manifest.json version: $MANIFEST_VERSION ✓"
+
+      - name: Commit version updates and move tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Commit the version changes
+          git add custom_components/smarthashtag/const.py custom_components/smarthashtag/manifest.json
+          git commit -m "chore: update version to ${{ steps.get_version.outputs.VERSION }}"
+
+          # Delete the old tag and create a new one pointing to the new commit
+          git tag -d "$GITHUB_REF_NAME"
+          git tag "$GITHUB_REF_NAME"
+
+          # Push the commit to main and force-push the updated tag
+          git push origin HEAD:main
+          git push origin "$GITHUB_REF_NAME" --force
 
       - name: Create ZIP file
         run: |
