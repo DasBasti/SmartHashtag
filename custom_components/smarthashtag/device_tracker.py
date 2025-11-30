@@ -77,11 +77,13 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
     @property
     def extra_state_attributes(self):
         """Return device state attributes."""
+        vehicle = self.coordinator.account.vehicles.get(self._vehicle)
+        position_can_be_trusted = None
+        if vehicle is not None:
+            position_can_be_trusted = vehicle.position.position_can_be_trusted
         return {
             "altitude": self._altitude,
-            "position_can_be_trusted": self.coordinator.account.vehicles.get(
-                self._vehicle
-            ).position.position_can_be_trusted,
+            "position_can_be_trusted": position_can_be_trusted,
         }
 
     @property
@@ -100,19 +102,14 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._longitude = (
-            self.coordinator.account.vehicles.get(self._vehicle).position.longitude
-            / 3600000
-        )
-        self._latitude = (
-            self.coordinator.account.vehicles.get(self._vehicle).position.latitude
-            / 3600000
-        )
-        self._altitude = self.coordinator.account.vehicles.get(
-            self._vehicle
-        ).position.altitude
-        self._battery_level = self.coordinator.account.vehicles.get(
-            self._vehicle
-        ).battery.remaining_battery_percent.value
+        vehicle = self.coordinator.account.vehicles.get(self._vehicle)
+        if vehicle is None:
+            self.async_write_ha_state()
+            return
+
+        self._longitude = vehicle.position.longitude / 3600000
+        self._latitude = vehicle.position.latitude / 3600000
+        self._altitude = vehicle.position.altitude
+        self._battery_level = vehicle.battery.remaining_battery_percent.value
 
         self.async_write_ha_state()
