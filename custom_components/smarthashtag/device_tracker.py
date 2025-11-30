@@ -2,11 +2,11 @@
 
 from homeassistant.components.device_tracker import SourceType
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 
 from custom_components.smarthashtag.entity import SmartHashtagEntity
 
-from .const import CONF_VEHICLE
+from .const import CONF_VEHICLE, LOGGER
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
 
@@ -42,10 +42,6 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
 
     type = "location tracker"
     _attr_has_entity_name = True
-    _longitude: None | float = None
-    _latitude: None | float = None
-    _altitude: None | float = None
-    _battery_level: int | float | None = False
 
     def __init__(
         self,
@@ -67,22 +63,46 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
     @property
     def longitude(self):
         """Return longitude."""
-        return self._longitude
+        try:
+            if self.coordinator.data is None:
+                return None
+            vehicle = self.coordinator.data.get(self._vehicle)
+            if vehicle is None:
+                return None
+            return vehicle.position.longitude / 3600000
+        except AttributeError as err:
+            LOGGER.error("AttributeError getting longitude: %s", err)
+            return None
 
     @property
     def latitude(self):
         """Return latitude."""
-        return self._latitude
+        try:
+            if self.coordinator.data is None:
+                return None
+            vehicle = self.coordinator.data.get(self._vehicle)
+            if vehicle is None:
+                return None
+            return vehicle.position.latitude / 3600000
+        except AttributeError as err:
+            LOGGER.error("AttributeError getting latitude: %s", err)
+            return None
 
     @property
     def extra_state_attributes(self):
         """Return device state attributes."""
-        vehicle = self.coordinator.account.vehicles.get(self._vehicle)
+        altitude = None
         position_can_be_trusted = None
-        if vehicle is not None:
-            position_can_be_trusted = vehicle.position.position_can_be_trusted
+        try:
+            if self.coordinator.data is not None:
+                vehicle = self.coordinator.data.get(self._vehicle)
+                if vehicle is not None:
+                    altitude = vehicle.position.altitude
+                    position_can_be_trusted = vehicle.position.position_can_be_trusted
+        except AttributeError as err:
+            LOGGER.error("AttributeError getting extra_state_attributes: %s", err)
         return {
-            "altitude": self._altitude,
+            "altitude": altitude,
             "position_can_be_trusted": position_can_be_trusted,
         }
 
@@ -97,20 +117,13 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
 
         Percentage from 0-100.
         """
-        return self._battery_level
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        vehicle = self.coordinator.account.vehicles.get(self._vehicle)
-        if vehicle is None:
-            # Vehicle data not available, preserve last known position data
-            self.async_write_ha_state()
-            return
-
-        self._longitude = vehicle.position.longitude / 3600000
-        self._latitude = vehicle.position.latitude / 3600000
-        self._altitude = vehicle.position.altitude
-        self._battery_level = vehicle.battery.remaining_battery_percent.value
-
-        self.async_write_ha_state()
+        try:
+            if self.coordinator.data is None:
+                return None
+            vehicle = self.coordinator.data.get(self._vehicle)
+            if vehicle is None:
+                return None
+            return vehicle.battery.remaining_battery_percent.value
+        except AttributeError as err:
+            LOGGER.error("AttributeError getting battery_level: %s", err)
+            return None
