@@ -1071,17 +1071,18 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
                     self.coordinator.reset_update_interval("charging")
 
             if "charging_power" in self.entity_description.key:
-                if data.value == -0.0:
-                    return 0.0
+                # Store valid non-zero values for future use
+                if data.value is not None and data.value != 0:
+                    self._last_valid_value = data.value
                 # When charging is active but power reads as 0, retain last valid value
                 charging_status = vehicle.battery.charging_status
                 is_charging = charging_status in ("CHARGING", "DC_CHARGING")
                 if is_charging and (data.value is None or data.value == 0):
                     if self._last_valid_value is not None:
                         return self._last_valid_value
-                # Store valid non-zero values for future use
-                if data.value is not None and data.value != 0:
-                    self._last_valid_value = data.value
+                # Handle -0.0 case (return 0.0 only if not charging or no previous value)
+                if data.value == -0.0:
+                    return 0.0
 
             if "charging_status" in self.entity_description.key:
                 if isinstance(data, str):
