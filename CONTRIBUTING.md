@@ -44,11 +44,15 @@ People _love_ thorough bug reports. I'm not even kidding.
 
 ## Use a Consistent Coding Style
 
-Use [black](https://github.com/ambv/black) and [prettier](https://prettier.io/)
+Use [ruff](https://github.com/astral-sh/ruff), [black](https://github.com/ambv/black) and [prettier](https://prettier.io/)
 to make sure the code follows the style.
 
+**Recommended:** Run `pre-commit run --all-files` before submitting your PR to ensure
+your code passes all linting checks. This runs both ruff and flake8 to catch all
+potential issues that CI will check.
+
 Or use the `pre-commit` settings implemented in this repository
-(see deicated section below).
+(see dedicated section below).
 
 ## Test your code modification
 
@@ -61,7 +65,7 @@ Home Assistant instance running and already configured with the included
 file.
 
 You can use the `pre-commit` settings implemented in this repository to have
-linting tool checking your contributions (see deicated section below).
+linting tool checking your contributions (see dedicated section below).
 
 You should also verify that existing [tests](./tests) are still working
 and you are encouraged to add new ones.
@@ -79,12 +83,11 @@ pytest --durations=10 --cov-report term-missing --cov=smarthashtag.tests
 
 If any of the tests fail, make the necessary changes to the tests as part of
 your changes to the integration.
-{%- endif %}
 
 ## Pre-commit
 
 You can use the [pre-commit](https://pre-commit.com/) settings included in the
-repostory to have code style and linting checks.
+repository to have code style and linting checks.
 
 With `pre-commit` tool already installed,
 activate the settings of the repository:
@@ -95,11 +98,15 @@ $ pre-commit install
 
 Now the pre-commit tests will be done every time you commit.
 
-You can run the tests on all repository file with the command:
+**Important:** Before submitting a pull request, run the linting checks on all files:
 
 ```console
 $ pre-commit run --all-files
 ```
+
+This ensures your code passes all checks that CI will run, including both ruff and
+flake8 linting. Running only individual tools like `ruff check` locally may miss
+some errors that CI catches.
 
 ## License
 

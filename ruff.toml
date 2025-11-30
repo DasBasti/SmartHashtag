@@ -2,16 +2,19 @@
 target-version = "py312"
 
 [lint]
-# F - Enable Pyflakes and
-# E - subset of the pycodestyle codes by default.
-# W - Unlike Flake8, Ruff doesn't enable pycodestyle warnings or
-# C901 - McCabe complexity by default.
-# T100 - Check for debugging code
+# F - Enable Pyflakes
+# E - subset of the pycodestyle error codes
+# W - pycodestyle warnings (now enabled to match flake8)
+# T10 - Check for debugging code (flake8-debugger)
 # PT - Checking common pytest styles
 # I - for import sorting
 # B - for flake8-bugbear checks that catch bug-prone patterns
-select = ["E4", "E7", "E9", "F", "T100", "PT", "I", "B"]
-ignore = ["PT023"]
+# PLW0602 - global-variable-not-assigned (similar to flake8's F824)
+# Note: C901 (McCabe complexity) is not enabled as flake8 also doesn't enable it by default
+select = ["E4", "E7", "E9", "F", "W", "T10", "PT", "I", "B", "PLW0602"]
+ignore = [
+    "PT023",  # use `@pytest.mark.` without parentheses
+]
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
