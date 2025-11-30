@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 import async_timeout
+import httpx
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
@@ -73,11 +74,11 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         This coroutine retrieves the latest vehicle data by calling the account's
         asynchronous get_vehicles method. Authentication and remote service issues are
         handled by raising appropriate exceptions, while any API errors are logged and
-        result in a None return value.
+        return the last known data to keep entities available.
 
         Returns:
-            Any: The vehicle data as returned by self.account.get_vehicles(), or None if a
-                 SmartAPIError is encountered.
+            Any: The vehicle data as returned by self.account.get_vehicles(), or the
+                 last known data if a SmartAPIError or HTTP error is encountered.
 
         Raises:
             ConfigEntryAuthFailed: If a SmartAuthError is caught, indicating an authentication failure.
@@ -91,8 +92,9 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             raise ConfigEntryAuthFailed(exception) from exception
         except SmartRemoteServiceError as exception:
             raise UpdateFailed(exception) from exception
-        except SmartAPIError as exception:
+        except (SmartAPIError, httpx.HTTPStatusError) as exception:
             LOGGER.info(f"API access failed with: {exception}")
+            return self.data
         except Exception as exception:
             raise UpdateFailed(exception) from exception
 
