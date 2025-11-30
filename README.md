@@ -127,6 +127,10 @@ vehicles:
 
 The sensor finishTime should be a point in time, but it seems the time span of the sensor works as well.
 
+## AI-Assisted Development
+
+This project uses AI tools to assist with development, including GitHub Copilot for code suggestions and commit message generation.
+
 ## Contributions are welcome!
 
 We need to add more sensor values from the JSON aquired form the Web API. Please have a look at [pySmartHashtag](https://github.com/DasBasti/pySmartHashtag).
