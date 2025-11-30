@@ -6,7 +6,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from propcache import cached_property
 
 from .const import (
     CONF_VEHICLE,
@@ -154,7 +153,7 @@ class SmartHashtagLockBinarySensor(SmartHashtagEntity, BinarySensorEntity):
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
 
-    @cached_property
+    @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
         key = remove_vin_from_key(self.entity_description.key)
