@@ -104,6 +104,7 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
         """Handle updated data from the coordinator."""
         vehicle = self.coordinator.account.vehicles.get(self._vehicle)
         if vehicle is None:
+            # Vehicle data not available, preserve last known position data
             self.async_write_ha_state()
             return
 

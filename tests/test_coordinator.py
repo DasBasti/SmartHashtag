@@ -30,11 +30,10 @@ async def test_coordinator_returns_last_data_on_api_error(
             return Response(200, json=load_response(RESPONSE_DIR / "vehicle_info.json"))
         else:
             # Third call returns API error (simulating maintenance)
-            # The pysmarthashtag client uses string comparison for error codes
             return Response(
-                200,  # Still 200 OK, but with error code in JSON body
+                200,  # HTTP 200 but with error code in JSON body
                 json={
-                    "code": "1509",  # String to match pysmarthashtag client code checks
+                    "code": "1509",
                     "message": "Service maintenance, try again later.",
                 },
             )

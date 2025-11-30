@@ -94,6 +94,8 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(exception) from exception
         except (SmartAPIError, httpx.HTTPStatusError) as exception:
             LOGGER.info(f"API access failed with: {exception}")
+            # Return last known data to keep entities available
+            # If self.data is None (first run failed), entities will be unavailable
             return self.data
         except Exception as exception:
             raise UpdateFailed(exception) from exception
