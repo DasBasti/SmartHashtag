@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import KeysView
+from typing import Any, KeysView
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -14,26 +14,35 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
+from pysmarthashtag import EndpointUrls, SmartRegion, get_endpoint_urls_for_region
 from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.models import (
     SmartAPIError,
 )
 
 from .const import (
+    CONF_API_BASE_URL,
+    CONF_API_BASE_URL_V2,
     CONF_CHARGING_INTERVAL,
     CONF_CONDITIONING_TEMP,
     CONF_DRIVING_INTERVAL,
+    CONF_REGION,
     CONF_VEHICLE,
     CONF_VEHICLES,
     DEFAULT_CHARGING_INTERVAL,
     DEFAULT_CONDITIONING_TEMP,
     DEFAULT_DRIVING_INTERVAL,
     DEFAULT_NAME,
+    DEFAULT_REGION,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     LOGGER,
     MIN_SCAN_INTERVAL,
     NAME,
+    REGION_CUSTOM,
+    REGION_EU,
+    REGION_INTL,
+    REGIONS,
 )
 
 
@@ -42,6 +51,10 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        self.init_info: dict[str, Any] = {}
+
     async def async_step_user(
         self,
         user_input: dict | None = None,
@@ -49,10 +62,16 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         _errors = {}
         if user_input is not None:
+            # Check if custom endpoints are selected and redirect to custom step
+            if user_input.get(CONF_REGION) == REGION_CUSTOM:
+                self.init_info = user_input
+                return await self.async_step_custom_endpoints()
+
             try:
                 vehicles = await self._test_credentials(
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
+                    region=user_input.get(CONF_REGION, DEFAULT_REGION),
                 )
             except SmartAPIError as exception:
                 LOGGER.warning(exception)
@@ -83,6 +102,18 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                             autocomplete="current-password",
                         ),
                     ),
+                    vol.Optional(
+                        CONF_REGION,
+                        default=(user_input or {}).get(CONF_REGION, DEFAULT_REGION),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                selector.SelectOptionDict(value=k, label=v)
+                                for k, v in REGIONS.items()
+                            ],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        ),
+                    ),
                 }
             ),
             errors=_errors,
@@ -109,11 +140,91 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             ),
         )
 
-    async def _test_credentials(self, username: str, password: str) -> KeysView[str]:
+    async def async_step_custom_endpoints(
+        self,
+        user_input: dict | None = None,
+    ) -> config_entries.FlowResult:
+        """Handle custom endpoints configuration."""
+        _errors = {}
+        if user_input is not None:
+            # Validate that at least one URL is provided
+            api_base_url = user_input.get(CONF_API_BASE_URL)
+            api_base_url_v2 = user_input.get(CONF_API_BASE_URL_V2)
+
+            if not api_base_url and not api_base_url_v2:
+                _errors["base"] = "custom_endpoints_required"
+            else:
+                try:
+                    vehicles = await self._test_credentials(
+                        username=self.init_info[CONF_USERNAME],
+                        password=self.init_info[CONF_PASSWORD],
+                        custom_api_base_url=api_base_url,
+                        custom_api_base_url_v2=api_base_url_v2,
+                    )
+                except SmartAPIError as exception:
+                    LOGGER.warning(exception)
+                    _errors["base"] = "auth"
+                else:
+                    # Merge custom endpoint info with init_info
+                    self.init_info[CONF_API_BASE_URL] = api_base_url
+                    self.init_info[CONF_API_BASE_URL_V2] = api_base_url_v2
+                    self.init_info[CONF_VEHICLES] = list(vehicles)
+                    return await self.async_step_vehicle()
+
+        return self.async_show_form(
+            step_id="custom_endpoints",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_API_BASE_URL,
+                        default=(user_input or {}).get(CONF_API_BASE_URL, ""),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.URL,
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_API_BASE_URL_V2,
+                        default=(user_input or {}).get(CONF_API_BASE_URL_V2, ""),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.URL,
+                        ),
+                    ),
+                }
+            ),
+            errors=_errors,
+        )
+
+    async def _test_credentials(
+        self,
+        username: str,
+        password: str,
+        region: str | None = None,
+        custom_api_base_url: str | None = None,
+        custom_api_base_url_v2: str | None = None,
+    ) -> KeysView[str]:
         """Validate credentials."""
+        endpoint_urls = None
+
+        # Determine which endpoint URLs to use
+        if custom_api_base_url or custom_api_base_url_v2:
+            # Custom endpoints
+            endpoint_urls = EndpointUrls(
+                api_base_url=custom_api_base_url or None,
+                api_base_url_v2=custom_api_base_url_v2 or None,
+            )
+        elif region and region != REGION_CUSTOM:
+            # Predefined region
+            if region == REGION_EU:
+                endpoint_urls = get_endpoint_urls_for_region(SmartRegion.EU)
+            elif region == REGION_INTL:
+                endpoint_urls = get_endpoint_urls_for_region(SmartRegion.INTL)
+
         client = SmartAccount(
             username=username,
             password=password,
+            endpoint_urls=endpoint_urls,
         )
         await client.login()
         await client.get_vehicles()

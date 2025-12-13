@@ -427,3 +427,198 @@ async def test_charging_power_retains_value_during_charging(
     state = hass.states.get("sensor.smart_charging_power")
     assert state
     assert state.state == "690.0"
+
+
+@pytest.mark.asyncio()
+async def test_sensor_climate_values(hass: HomeAssistant, smart_fixture: respx.Router):
+    """
+    Test the climate sensors.
+
+    This loads sample data and verifies climate sensor values.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Check interior temperature sensor
+    state = hass.states.get("sensor.smart_interior_temperature")
+    assert state
+    assert state.state is not None
+    assert state.attributes.get("device_class") == "temperature"
+
+    # Check exterior temperature sensor
+    state = hass.states.get("sensor.smart_exterior_temperature")
+    assert state
+    assert state.state is not None
+
+    # Check pre climate active sensor
+    state = hass.states.get("sensor.smart_pre_climate_active")
+    assert state
+
+
+@pytest.mark.asyncio()
+async def test_sensor_running_values(hass: HomeAssistant, smart_fixture: respx.Router):
+    """
+    Test the running sensors.
+
+    This loads sample data and verifies running sensor values.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Check average speed sensor
+    state = hass.states.get("sensor.smart_average_speed")
+    assert state
+    assert state.state is not None
+
+    # Check trip meter sensors
+    state = hass.states.get("sensor.smart_trip_meter_1")
+    assert state
+    assert state.state is not None
+
+    state = hass.states.get("sensor.smart_trip_meter_2")
+    assert state
+    assert state.state is not None
+
+
+@pytest.mark.asyncio()
+async def test_sensor_maintenance_values(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test the maintenance sensors.
+
+    This loads sample data and verifies maintenance sensor values.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Check maintenance sensors
+    state = hass.states.get("sensor.smart_washer_fluid_level")
+    assert state
+
+    # Note: The entity key "break_fluid_level" is intentionally misspelled as "break"
+    # (should be "brake") in the integration for backward compatibility. This test uses
+    # the same key as defined in the integration to ensure correct behavior.
+    state = hass.states.get("sensor.smart_break_fluid_level")
+    assert state
+
+
+@pytest.mark.asyncio()
+async def test_sensor_motor_values(hass: HomeAssistant, smart_fixture: respx.Router):
+    """
+    Test the motor/engine sensors.
+
+    This loads sample data and verifies motor sensor values.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Check motor/engine state sensor
+    state = hass.states.get("sensor.smart_motor")
+    assert state
+    assert state.state in ["engine_off", "engine_running", "unknown"]
+
+
+@pytest.mark.asyncio()
+async def test_sensor_12v_battery(hass: HomeAssistant, smart_fixture: respx.Router):
+    """
+    Test the 12V battery sensor.
+
+    This loads sample data and verifies 12V battery sensor values.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Check 12V battery sensor
+    state = hass.states.get("sensor.smart_12v_battery_voltage")
+    assert state
+    assert float(state.state) > 0
+    assert state.attributes.get("device_class") == "voltage"
+
+
+@pytest.mark.asyncio()
+async def test_sensor_remaining_range(hass: HomeAssistant, smart_fixture: respx.Router):
+    """
+    Test the remaining range sensors.
+
+    This loads sample data and verifies remaining range sensor values.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Check remaining range sensor
+    state = hass.states.get("sensor.smart_range")
+    assert state
+    assert state.attributes.get("device_class") == "distance"
+
+    # Check remaining battery percent
+    state = hass.states.get("sensor.smart_battery")
+    assert state
+    assert int(state.state) >= 0
+    assert int(state.state) <= 100

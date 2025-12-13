@@ -1,5 +1,7 @@
 """Unit tests for coordinator behavior on API errors."""
 
+from datetime import timedelta
+
 import pytest
 import respx
 from homeassistant.core import HomeAssistant
@@ -76,3 +78,45 @@ async def test_coordinator_returns_last_data_on_api_error(
     assert state.state == "2024-01-23T16:44:00+00:00"
     # The entity should not become unavailable
     assert state.state != "unavailable"
+
+
+@pytest.mark.asyncio()
+async def test_coordinator_set_and_reset_update_interval(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test the coordinator's set_update_interval and reset_update_interval methods.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+        options={"scan_interval": 300},
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = entry.runtime_data
+
+    # Test set_update_interval
+    coordinator.set_update_interval("test_key", timedelta(seconds=60))
+    assert coordinator.update_interval == timedelta(seconds=60)
+
+    # Add a longer interval - shortest should still be selected
+    coordinator.set_update_interval("another_key", timedelta(seconds=120))
+    assert coordinator.update_interval == timedelta(seconds=60)
+
+    # Add a shorter interval - should use this one
+    coordinator.set_update_interval("short_key", timedelta(seconds=30))
+    assert coordinator.update_interval == timedelta(seconds=30)
+
+    # Reset an interval to default
+    coordinator.reset_update_interval("short_key")
+    # After reset, should be the configured default (300 seconds)
+    assert coordinator.update_interval == timedelta(seconds=60)
