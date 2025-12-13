@@ -5,6 +5,7 @@ This document explains how to test for linting errors in this repository to avoi
 ## Overview
 
 This repository uses multiple linting tools to ensure code quality:
+
 - **ruff**: Fast Python linter and formatter
 - **flake8**: Additional Python linting
 - **pre-commit**: Runs all linting tools in a consistent way
@@ -75,6 +76,7 @@ flake8
 This error means pytest fixtures should NOT have parentheses when they don't take arguments.
 
 **Wrong:**
+
 ```python
 @pytest.fixture()
 def my_fixture():
@@ -82,6 +84,7 @@ def my_fixture():
 ```
 
 **Correct:**
+
 ```python
 @pytest.fixture
 def my_fixture():
@@ -89,6 +92,7 @@ def my_fixture():
 ```
 
 **Exception:**
+
 ```python
 @pytest.fixture(autouse=True)  # Parentheses required when passing arguments
 def my_fixture():
@@ -142,6 +146,7 @@ pre-commit run --all-files
 ## CI/CD Integration
 
 The GitHub Actions workflow (`.github/workflows/tests.yml`) runs:
+
 - Pre-commit hooks (including ruff, flake8, prettier)
 - Pytest test suite
 - HACS validation
