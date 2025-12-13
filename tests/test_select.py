@@ -102,3 +102,114 @@ async def test_select_option_persists_after_reload(
     )
     assert driver_state
     assert driver_state.state == "Mid"
+
+
+@pytest.mark.asyncio()
+async def test_select_all_heating_locations(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test that all heating location select entities are created.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Check all heating location entities exist
+    steering_state = hass.states.get(
+        "select.smart_testvin0000000001_conditioning_steering_wheel"
+    )
+    assert steering_state is not None
+
+    driver_state = hass.states.get(
+        "select.smart_testvin0000000001_conditioning_driver_seat"
+    )
+    assert driver_state is not None
+
+    passenger_state = hass.states.get(
+        "select.smart_testvin0000000001_conditioning_passenger_seat"
+    )
+    assert passenger_state is not None
+
+
+@pytest.mark.asyncio()
+async def test_select_available_options(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test that select entities have correct available options.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Check options are correct
+    steering_state = hass.states.get(
+        "select.smart_testvin0000000001_conditioning_steering_wheel"
+    )
+    assert steering_state is not None
+    options = steering_state.attributes.get("options")
+    assert options == ["Off", "Low", "Mid", "High"]
+
+
+@pytest.mark.asyncio()
+async def test_select_cycling_through_options(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test cycling through all heating options.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    entity_id = "select.smart_testvin0000000001_conditioning_driver_seat"
+
+    # Cycle through all options
+    for option in ["Low", "Mid", "High", "Off"]:
+        await hass.services.async_call(
+            "select",
+            "select_option",
+            {"entity_id": entity_id, "option": option},
+            blocking=True,
+        )
+        await hass.async_block_till_done()
+
+        state = hass.states.get(entity_id)
+        assert state is not None
+        # Verify the state reflects the selection
+        expected_level = {"Off": 0, "Low": 1, "Mid": 2, "High": 3}[option]
+        await hass.async_block_till_done()
+        assert (
+            entry.data["selects"][HeatingLocation.DRIVER_SEAT.value] == expected_level
+        )
