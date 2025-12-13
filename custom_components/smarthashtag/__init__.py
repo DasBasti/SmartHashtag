@@ -68,10 +68,8 @@ async def async_setup_entry(
         custom_api_base_url_v2 = entry.data.get(CONF_API_BASE_URL_V2)
         if custom_api_base_url or custom_api_base_url_v2:
             endpoint_urls = EndpointUrls(
-                api_base_url=custom_api_base_url if custom_api_base_url else None,
-                api_base_url_v2=custom_api_base_url_v2
-                if custom_api_base_url_v2
-                else None,
+                api_base_url=custom_api_base_url or None,
+                api_base_url_v2=custom_api_base_url_v2 or None,
             )
     elif region == REGION_INTL:
         # Use international endpoints
