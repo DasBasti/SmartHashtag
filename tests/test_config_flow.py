@@ -14,13 +14,7 @@ from custom_components.smarthashtag.const import (
     CONF_CONDITIONING_TEMP,
     CONF_DRIVING_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
-    CONF_API_BASE_URL,
-    CONF_API_BASE_URL_V2,
-    CONF_REGION,
     DOMAIN,
-    REGION_CUSTOM,
-    REGION_EU,
-    REGION_INTL,
 )
 
 
