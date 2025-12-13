@@ -238,7 +238,14 @@ async def test_climate_properties(hass: HomeAssistant, smart_fixture: respx.Rout
 async def test_climate_sync_methods_not_implemented(
     hass: HomeAssistant, smart_fixture: respx.Router
 ):
-    """Test that synchronous climate methods raise NotImplementedError."""
+    """Test that synchronous climate methods raise NotImplementedError.
+
+    Note: These synchronous methods exist only to satisfy the ClimateEntity base class
+    interface requirements. The actual functionality is implemented in the async versions
+    (async_turn_on, async_turn_off, async_set_hvac_mode, async_set_temperature) which are
+    properly implemented and tested in other test cases. This test ensures the sync methods
+    correctly raise NotImplementedError as intended by design.
+    """
     from custom_components.smarthashtag.climate import SmartConditioningMode
 
     entry = MockConfigEntry(
