@@ -529,8 +529,9 @@ async def test_sensor_maintenance_values(
     state = hass.states.get("sensor.smart_washer_fluid_level")
     assert state
 
-    # Note: "break" is a typo in the source code (should be "brake"),
-    # but kept for backwards compatibility
+    # Note: The entity key "break_fluid_level" is intentionally misspelled as "break"
+    # (should be "brake") in the integration for backward compatibility. This test uses
+    # the same key as defined in the integration to ensure correct behavior.
     state = hass.states.get("sensor.smart_break_fluid_level")
     assert state
 
