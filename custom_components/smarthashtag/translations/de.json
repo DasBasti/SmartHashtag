@@ -17,7 +17,7 @@
         }
       },
       "custom_endpoints": {
-        "description": "Benutzerdefinierte API-Endpunkte konfigurieren (leer lassen für Standardwerte)",
+        "description": "Benutzerdefinierte API-Endpunkte konfigurieren. Mindestens eine URL muss angegeben werden.",
         "data": {
           "api_base_url": "API-Basis-URL",
           "api_base_url_v2": "API-Basis-URL v2"
@@ -25,7 +25,8 @@
       }
     },
     "error": {
-      "auth": "Authentifizierung fehlgeschlagen, bitte überprüfen Sie Ihre Anmeldeinformationen und versuchen Sie es erneut."
+      "auth": "Authentifizierung fehlgeschlagen, bitte überprüfen Sie Ihre Anmeldeinformationen und versuchen Sie es erneut.",
+      "custom_endpoints_required": "Mindestens eine benutzerdefinierte Endpunkt-URL muss angegeben werden"
     },
     "abort": {}
   },

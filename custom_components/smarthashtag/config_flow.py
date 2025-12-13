@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import KeysView
+from typing import Any, KeysView
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -53,7 +53,7 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         """Initialize the config flow."""
-        self.init_info: dict = {}
+        self.init_info: dict[str, Any] = {}
 
     async def async_step_user(
         self,
@@ -147,24 +147,29 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle custom endpoints configuration."""
         _errors = {}
         if user_input is not None:
-            try:
-                vehicles = await self._test_credentials(
-                    username=self.init_info[CONF_USERNAME],
-                    password=self.init_info[CONF_PASSWORD],
-                    custom_api_base_url=user_input.get(CONF_API_BASE_URL),
-                    custom_api_base_url_v2=user_input.get(CONF_API_BASE_URL_V2),
-                )
-            except SmartAPIError as exception:
-                LOGGER.warning(exception)
-                _errors["base"] = "auth"
+            # Validate that at least one URL is provided
+            api_base_url = user_input.get(CONF_API_BASE_URL)
+            api_base_url_v2 = user_input.get(CONF_API_BASE_URL_V2)
+
+            if not api_base_url and not api_base_url_v2:
+                _errors["base"] = "custom_endpoints_required"
             else:
-                # Merge custom endpoint info with init_info
-                self.init_info[CONF_API_BASE_URL] = user_input.get(CONF_API_BASE_URL)
-                self.init_info[CONF_API_BASE_URL_V2] = user_input.get(
-                    CONF_API_BASE_URL_V2
-                )
-                self.init_info[CONF_VEHICLES] = list(vehicles)
-                return await self.async_step_vehicle()
+                try:
+                    vehicles = await self._test_credentials(
+                        username=self.init_info[CONF_USERNAME],
+                        password=self.init_info[CONF_PASSWORD],
+                        custom_api_base_url=api_base_url,
+                        custom_api_base_url_v2=api_base_url_v2,
+                    )
+                except SmartAPIError as exception:
+                    LOGGER.warning(exception)
+                    _errors["base"] = "auth"
+                else:
+                    # Merge custom endpoint info with init_info
+                    self.init_info[CONF_API_BASE_URL] = api_base_url
+                    self.init_info[CONF_API_BASE_URL_V2] = api_base_url_v2
+                    self.init_info[CONF_VEHICLES] = list(vehicles)
+                    return await self.async_step_vehicle()
 
         return self.async_show_form(
             step_id="custom_endpoints",

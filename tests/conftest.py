@@ -14,7 +14,6 @@ def _auto_enable_custom_integrations(enable_custom_integrations):
 
 @pytest.fixture()
 def smart_intl_fixture(
-    request: pytest.FixtureRequest,
     smart_fixture: respx.Router,  # noqa: F811
 ):
     """Extend smart_fixture with international endpoints."""
