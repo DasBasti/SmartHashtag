@@ -529,6 +529,8 @@ async def test_sensor_maintenance_values(
     state = hass.states.get("sensor.smart_washer_fluid_level")
     assert state
 
+    # Note: "break" is a typo in the source code (should be "brake"),
+    # but kept for backwards compatibility
     state = hass.states.get("sensor.smart_break_fluid_level")
     assert state
 
