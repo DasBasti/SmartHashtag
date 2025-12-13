@@ -619,4 +619,5 @@ async def test_sensor_remaining_range(hass: HomeAssistant, smart_fixture: respx.
     # Check remaining battery percent
     state = hass.states.get("sensor.smart_battery")
     assert state
-    assert int(state.state) >= 0 and int(state.state) <= 100
+    assert int(state.state) >= 0
+    assert int(state.state) <= 100
