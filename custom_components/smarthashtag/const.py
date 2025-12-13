@@ -34,6 +34,9 @@ CONF_CHARGING_INTERVAL = "charging_interval"
 CONF_DRIVING_INTERVAL = "driving_interval"
 CONF_CONDITIONING_TEMP = "conditioning_temp"
 CONF_SEATHEATING_LEVEL = "seatheating_level"
+CONF_REGION = "region"
+CONF_API_BASE_URL = "api_base_url"
+CONF_API_BASE_URL_V2 = "api_base_url_v2"
 
 # Defaults
 DEFAULT_NAME = DOMAIN
@@ -44,6 +47,18 @@ FAST_INTERVAL = 5
 MIN_SCAN_INTERVAL = 10
 DEFAULT_CONDITIONING_TEMP = 21
 DEFAULT_SEATHEATING_LEVEL = 3
+DEFAULT_REGION = "eu"
+
+# Region options
+REGION_EU = "eu"
+REGION_INTL = "intl"
+REGION_CUSTOM = "custom"
+
+REGIONS = {
+    REGION_EU: "Europe (Hello Smart EU)",
+    REGION_INTL: "International (Hello Smart International - Australia, Singapore, etc.)",
+    REGION_CUSTOM: "Custom Endpoints",
+}
 
 
 STARTUP_MESSAGE = f"""

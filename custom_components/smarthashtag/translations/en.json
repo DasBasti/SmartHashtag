@@ -6,7 +6,8 @@
         "description": "Smart.com Login information https://id.smart.com",
         "data": {
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "region": "Region / Endpoint"
         }
       },
       "vehicle": {
@@ -14,10 +15,18 @@
         "data": {
           "vehicle": "Vehicle identification number"
         }
+      },
+      "custom_endpoints": {
+        "description": "Configure custom API endpoints. At least one URL must be provided.",
+        "data": {
+          "api_base_url": "API Base URL",
+          "api_base_url_v2": "API Base URL v2"
+        }
       }
     },
     "error": {
-      "auth": "Auth failed, please check your username and password"
+      "auth": "Auth failed, please check your username and password",
+      "custom_endpoints_required": "At least one custom endpoint URL must be provided"
     },
     "abort": {}
   },

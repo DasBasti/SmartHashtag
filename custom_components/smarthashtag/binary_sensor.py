@@ -156,6 +156,8 @@ class SmartHashtagLockBinarySensor(SmartHashtagEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
+        if self.coordinator.data is None:
+            return None
         key = remove_vin_from_key(self.entity_description.key)
         vin = vin_from_key(self.entity_description.key)
         state = self.entity_description.is_on_fn(

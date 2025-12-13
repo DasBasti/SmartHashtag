@@ -14,7 +14,13 @@ from custom_components.smarthashtag.const import (
     CONF_CONDITIONING_TEMP,
     CONF_DRIVING_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
+    CONF_API_BASE_URL,
+    CONF_API_BASE_URL_V2,
+    CONF_REGION,
     DOMAIN,
+    REGION_CUSTOM,
+    REGION_EU,
+    REGION_INTL,
 )
 
 
@@ -64,8 +70,8 @@ async def test_form(hass: HomeAssistant, smart_fixture: respx.Router):
 
 
 @pytest.mark.asyncio()
-async def test_form_auth_error(hass: HomeAssistant, smart_fixture: respx.Router):
-    """Test we handle auth errors correctly."""
+async def test_form_with_eu_region(hass: HomeAssistant, smart_fixture: respx.Router):
+    """Test config flow with EU region selection."""
     await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
