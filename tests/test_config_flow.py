@@ -185,3 +185,42 @@ async def test_form_with_custom_endpoints(
     assert result3["data"][CONF_API_BASE_URL_V2] == "https://apiv2.ecloudap.com"
     assert result3["data"]["vehicle"] == "TestVIN0000000001"
     assert len(mock_setup_entry.mock_calls) == 1
+
+
+@pytest.mark.asyncio()
+async def test_form_with_custom_endpoints_validation(
+    hass: HomeAssistant, smart_intl_fixture: respx.Router
+):
+    """Test config flow with custom endpoints validates at least one URL is provided."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    # Select custom region
+    result2 = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            "username": "test",
+            "password": "test",
+            CONF_REGION: REGION_CUSTOM,
+        },
+    )
+
+    assert result2["type"] == "form"
+    assert result2["step_id"] == "custom_endpoints"
+
+    # Try to submit without any URLs - should show error
+    result3 = await hass.config_entries.flow.async_configure(
+        result2["flow_id"],
+        {
+            CONF_API_BASE_URL: "",
+            CONF_API_BASE_URL_V2: "",
+        },
+    )
+
+    assert result3["type"] == "form"
+    assert result3["step_id"] == "custom_endpoints"
+    assert result3["errors"]["base"] == "custom_endpoints_required"

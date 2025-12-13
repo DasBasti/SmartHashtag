@@ -77,6 +77,8 @@ async def async_setup_entry(
     elif region == REGION_EU:
         # Use EU endpoints (default)
         endpoint_urls = get_endpoint_urls_for_region(SmartRegion.EU)
+    # If region is None or unrecognized, endpoint_urls remains None
+    # and SmartAccount will use default endpoints
 
     entry.runtime_data = SmartHashtagDataUpdateCoordinator(
         hass=hass,
