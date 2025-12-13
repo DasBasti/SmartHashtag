@@ -55,7 +55,6 @@ class SmartChargingSwitch(SwitchEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
     _attr_icon = "mdi:ev-station"
-    _last_state = False
 
     @property
     def translation_key(self):
@@ -64,18 +63,11 @@ class SmartChargingSwitch(SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if charging is active."""
-        is_charging = (
+        return bool(
             self._vehicle.battery
             and self._vehicle.battery.charging_status
             and self._vehicle.battery.charging_status in ["charging", "dc_charging"]
         )
-
-        # If state changed, reset update interval
-        if is_charging != self._last_state:
-            self.coordinator.reset_update_interval("charging_switch")
-            self._last_state = is_charging
-
-        return is_charging
 
     def __init__(
         self,
@@ -88,12 +80,13 @@ class SmartChargingSwitch(SwitchEntity):
         self._vehicle = self.coordinator.account.vehicles[vehicle]
         self._attr_name = f"Smart {vehicle} Charging"
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_charging_switch"
+        self._last_state: bool | None = None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Start charging the vehicle."""
         LOGGER.debug("Starting charging for vehicle %s", self._vehicle.vin)
         await self._vehicle.charging_control.start_charging()
-        self._last_state = True
+        # Set fast polling to quickly reflect state changes
         self.coordinator.set_update_interval(
             "charging_switch", timedelta(seconds=FAST_INTERVAL)
         )
@@ -103,8 +96,16 @@ class SmartChargingSwitch(SwitchEntity):
         """Stop charging the vehicle."""
         LOGGER.debug("Stopping charging for vehicle %s", self._vehicle.vin)
         await self._vehicle.charging_control.stop_charging()
-        self._last_state = False
+        # Set fast polling to quickly reflect state changes
         self.coordinator.set_update_interval(
             "charging_switch", timedelta(seconds=FAST_INTERVAL)
         )
         await self.coordinator.async_request_refresh()
+
+    async def async_update(self) -> None:
+        """Update the entity state and reset polling interval when stable."""
+        current_state = self.is_on
+        # Reset to normal interval when state has stabilized
+        if self._last_state is not None and current_state == self._last_state:
+            self.coordinator.reset_update_interval("charging_switch")
+        self._last_state = current_state
