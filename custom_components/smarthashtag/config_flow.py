@@ -25,7 +25,6 @@ from .const import (
     CONF_API_BASE_URL_V2,
     CONF_CHARGING_INTERVAL,
     CONF_CONDITIONING_TEMP,
-    CONF_CUSTOM_ENDPOINTS,
     CONF_DRIVING_INTERVAL,
     CONF_REGION,
     CONF_VEHICLE,
@@ -63,7 +62,7 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             if user_input.get(CONF_REGION) == REGION_CUSTOM:
                 self.init_info = user_input
                 return await self.async_step_custom_endpoints()
-            
+
             try:
                 vehicles = await self._test_credentials(
                     username=user_input[CONF_USERNAME],
@@ -157,7 +156,9 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 # Merge custom endpoint info with init_info
                 self.init_info[CONF_API_BASE_URL] = user_input.get(CONF_API_BASE_URL)
-                self.init_info[CONF_API_BASE_URL_V2] = user_input.get(CONF_API_BASE_URL_V2)
+                self.init_info[CONF_API_BASE_URL_V2] = user_input.get(
+                    CONF_API_BASE_URL_V2
+                )
                 self.init_info[CONF_VEHICLES] = list(vehicles)
                 return await self.async_step_vehicle()
 
@@ -196,13 +197,15 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> KeysView[str]:
         """Validate credentials."""
         endpoint_urls = None
-        
+
         # Determine which endpoint URLs to use
         if custom_api_base_url or custom_api_base_url_v2:
             # Custom endpoints
             endpoint_urls = EndpointUrls(
                 api_base_url=custom_api_base_url if custom_api_base_url else None,
-                api_base_url_v2=custom_api_base_url_v2 if custom_api_base_url_v2 else None,
+                api_base_url_v2=custom_api_base_url_v2
+                if custom_api_base_url_v2
+                else None,
             )
         elif region and region != REGION_CUSTOM:
             # Predefined region
@@ -210,7 +213,7 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 endpoint_urls = get_endpoint_urls_for_region(SmartRegion.EU)
             elif region == REGION_INTL:
                 endpoint_urls = get_endpoint_urls_for_region(SmartRegion.INTL)
-        
+
         client = SmartAccount(
             username=username,
             password=password,
