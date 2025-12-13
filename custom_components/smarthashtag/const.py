@@ -35,7 +35,6 @@ CONF_DRIVING_INTERVAL = "driving_interval"
 CONF_CONDITIONING_TEMP = "conditioning_temp"
 CONF_SEATHEATING_LEVEL = "seatheating_level"
 CONF_REGION = "region"
-CONF_CUSTOM_ENDPOINTS = "custom_endpoints"
 CONF_API_BASE_URL = "api_base_url"
 CONF_API_BASE_URL_V2 = "api_base_url_v2"
 
