@@ -209,4 +209,6 @@ async def test_select_cycling_through_options(
         assert state is not None
         # Verify the state reflects the selection
         expected_level = {"Off": 0, "Low": 1, "Mid": 2, "High": 3}[option]
-        assert entry.data["selects"][HeatingLocation.DRIVER_SEAT.value] == expected_level
+        assert (
+            entry.data["selects"][HeatingLocation.DRIVER_SEAT.value] == expected_level
+        )
