@@ -15,6 +15,7 @@ from .const import (
     LOGGER,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
+from .entity import SmartHashtagEntity
 
 if TYPE_CHECKING:
     from . import SmartHashtagConfigEntry
@@ -49,11 +50,10 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-class SmartChargingSwitch(SwitchEntity):
+class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
     """Representation of the Smart car charging control switch."""
 
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_has_entity_name = True
     _attr_icon = "mdi:ev-station"
 
     @property
@@ -75,11 +75,9 @@ class SmartChargingSwitch(SwitchEntity):
         vehicle: str,
     ) -> None:
         """Initialize the Charging Switch class."""
-        super().__init__()
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self._vehicle = self.coordinator.account.vehicles[vehicle]
-        self._attr_name = f"Smart {vehicle} Charging"
-        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_charging_switch"
+        self._attr_unique_id = f"{self._attr_unique_id}_charging_switch"
         self._last_state: bool | None = None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
