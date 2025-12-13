@@ -51,6 +51,10 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        self.init_info: dict = {}
+
     async def async_step_user(
         self,
         user_input: dict | None = None,
@@ -202,10 +206,8 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if custom_api_base_url or custom_api_base_url_v2:
             # Custom endpoints
             endpoint_urls = EndpointUrls(
-                api_base_url=custom_api_base_url if custom_api_base_url else None,
-                api_base_url_v2=custom_api_base_url_v2
-                if custom_api_base_url_v2
-                else None,
+                api_base_url=custom_api_base_url or None,
+                api_base_url_v2=custom_api_base_url_v2 or None,
             )
         elif region and region != REGION_CUSTOM:
             # Predefined region
