@@ -62,7 +62,7 @@ class SmartChargingSwitch(SwitchEntity):
         is_charging = (
             self._vehicle.battery
             and self._vehicle.battery.charging_status
-            and self._vehicle.battery.charging_status.value in ["charging", "dc_charging"]
+            and self._vehicle.battery.charging_status in ["charging", "dc_charging"]
         )
 
         # If state changed, reset update interval
