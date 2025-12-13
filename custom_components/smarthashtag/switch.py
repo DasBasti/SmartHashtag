@@ -33,7 +33,7 @@ async def async_setup_entry(
 
     Parameters:
         hass (HomeAssistant): The Home Assistant instance.
-        entry (SmartHashtagDataUpdateCoordinator): The coordinator instance containing runtime and configuration data.
+        entry (SmartHashtagConfigEntry): The configuration entry containing runtime and configuration data.
         async_add_entities (Callable): Callback function to add entities to Home Assistant. Entities added will be updated
             before being integrated.
 
@@ -73,6 +73,7 @@ class SmartChargingSwitch(SwitchEntity):
         # If state changed, reset update interval
         if is_charging != self._last_state:
             self.coordinator.reset_update_interval("charging_switch")
+            self._last_state = is_charging
 
         return is_charging
 
