@@ -134,6 +134,9 @@ class SmartPreHeatedLocation(SelectEntity):
         new_data = self.coordinator.config_entry.data.copy()
         if "selects" not in new_data:
             new_data["selects"] = {}
+        else:
+            # Create a copy of the nested selects dict to avoid mutating the original
+            new_data["selects"] = new_data["selects"].copy()
         new_data["selects"][self._location.value] = level
         self.hass.config_entries.async_update_entry(
             self.coordinator.config_entry, data=new_data

@@ -105,6 +105,67 @@ async def test_select_option_persists_after_reload(
 
 
 @pytest.mark.asyncio()
+async def test_select_option_updates_without_mutating_original(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test that updating a select option doesn't mutate the original config entry data.
+
+    This verifies the fix for the shallow copy issue where modifying the nested
+    'selects' dictionary would inadvertently modify the original config entry data.
+    """
+
+    # Create entry with pre-existing select data
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+            "selects": {
+                HeatingLocation.STEERING_WHEEL.value: 1,  # "Low"
+            },
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Verify initial state
+    state = hass.states.get(
+        "select.smart_testvin0000000001_conditioning_steering_wheel"
+    )
+    assert state
+    assert state.state == "Low"
+
+    # Store a reference to the original selects dict
+    original_selects_id = id(entry.data["selects"])
+
+    # Update the steering wheel to a new value
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {
+            "entity_id": "select.smart_testvin0000000001_conditioning_steering_wheel",
+            "option": "High",
+        },
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    # Verify the value was updated
+    assert entry.data["selects"][HeatingLocation.STEERING_WHEEL.value] == 3
+
+    # Verify that the selects dict is a new object (not mutated in place)
+    new_selects_id = id(entry.data["selects"])
+    assert new_selects_id != original_selects_id, (
+        "The selects dictionary should be a new object, not mutated in place"
+    )
+
+
+@pytest.mark.asyncio()
 async def test_select_all_heating_locations(
     hass: HomeAssistant, smart_fixture: respx.Router
 ):
