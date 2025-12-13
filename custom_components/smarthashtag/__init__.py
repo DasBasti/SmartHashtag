@@ -9,8 +9,18 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
+from pysmarthashtag import EndpointUrls, SmartRegion, get_endpoint_urls_for_region
 from pysmarthashtag.account import SmartAccount
 
+from .const import (
+    CONF_API_BASE_URL,
+    CONF_API_BASE_URL_V2,
+    CONF_REGION,
+    DEFAULT_REGION,
+    REGION_CUSTOM,
+    REGION_EU,
+    REGION_INTL,
+)
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
 PLATFORMS: list[Platform] = [
@@ -48,11 +58,32 @@ async def async_setup_entry(
     Returns:
         bool: True if setup was successful; otherwise, an exception may be raised during the process.
     """
+    # Determine endpoint URLs based on region or custom settings
+    endpoint_urls = None
+    region = entry.data.get(CONF_REGION, DEFAULT_REGION)
+    
+    if region == REGION_CUSTOM:
+        # Use custom endpoints if provided
+        custom_api_base_url = entry.data.get(CONF_API_BASE_URL)
+        custom_api_base_url_v2 = entry.data.get(CONF_API_BASE_URL_V2)
+        if custom_api_base_url or custom_api_base_url_v2:
+            endpoint_urls = EndpointUrls(
+                api_base_url=custom_api_base_url if custom_api_base_url else None,
+                api_base_url_v2=custom_api_base_url_v2 if custom_api_base_url_v2 else None,
+            )
+    elif region == REGION_INTL:
+        # Use international endpoints
+        endpoint_urls = get_endpoint_urls_for_region(SmartRegion.INTL)
+    elif region == REGION_EU:
+        # Use EU endpoints (default)
+        endpoint_urls = get_endpoint_urls_for_region(SmartRegion.EU)
+    
     entry.runtime_data = SmartHashtagDataUpdateCoordinator(
         hass=hass,
         account=SmartAccount(
             username=entry.data[CONF_USERNAME],
             password=entry.data[CONF_PASSWORD],
+            endpoint_urls=endpoint_urls,
         ),
         entry=entry,
     )

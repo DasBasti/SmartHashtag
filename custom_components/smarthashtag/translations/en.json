@@ -6,13 +6,21 @@
         "description": "Smart.com Login information https://id.smart.com",
         "data": {
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "region": "Region / Endpoint"
         }
       },
       "vehicle": {
         "description": "Select vehicle VIN",
         "data": {
           "vehicle": "Vehicle identification number"
+        }
+      },
+      "custom_endpoints": {
+        "description": "Configure custom API endpoints (leave blank to use defaults)",
+        "data": {
+          "api_base_url": "API Base URL",
+          "api_base_url_v2": "API Base URL v2"
         }
       }
     },
