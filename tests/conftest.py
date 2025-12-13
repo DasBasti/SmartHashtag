@@ -2,10 +2,9 @@
 
 import pytest
 import respx
-from pysmarthashtag.tests.conftest import (  # noqa: F401
-    SmartMockRouter,
-    smart_fixture,
-)
+
+# Import fixtures to make them available to tests
+from pysmarthashtag.tests.conftest import smart_fixture  # noqa: F401
 
 
 @pytest.fixture(autouse=True)
@@ -14,7 +13,10 @@ def _auto_enable_custom_integrations(enable_custom_integrations):
 
 
 @pytest.fixture
-def smart_intl_fixture(request: pytest.FixtureRequest, smart_fixture: respx.Router):
+def smart_intl_fixture(
+    request: pytest.FixtureRequest,
+    smart_fixture: respx.Router,  # noqa: F811
+):
     """Extend smart_fixture with international endpoints."""
     # International API endpoints
     intl_api_base_url = "https://api.ecloudap.com"
@@ -22,7 +24,9 @@ def smart_intl_fixture(request: pytest.FixtureRequest, smart_fixture: respx.Rout
 
     # Add routes for international endpoints using correct response format
     for base_url in [intl_api_base_url, intl_api_base_url_v2]:
-        smart_fixture.post(base_url + "/auth/account/session/secure?identity_type=smart").respond(
+        smart_fixture.post(
+            base_url + "/auth/account/session/secure?identity_type=smart"
+        ).respond(
             200,
             json={
                 "code": 1000,
@@ -37,16 +41,18 @@ def smart_intl_fixture(request: pytest.FixtureRequest, smart_fixture: respx.Rout
                     "tcToken": "",
                     "resultMessage": "Success",
                     "userId": "112233",
-                    "refreshToken": "ODMxREJENDIzMEJDNjc5NkEyNENCRDYxRjY3MjAwQzQ="
+                    "refreshToken": "ODMxREJENDIzMEJDNjc5NkEyNENCRDYxRjY3MjAwQzQ=",
                 },
                 "success": True,
                 "hint": None,
                 "sessionId": None,
-                "message": "Successful."
+                "message": "Successful.",
             },
         )
         # Mock both endpoints that might be used
-        smart_fixture.get(base_url + "/basic/vehicle/list?needSharedCar=1&userId=112233").respond(
+        smart_fixture.get(
+            base_url + "/basic/vehicle/list?needSharedCar=1&userId=112233"
+        ).respond(
             200,
             json={
                 "code": "1000",
@@ -67,10 +73,13 @@ def smart_intl_fixture(request: pytest.FixtureRequest, smart_fixture: respx.Rout
                     ]
                 },
                 "sessionId": "test_session",
-                "success": True
+                "success": True,
             },
         )
-        smart_fixture.get(base_url + "/device-platform/user/vehicle/secure?needSharedCar=1&userId=112233").respond(
+        smart_fixture.get(
+            base_url
+            + "/device-platform/user/vehicle/secure?needSharedCar=1&userId=112233"
+        ).respond(
             200,
             json={
                 "code": "1000",
@@ -91,10 +100,12 @@ def smart_intl_fixture(request: pytest.FixtureRequest, smart_fixture: respx.Rout
                     ]
                 },
                 "sessionId": "test_session",
-                "success": True
+                "success": True,
             },
         )
-        smart_fixture.post(base_url + "/basic/vehicle/select").respond(200, json={"success": True})
+        smart_fixture.post(base_url + "/basic/vehicle/select").respond(
+            200, json={"success": True}
+        )
         smart_fixture.get(
             base_url
             + "/remote-control/vehicle/status/TestVIN0000000001?latest=True&target=basic%2Cmore&userId=112233"
@@ -102,11 +113,12 @@ def smart_intl_fixture(request: pytest.FixtureRequest, smart_fixture: respx.Rout
             200,
             json={"data": {"status": "ok"}},
         )
-        smart_fixture.put(base_url + "/remote-control/vehicle/telematics/TestVIN0000000001").respond(
-            200, json={"data": {"success": True}}
-        )
+        smart_fixture.put(
+            base_url + "/remote-control/vehicle/telematics/TestVIN0000000001"
+        ).respond(200, json={"data": {"success": True}})
         smart_fixture.get(
-            base_url + "/remote-control/vehicle/status/soc/TestVIN0000000001?setting=charging"
+            base_url
+            + "/remote-control/vehicle/status/soc/TestVIN0000000001?setting=charging"
         ).respond(
             200,
             json={"data": {"soc": 90}},

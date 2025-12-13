@@ -61,7 +61,7 @@ async def async_setup_entry(
     # Determine endpoint URLs based on region or custom settings
     endpoint_urls = None
     region = entry.data.get(CONF_REGION, DEFAULT_REGION)
-    
+
     if region == REGION_CUSTOM:
         # Use custom endpoints if provided
         custom_api_base_url = entry.data.get(CONF_API_BASE_URL)
@@ -69,7 +69,9 @@ async def async_setup_entry(
         if custom_api_base_url or custom_api_base_url_v2:
             endpoint_urls = EndpointUrls(
                 api_base_url=custom_api_base_url if custom_api_base_url else None,
-                api_base_url_v2=custom_api_base_url_v2 if custom_api_base_url_v2 else None,
+                api_base_url_v2=custom_api_base_url_v2
+                if custom_api_base_url_v2
+                else None,
             )
     elif region == REGION_INTL:
         # Use international endpoints
@@ -77,7 +79,7 @@ async def async_setup_entry(
     elif region == REGION_EU:
         # Use EU endpoints (default)
         endpoint_urls = get_endpoint_urls_for_region(SmartRegion.EU)
-    
+
     entry.runtime_data = SmartHashtagDataUpdateCoordinator(
         hass=hass,
         account=SmartAccount(
