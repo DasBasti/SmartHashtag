@@ -1,7 +1,9 @@
 """Support for Smart #1 / #3 switches."""
 
+from __future__ import annotations
+
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
@@ -14,9 +16,12 @@ from .const import (
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
 
+if TYPE_CHECKING:
+    from . import SmartHashtagConfigEntry
+
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: SmartHashtagDataUpdateCoordinator, async_add_entities
+    hass: HomeAssistant, entry: SmartHashtagConfigEntry, async_add_entities
 ):
     """
     Initialize and set up the Smart switch entities from the provided configuration entry.
@@ -66,7 +71,7 @@ class SmartChargingSwitch(SwitchEntity):
         )
 
         # If state changed, reset update interval
-        if is_charging == self._last_state:
+        if is_charging != self._last_state:
             self.coordinator.reset_update_interval("charging_switch")
 
         return is_charging
