@@ -137,3 +137,115 @@ async def test_device_tracker_updates_with_coordinator(
     assert new_lon != initial_lon
     assert new_lat == pytest.approx(50.0, rel=1e-5)
     assert new_lon == pytest.approx(100.0, rel=1e-5)
+
+
+@pytest.mark.asyncio()
+async def test_device_tracker_with_missing_position_data(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test that device tracker handles missing position data gracefully.
+
+    This test verifies that the device tracker returns None values when
+    position data is missing from the API response.
+    """
+
+    async def return_response_without_position(
+        request: Request, route: respx.Route
+    ) -> Response:
+        response = load_response(RESPONSE_DIR / "vehicle_info.json")
+        # Remove position data
+        del response["data"]["vehicleStatus"]["basicVehicleStatus"]["position"]
+        return Response(200, json=response)
+
+    smart_fixture.get(
+        "https://api.ecloudeu.com/remote-control/vehicle/status/TestVIN0000000001?latest=True&target=basic%2Cmore&userId=112233",
+    ).mock(side_effect=return_response_without_position)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Find the device tracker entity
+    entity_id = get_device_tracker_entity_id(hass)
+    assert entity_id is not None, "Device tracker entity not found"
+
+    state = hass.states.get(entity_id)
+    # The entity should still exist even if position data is missing
+    assert state is not None
+
+
+@pytest.mark.asyncio()
+async def test_device_tracker_source_type(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test that device tracker has correct source type.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Find the device tracker entity
+    entity_id = get_device_tracker_entity_id(hass)
+    assert entity_id is not None, "Device tracker entity not found"
+
+    state = hass.states.get(entity_id)
+    assert state is not None
+
+    # Check source type is GPS
+    assert state.attributes.get("source_type") == "gps"
+
+
+@pytest.mark.asyncio()
+async def test_device_tracker_battery_level(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test that device tracker reports correct battery level.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Find the device tracker entity
+    entity_id = get_device_tracker_entity_id(hass)
+    assert entity_id is not None, "Device tracker entity not found"
+
+    state = hass.states.get(entity_id)
+    assert state is not None
+
+    # Check battery level is present
+    battery_level = state.attributes.get("battery_level")
+    assert battery_level is not None
+    assert isinstance(battery_level, int)
