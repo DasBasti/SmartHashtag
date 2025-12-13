@@ -12,7 +12,7 @@ def _auto_enable_custom_integrations(enable_custom_integrations):
     return
 
 
-@pytest.fixture
+@pytest.fixture()
 def smart_intl_fixture(
     request: pytest.FixtureRequest,
     smart_fixture: respx.Router,  # noqa: F811
