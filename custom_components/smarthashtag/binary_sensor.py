@@ -137,6 +137,14 @@ LOCK_ENTITIES = (
         icon="mdi:car-back",
         is_on_fn=lambda state, key: state.safety.trunk_open_status == 1,
     ),
+    SmartHashtagBinarySensorEntityDescription(
+        key="is_charger_connected",
+        translation_key="is_charger_connected",
+        name="is charger connected",
+        device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
+        icon="mdi:power-plug-battery",
+        is_on_fn=lambda state, key: state.battery.is_charger_connected,
+    ),
 )
 
 
