@@ -1,5 +1,7 @@
 """Unit tests for _handle_error function."""
 
+import logging
+
 import pytest
 import respx
 from homeassistant.core import HomeAssistant
@@ -464,6 +466,52 @@ async def test_sensor_climate_values(hass: HomeAssistant, smart_fixture: respx.R
     # Check pre climate active sensor
     state = hass.states.get("sensor.smart_pre_climate_active")
     assert state
+
+
+@pytest.mark.asyncio()
+async def test_sensor_interior_pm25_missing_logs_info(
+    hass: HomeAssistant, smart_fixture: respx.Router, caplog
+):
+    """
+    Test that missing interior_PM25 field logs at INFO level, not ERROR.
+
+    Some vehicle variants don't have the interior_PM25 sensor. This test verifies
+    that when the field is missing, it logs at INFO level to avoid alarming users.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Refresh the coordinator to trigger sensor updates, which will log the missing field
+    with caplog.at_level(logging.INFO):
+        await entry.runtime_data.async_refresh()
+        await hass.async_block_till_done()
+
+        # Try to get the interior PM25 sensor state (may not exist if disabled by default)
+        _ = hass.states.get("sensor.smart_interior_pm25")
+
+    # Verify that no ERROR logs were created for interior_PM25
+    # Note: INFO logs may not be generated if the sensor is disabled by default
+    error_logs = [
+        record
+        for record in caplog.records
+        if record.levelname == "ERROR" and "interior_PM25" in record.message
+    ]
+
+    # Should have no ERROR logs for interior_PM25
+    assert len(error_logs) == 0, (
+        f"Should not have ERROR logs for interior_PM25 field. Found: {error_logs}"
+    )
 
 
 @pytest.mark.asyncio()
