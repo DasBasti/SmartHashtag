@@ -3,7 +3,7 @@
     "flow_title": "Smart #1/#3",
     "step": {
       "user": {
-        "description": "Smart.com Login https://id.smart.com",
+        "description": "Smart.com Login",
         "data": {
           "username": "Benutzername",
           "password": "Passwort",
