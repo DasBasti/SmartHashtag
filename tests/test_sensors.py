@@ -500,32 +500,18 @@ async def test_sensor_interior_pm25_missing_logs_info(
         # Try to get the interior PM25 sensor state (may not exist if disabled by default)
         _ = hass.states.get("sensor.smart_interior_pm25")
 
-    # Verify that INFO log was created for interior_PM25, not ERROR
-    info_logs = [
-        record
-        for record in caplog.records
-        if record.levelname == "INFO" and "interior_PM25" in record.message
-    ]
+    # Verify that no ERROR logs were created for interior_PM25
+    # Note: INFO logs may not be generated if the sensor is disabled by default
     error_logs = [
         record
         for record in caplog.records
         if record.levelname == "ERROR" and "interior_PM25" in record.message
     ]
 
-    # Should have at least one INFO log for interior_PM25 if the sensor tried to update
-    # Note: The sensor may not update if it's disabled by default
-    # In that case, we just check that there are no ERROR logs
-    if len(info_logs) == 0:
-        # If no INFO logs, the sensor might not have been accessed
-        # But we should still ensure no ERROR logs exist
-        assert len(error_logs) == 0, (
-            f"Should not have ERROR logs for interior_PM25 field. Found: {error_logs}"
-        )
-    else:
-        # If INFO logs exist, verify no ERROR logs
-        assert len(error_logs) == 0, (
-            f"Should not have ERROR logs for interior_PM25 field. Found: {error_logs}"
-        )
+    # Should have no ERROR logs for interior_PM25
+    assert len(error_logs) == 0, (
+        f"Should not have ERROR logs for interior_PM25 field. Found: {error_logs}"
+    )
 
 
 @pytest.mark.asyncio()
