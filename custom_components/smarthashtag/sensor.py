@@ -1390,9 +1390,17 @@ class SmartHashtagClimateSensor(SmartHashtagEntity, SensorEntity):
             return data
 
         except AttributeError as err:
-            LOGGER.error(
-                "AttributeError value: %s (%s)", self.entity_description.key, err
-            )
+            # Interior PM25 sensor is not available in all vehicle variants
+            key = remove_vin_from_key(self.entity_description.key)
+            if key == "interior_PM25":
+                LOGGER.info(
+                    "Field '%s' not found in data (not available in this vehicle variant)",
+                    self.entity_description.key,
+                )
+            else:
+                LOGGER.error(
+                    "AttributeError value: %s (%s)", self.entity_description.key, err
+                )
             return self._last_valid_value
 
     @property
