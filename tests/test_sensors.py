@@ -680,9 +680,11 @@ async def test_native_unit_of_measurement_with_none_vehicle(
     Test native_unit_of_measurement handles None vehicle gracefully.
 
     This test simulates a scenario where vehicle data becomes temporarily unavailable
-    after initial successful setup. It verifies that native_unit_of_measurement returns
-    the entity_description.native_unit_of_measurement fallback value instead of raising
-    AttributeError when coordinator.account.vehicles.get(vin) returns None.
+    after initial successful setup. It verifies that the entity continues to function
+    without raising AttributeError when coordinator.account.vehicles.get(vin) returns None.
+
+    The native_unit_of_measurement property in SmartHashtagUpdateSensor checks for None
+    vehicle and returns entity_description.native_unit_of_measurement as fallback (lines 1254-1256).
 
     This addresses the scenario where:
     - Entity is set up successfully with initial data
@@ -714,18 +716,24 @@ async def test_native_unit_of_measurement_with_none_vehicle(
     original_vehicles = coordinator.account.vehicles.copy()
     coordinator.account.vehicles.clear()
 
-    # Trigger an update which should handle None vehicle gracefully
-    await coordinator.async_refresh()
-    await hass.async_block_till_done()
+    # Trigger an update which will access native_unit_of_measurement internally
+    # If the None handling is broken, this would raise AttributeError
+    try:
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+        # Success - no AttributeError was raised
+    except AttributeError as e:
+        # This should not happen - the test fails if AttributeError is raised
+        pytest.fail(
+            f"AttributeError raised when vehicle is None: {e}. "
+            "The native_unit_of_measurement property should handle None vehicle gracefully."
+        )
 
-    # Get the entity to verify it handled None vehicle without crashing
+    # The entity should still exist and not have crashed
     state = hass.states.get("sensor.smart_last_update")
     assert state is not None
-
-    # The entity should still exist and not have crashed due to AttributeError
-    # When vehicle is None, the last valid state is retained
-    # State might be "unavailable" or retain last known value depending on implementation
-    assert state.state in ["2024-01-23T16:44:00+00:00", "unavailable", "unknown"]
+    # State should be unavailable since vehicle data is None
+    assert state.state in ["unavailable", "unknown", "2024-01-23T16:44:00+00:00"]
 
     # Restore vehicles to verify entity can recover
     coordinator.account.vehicles.update(original_vehicles)
