@@ -684,7 +684,7 @@ async def test_native_unit_of_measurement_with_none_vehicle(
     without raising AttributeError when coordinator.account.vehicles.get(vin) returns None.
 
     The native_unit_of_measurement property in SmartHashtagUpdateSensor checks for None
-    vehicle and returns entity_description.native_unit_of_measurement as fallback (lines 1254-1256).
+    vehicle and returns entity_description.native_unit_of_measurement as fallback.
 
     This addresses the scenario where:
     - Entity is set up successfully with initial data
