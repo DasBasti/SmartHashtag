@@ -670,3 +670,76 @@ async def test_sensor_remaining_range(hass: HomeAssistant, smart_fixture: respx.
     assert state
     assert int(state.state) >= 0
     assert int(state.state) <= 100
+
+
+@pytest.mark.asyncio()
+async def test_native_unit_of_measurement_with_none_vehicle(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test native_unit_of_measurement handles None vehicle gracefully.
+
+    This test simulates a scenario where vehicle data becomes temporarily unavailable
+    after initial successful setup. It verifies that the entity continues to function
+    without raising AttributeError when coordinator.account.vehicles.get(vin) returns None.
+
+    The native_unit_of_measurement property in SmartHashtagUpdateSensor checks for None
+    vehicle and returns entity_description.native_unit_of_measurement as fallback.
+
+    This addresses the scenario where:
+    - Entity is set up successfully with initial data
+    - Vehicle temporarily becomes None (e.g., during API errors)
+    - Properties that access vehicle data handle None gracefully
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Verify entities are created and working initially
+    state = hass.states.get("sensor.smart_last_update")
+    assert state is not None
+    assert state.state == "2024-01-23T16:44:00+00:00"
+
+    # Now simulate vehicle becoming None by clearing the vehicles dict
+    # This simulates what happens when vehicle data is temporarily unavailable
+    coordinator = entry.runtime_data
+    original_vehicles = coordinator.account.vehicles.copy()
+    coordinator.account.vehicles.clear()
+
+    # Trigger an update which will access native_unit_of_measurement internally
+    # If the None handling is broken, this would raise AttributeError
+    try:
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+        # Success - no AttributeError was raised
+    except AttributeError as e:
+        # This should not happen - the test fails if AttributeError is raised
+        pytest.fail(
+            f"AttributeError raised when vehicle is None: {e}. "
+            "The native_unit_of_measurement property should handle None vehicle gracefully."
+        )
+
+    # The entity should still exist and not have crashed
+    state = hass.states.get("sensor.smart_last_update")
+    assert state is not None
+    # State should be unavailable since vehicle data is None
+    assert state.state in ["unavailable", "unknown", "2024-01-23T16:44:00+00:00"]
+
+    # Restore vehicles to verify entity can recover
+    coordinator.account.vehicles.update(original_vehicles)
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.smart_last_update")
+    assert state is not None
+    assert state.state == "2024-01-23T16:44:00+00:00"
