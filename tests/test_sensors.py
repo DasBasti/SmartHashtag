@@ -721,7 +721,7 @@ async def test_native_unit_of_measurement_with_none_vehicle(
     # Get the entity to verify it handled None vehicle without crashing
     state = hass.states.get("sensor.smart_last_update")
     assert state is not None
-    
+
     # The entity should still exist and not have crashed due to AttributeError
     # When vehicle is None, the last valid state is retained
     # State might be "unavailable" or retain last known value depending on implementation
