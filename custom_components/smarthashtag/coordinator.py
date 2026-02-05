@@ -80,6 +80,15 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             Any: The vehicle data as returned by self.account.get_vehicles(), or the
                  last known data if a SmartAPIError or HTTP error is encountered.
 
+        Note:
+            self.data can be None in the following scenarios:
+            - On first run if the API call fails (SmartAPIError or HTTP error)
+            - During entity setup before the first successful data fetch
+            - If coordinator initialization fails
+            All entity properties that access self.data or self.account.vehicles
+            must handle None values gracefully to prevent AttributeError during
+            entity registration.
+
         Raises:
             ConfigEntryAuthFailed: If a SmartAuthError is caught, indicating an authentication failure.
             UpdateFailed: If a SmartRemoteServiceError is raised during the data retrieval.

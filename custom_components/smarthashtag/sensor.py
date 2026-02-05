@@ -1248,18 +1248,25 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        key = remove_vin_from_key(self.entity_description.key)
-        vin = vin_from_key(self.entity_description.key)
-        if key.startswith("service"):
-            key = key.rsplit("_", maxsplit=1)[-1]
-            data = self.coordinator.account.vehicles.get(vin).service[key]
-        else:
-            data = getattr(
-                self.coordinator.account.vehicles.get(vin),
-                key,
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            vehicle = self.coordinator.account.vehicles.get(vin)
+            if vehicle is None:
+                return self.entity_description.native_unit_of_measurement
+            if key.startswith("service"):
+                key = key.rsplit("_", maxsplit=1)[-1]
+                data = vehicle.service[key]
+            else:
+                data = getattr(vehicle, key)
+            if isinstance(data, ValueWithUnit):
+                return data.unit
+        except AttributeError as err:
+            LOGGER.debug(
+                "AttributeError in native_unit_of_measurement: %s (%s)",
+                self.entity_description.key,
+                err,
             )
-        if isinstance(data, ValueWithUnit):
-            return data.unit
         return self.entity_description.native_unit_of_measurement
 
 
@@ -1350,14 +1357,21 @@ class SmartHashtagRunningSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        key = remove_vin_from_key(self.entity_description.key)
-        vin = vin_from_key(self.entity_description.key)
-        data = getattr(
-            self.coordinator.account.vehicles.get(vin).running,
-            key,
-        )
-        if isinstance(data, ValueWithUnit):
-            return data.unit
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            vehicle = self.coordinator.account.vehicles.get(vin)
+            if vehicle is None or vehicle.running is None:
+                return self.entity_description.native_unit_of_measurement
+            data = getattr(vehicle.running, key)
+            if isinstance(data, ValueWithUnit):
+                return data.unit
+        except AttributeError as err:
+            LOGGER.debug(
+                "AttributeError in native_unit_of_measurement: %s (%s)",
+                self.entity_description.key,
+                err,
+            )
         return self.entity_description.native_unit_of_measurement
 
 
@@ -1406,14 +1420,21 @@ class SmartHashtagClimateSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        key = remove_vin_from_key(self.entity_description.key)
-        vin = vin_from_key(self.entity_description.key)
-        data = getattr(
-            self.coordinator.account.vehicles.get(vin).climate,
-            key,
-        )
-        if isinstance(data, ValueWithUnit):
-            return data.unit
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            vehicle = self.coordinator.account.vehicles.get(vin)
+            if vehicle is None or vehicle.climate is None:
+                return self.entity_description.native_unit_of_measurement
+            data = getattr(vehicle.climate, key)
+            if isinstance(data, ValueWithUnit):
+                return data.unit
+        except AttributeError as err:
+            LOGGER.debug(
+                "AttributeError in native_unit_of_measurement: %s (%s)",
+                self.entity_description.key,
+                err,
+            )
         return self.entity_description.native_unit_of_measurement
 
 
@@ -1454,12 +1475,19 @@ class SmartHashtagSafetySensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        key = remove_vin_from_key(self.entity_description.key)
-        vin = vin_from_key(self.entity_description.key)
-        data = getattr(
-            self.coordinator.account.vehicles.get(vin).safety,
-            key,
-        )
-        if isinstance(data, ValueWithUnit):
-            return data.unit
+        try:
+            key = remove_vin_from_key(self.entity_description.key)
+            vin = vin_from_key(self.entity_description.key)
+            vehicle = self.coordinator.account.vehicles.get(vin)
+            if vehicle is None or vehicle.safety is None:
+                return self.entity_description.native_unit_of_measurement
+            data = getattr(vehicle.safety, key)
+            if isinstance(data, ValueWithUnit):
+                return data.unit
+        except AttributeError as err:
+            LOGGER.debug(
+                "AttributeError in native_unit_of_measurement: %s (%s)",
+                self.entity_description.key,
+                err,
+            )
         return self.entity_description.native_unit_of_measurement
