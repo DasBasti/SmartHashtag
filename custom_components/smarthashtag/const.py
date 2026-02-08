@@ -51,12 +51,10 @@ DEFAULT_REGION = "eu"
 
 # Region options
 REGION_EU = "eu"
-REGION_INTL = "intl"
 REGION_CUSTOM = "custom"
 
 REGIONS = {
     REGION_EU: "Europe (Hello Smart EU)",
-    REGION_INTL: "International (Hello Smart International - Australia, Singapore, etc.)",
     REGION_CUSTOM: "Custom Endpoints",
 }
 
