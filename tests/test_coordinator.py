@@ -248,6 +248,8 @@ async def test_coordinator_max_transient_failures_threshold(
     from custom_components.smarthashtag.coordinator import MAX_TRANSIENT_FAILURES
     from homeassistant.exceptions import UpdateFailed
 
+    # Number of successful calls before simulating failures
+    SUCCESSFUL_CALLS_BEFORE_FAILURES = 2
     call_count = 0
 
     async def simulate_consecutive_failures(
@@ -255,7 +257,7 @@ async def test_coordinator_max_transient_failures_threshold(
     ) -> Response:
         nonlocal call_count
         call_count += 1
-        if call_count <= 2:
+        if call_count <= SUCCESSFUL_CALLS_BEFORE_FAILURES:
             # First two calls succeed (initial setup + first refresh to establish cached data)
             return Response(200, json=load_response(RESPONSE_DIR / "vehicle_info.json"))
         else:
