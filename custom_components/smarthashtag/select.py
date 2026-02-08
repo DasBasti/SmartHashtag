@@ -140,7 +140,9 @@ class SmartPreHeatedLocation(SelectEntity):
         """Change the selected option."""
         if self._vehicle is None:
             LOGGER.warning(
-                "Cannot set option %s; vehicle %s unavailable", option, self._vehicle_vin
+                "Cannot set option %s; vehicle %s unavailable",
+                option,
+                self._vehicle_vin,
             )
             return
 

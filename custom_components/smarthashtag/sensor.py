@@ -1254,7 +1254,9 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                     return self._last_valid_value
                 data = vehicle.service[key]
             else:
-                data = getattr(vehicle, remove_vin_from_key(self.entity_description.key))
+                data = getattr(
+                    vehicle, remove_vin_from_key(self.entity_description.key)
+                )
 
             if key == "engine_state":
                 if data == "engine_running":

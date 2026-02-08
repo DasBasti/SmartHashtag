@@ -143,7 +143,9 @@ class SmartConditioningMode(ClimateEntity):
     async def async_turn_on(self) -> None:
         """Turn on the climate system."""
         if self._vehicle is None:
-            LOGGER.warning("Cannot turn on climate; vehicle %s unavailable", self._vehicle_vin)
+            LOGGER.warning(
+                "Cannot turn on climate; vehicle %s unavailable", self._vehicle_vin
+            )
             return
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, True
@@ -157,7 +159,9 @@ class SmartConditioningMode(ClimateEntity):
     async def async_turn_off(self) -> None:
         """Turn off the climate system."""
         if self._vehicle is None:
-            LOGGER.warning("Cannot turn off climate; vehicle %s unavailable", self._vehicle_vin)
+            LOGGER.warning(
+                "Cannot turn off climate; vehicle %s unavailable", self._vehicle_vin
+            )
             return
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, False

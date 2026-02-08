@@ -101,7 +101,9 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Start charging the vehicle."""
         if self._vehicle is None:
-            LOGGER.warning("Cannot start charging; vehicle %s unavailable", self._vehicle_vin)
+            LOGGER.warning(
+                "Cannot start charging; vehicle %s unavailable", self._vehicle_vin
+            )
             return
         LOGGER.debug("Starting charging for vehicle %s", self._vehicle.vin)
         try:
@@ -122,7 +124,9 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Stop charging the vehicle."""
         if self._vehicle is None:
-            LOGGER.warning("Cannot stop charging; vehicle %s unavailable", self._vehicle_vin)
+            LOGGER.warning(
+                "Cannot stop charging; vehicle %s unavailable", self._vehicle_vin
+            )
             return
         LOGGER.debug("Stopping charging for vehicle %s", self._vehicle.vin)
         try:
