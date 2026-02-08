@@ -155,7 +155,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             # and haven't exceeded max failures
             if (
                 self.data is not None
-                and self._consecutive_failures < MAX_TRANSIENT_FAILURES
+                and self._consecutive_failures <= MAX_TRANSIENT_FAILURES
             ):
                 LOGGER.debug("Returning cached data to keep entities available")
                 return self.data
