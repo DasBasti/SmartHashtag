@@ -304,7 +304,6 @@ async def test_coordinator_max_transient_failures_threshold(
         # Verify cached data is returned and entity remains available
         assert state
         assert state.state == "2024-01-23T16:44:00+00:00"
-        assert state.state != "unavailable"
         assert coordinator._consecutive_failures == i
 
     # The next failure should be the MAX_TRANSIENT_FAILURES-th failure
