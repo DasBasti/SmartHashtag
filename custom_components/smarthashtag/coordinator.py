@@ -162,7 +162,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
 
             # If no cached data or too many failures, raise UpdateFailed
             if self.data is None:
-                LOGGER.error(
+                LOGGER.info(
                     "Smart API unavailable and no cached data exists: %s",
                     error_msg,
                 )
