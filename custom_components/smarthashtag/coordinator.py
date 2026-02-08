@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import traceback
 from datetime import timedelta
 
 import async_timeout
@@ -15,6 +17,10 @@ from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.models import SmartAPIError, SmartAuthError, SmartRemoteServiceError
 
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
+
+# Maximum consecutive transient failures before raising UpdateFailed
+# Set high enough to tolerate multiple internal API calls failing within a single refresh
+MAX_TRANSIENT_FAILURES = 10
 
 
 # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
@@ -48,6 +54,8 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             config_entry=entry,
         )
         self._update_intervals = {}
+        self._consecutive_failures = 0
+        self._last_error: str | None = None
 
     async def _async_setup(self) -> None:
         """
@@ -96,18 +104,92 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             async with async_timeout.timeout(10):
                 await self.account.get_vehicles()
+                # Reset failure counter on success
+                if self._consecutive_failures > 0:
+                    LOGGER.info(
+                        "Smart API connection restored after %d failed attempts",
+                        self._consecutive_failures,
+                    )
+                self._consecutive_failures = 0
+                self._last_error = None
                 return self.account.vehicles
         except SmartAuthError as exception:
+            LOGGER.error(
+                "Authentication failed for Smart API: %s. "
+                "Please check your credentials.",
+                exception,
+            )
             raise ConfigEntryAuthFailed(exception) from exception
         except SmartRemoteServiceError as exception:
-            raise UpdateFailed(exception) from exception
-        except (SmartAPIError, httpx.HTTPStatusError) as exception:
-            LOGGER.info(f"API access failed with: {exception}")
-            # Return last known data to keep entities available
-            # If self.data is None (first run failed), entities will be unavailable
-            return self.data
+            LOGGER.error(
+                "Smart remote service error: %s",
+                exception,
+            )
+            raise UpdateFailed(f"Remote service error: {exception}") from exception
+        except (
+            SmartAPIError,
+            httpx.HTTPStatusError,
+            asyncio.TimeoutError,
+            TimeoutError,
+            httpx.ConnectError,
+            httpx.ConnectTimeout,
+            httpx.ReadTimeout,
+            OSError,
+            ConnectionError,
+        ) as exception:
+            self._consecutive_failures += 1
+            error_type = type(exception).__name__
+            error_msg = f"{error_type}: {exception}" if str(exception) else error_type
+
+            # Only log if error changed or first occurrence
+            if self._last_error != error_msg:
+                LOGGER.warning(
+                    "Smart API request failed (attempt %d/%d): %s",
+                    self._consecutive_failures,
+                    MAX_TRANSIENT_FAILURES,
+                    error_msg,
+                )
+                self._last_error = error_msg
+
+            # Return last known data to keep entities available if we have it
+            # and haven't exceeded max failures
+            if (
+                self.data is not None
+                and self._consecutive_failures < MAX_TRANSIENT_FAILURES
+            ):
+                LOGGER.debug("Returning cached data to keep entities available")
+                return self.data
+
+            # If no cached data or too many failures, raise UpdateFailed
+            if self.data is None:
+                LOGGER.error(
+                    "Smart API unavailable and no cached data exists: %s",
+                    error_msg,
+                )
+                raise UpdateFailed(
+                    f"API unavailable with no cached data: {error_msg}"
+                ) from exception
+
+            LOGGER.error(
+                "Smart API unavailable after %d consecutive failures: %s",
+                self._consecutive_failures,
+                error_msg,
+            )
+            raise UpdateFailed(
+                f"API unavailable after {self._consecutive_failures} attempts: {error_msg}"
+            ) from exception
         except Exception as exception:
-            raise UpdateFailed(exception) from exception
+            error_type = type(exception).__name__
+            error_msg = str(exception) or "No error message"
+            LOGGER.error(
+                "Unexpected error fetching Smart API data: %s: %s\n%s",
+                error_type,
+                error_msg,
+                traceback.format_exc(),
+            )
+            raise UpdateFailed(
+                f"Unexpected error ({error_type}): {error_msg}"
+            ) from exception
 
     def set_update_interval(self, key: str, deltatime: timedelta) -> None:
         """Update intervals by key and select the shortest"""
