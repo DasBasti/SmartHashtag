@@ -116,7 +116,15 @@ async def test_coordinator_set_and_reset_update_interval(
     coordinator.set_update_interval("short_key", timedelta(seconds=30))
     assert coordinator.update_interval == timedelta(seconds=30)
 
-    # Reset an interval to default
+    # Reset an interval - key should be removed, shortest remaining is selected
     coordinator.reset_update_interval("short_key")
-    # After reset, should be the configured default (300 seconds)
+    # After reset, short_key is removed, so shortest remaining is test_key (60 seconds)
     assert coordinator.update_interval == timedelta(seconds=60)
+    assert "short_key" not in coordinator._update_intervals
+
+    # Reset all remaining intervals - should revert to configured default
+    coordinator.reset_update_interval("test_key")
+    coordinator.reset_update_interval("another_key")
+    # All intervals removed, should use configured default (300 seconds)
+    assert coordinator.update_interval == timedelta(seconds=300)
+    assert len(coordinator._update_intervals) == 0

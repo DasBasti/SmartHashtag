@@ -119,15 +119,26 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             self.update_interval = sorted_intervals[0]
 
     def reset_update_interval(self, key: str):
-        """Reset interval for this key to default"""
-        if self.config_entry:
-            self.set_update_interval(
-                key,
-                timedelta(
-                    seconds=self.config_entry.options.get(
-                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                    )
-                ),
+        """Remove interval for this key and select shortest remaining or default"""
+        if key in self._update_intervals:
+            del self._update_intervals[key]
+            LOGGER.info(f"Updatefrequency reset for {key}")
+
+        # Recalculate the update interval
+        if self._update_intervals:
+            sorted_intervals = list(self._update_intervals.values())
+            sorted_intervals.sort()
+            self.update_interval = sorted_intervals[0]
+        elif self.config_entry:
+            # No active intervals, revert to configured default
+            self.update_interval = timedelta(
+                seconds=self.config_entry.options.get(
+                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                )
             )
         else:
-            LOGGER.warning("Cannot reset update interval due to missing config_entry")
+            # Fallback to default if no config entry
+            self.update_interval = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
+            LOGGER.warning(
+                "Using fallback update interval due to missing config_entry"
+            )
