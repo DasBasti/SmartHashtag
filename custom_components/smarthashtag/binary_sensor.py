@@ -160,13 +160,23 @@ class SmartHashtagLockBinarySensor(SmartHashtagEntity, BinarySensorEntity):
             return None
         key = remove_vin_from_key(self.entity_description.key)
         vin = vin_from_key(self.entity_description.key)
-        state = self.entity_description.is_on_fn(
-            self.coordinator.data[vin],
-            key,
-        )
-        # smart: 0 means open (unlocked), 1 means closed (locked)
-        # ha: on means open (True), off means closed (False)
-        return state
+
+        # Safely get vehicle data, return None if VIN not found
+        vehicle = self.coordinator.data.get(vin)
+        if vehicle is None:
+            return None
+
+        try:
+            state = self.entity_description.is_on_fn(
+                vehicle,
+                key,
+            )
+            # smart: 0 means open (unlocked), 1 means closed (locked)
+            # ha: on means open (True), off means closed (False)
+            return state
+        except (AttributeError, KeyError, TypeError):
+            # Return None if the required data isn't available
+            return None
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
