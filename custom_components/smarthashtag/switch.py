@@ -29,6 +29,11 @@ async def async_setup_entry(
     vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
     entities = []
 
+    vehicles = coordinator.account.vehicles or {}
+    if vehicle not in vehicles:
+        LOGGER.error("Vehicle %s not available; skipping switch setup", vehicle)
+        return
+
     entities.append(SmartChargingSwitch(coordinator, vehicle))
 
     async_add_entities(entities, update_before_add=True)
@@ -61,6 +66,8 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if charging is active."""
+        if self._vehicle is None:
+            return False
         try:
             return bool(
                 self._vehicle.battery
@@ -82,12 +89,20 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
     ) -> None:
         """Initialize the Charging Switch class."""
         super().__init__(coordinator)
-        self._vehicle = self.coordinator.account.vehicles[vehicle]
+        self._vehicle_vin = vehicle
+        self._vehicle = self.coordinator.account.vehicles.get(vehicle)
+        if self._vehicle is None:
+            LOGGER.error("Vehicle %s not available for charging switch", vehicle)
+            self._attr_available = False
+            return
         self._attr_unique_id = f"{self._attr_unique_id}_charging_switch"
         self._last_state: bool | None = None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Start charging the vehicle."""
+        if self._vehicle is None:
+            LOGGER.warning("Cannot start charging; vehicle %s unavailable", self._vehicle_vin)
+            return
         LOGGER.debug("Starting charging for vehicle %s", self._vehicle.vin)
         try:
             await self._vehicle.charging_control.start_charging()
@@ -106,6 +121,9 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Stop charging the vehicle."""
+        if self._vehicle is None:
+            LOGGER.warning("Cannot stop charging; vehicle %s unavailable", self._vehicle_vin)
+            return
         LOGGER.debug("Stopping charging for vehicle %s", self._vehicle.vin)
         try:
             await self._vehicle.charging_control.stop_charging()
