@@ -1,16 +1,21 @@
 """Unit tests for coordinator behavior on API errors."""
 
 import asyncio
+import logging
 from datetime import timedelta
 
 import pytest
 import respx
 from homeassistant.core import HomeAssistant
-from httpx import Request, Response
+from homeassistant.helpers.update_coordinator import UpdateFailed
+from httpx import ConnectError, Request, Response
 from pysmarthashtag.tests import RESPONSE_DIR, load_response
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.smarthashtag.const import DOMAIN
+from custom_components.smarthashtag.coordinator import (
+    SmartHashtagDataUpdateCoordinator,
+)
 
 
 @pytest.mark.asyncio()
@@ -190,6 +195,55 @@ async def test_coordinator_handles_timeout_gracefully(
     assert state
     assert state.state == "2024-01-23T16:44:00+00:00"
     assert state.state != "unavailable"
+
+
+@pytest.mark.asyncio()
+async def test_coordinator_logs_info_when_no_cached_data(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+):
+    """
+    Test that an info log is emitted when no cached data is available.
+
+    When the first API call fails before any data is cached, the coordinator
+    should log an informational message explaining that no cached data exists
+    and raise UpdateFailed.
+    """
+
+    class FailingAccount:
+        vehicles = None
+
+        async def get_vehicles(self):
+            raise ConnectError(
+                "Connection refused",
+                request=Request("GET", "https://api.ecloudeu.com/unavailable"),
+            )
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    coordinator = SmartHashtagDataUpdateCoordinator(
+        hass=hass,
+        account=FailingAccount(),
+        entry=entry,
+    )
+    coordinator.data = None
+
+    caplog.set_level(logging.INFO, logger="custom_components.smarthashtag")
+
+    with pytest.raises(UpdateFailed):
+        await coordinator._async_update_data()
+
+    assert any(
+        "Smart API unavailable and no cached data exists" in record.getMessage()
+        for record in caplog.records
+    )
 
 
 @pytest.mark.asyncio()
