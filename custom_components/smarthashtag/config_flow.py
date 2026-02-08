@@ -14,8 +14,8 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
-from pysmarthashtag import EndpointUrls, SmartRegion, get_endpoint_urls_for_region
 from pysmarthashtag.account import SmartAccount
+from pysmarthashtag.const import EndpointUrls
 from pysmarthashtag.models import (
     SmartAPIError,
 )
@@ -40,8 +40,6 @@ from .const import (
     MIN_SCAN_INTERVAL,
     NAME,
     REGION_CUSTOM,
-    REGION_EU,
-    REGION_INTL,
     REGIONS,
 )
 
@@ -214,12 +212,7 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 api_base_url=custom_api_base_url or None,
                 api_base_url_v2=custom_api_base_url_v2 or None,
             )
-        elif region and region != REGION_CUSTOM:
-            # Predefined region
-            if region == REGION_EU:
-                endpoint_urls = get_endpoint_urls_for_region(SmartRegion.EU)
-            elif region == REGION_INTL:
-                endpoint_urls = get_endpoint_urls_for_region(SmartRegion.INTL)
+        # For EU region (default) or other regions, use default endpoints
 
         client = SmartAccount(
             username=username,
