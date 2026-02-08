@@ -1,0 +1,23 @@
+"""Sensor entity description groups for the Smart #1/#3 integration."""
+
+from __future__ import annotations
+
+from .battery import ENTITY_BATTERY_DESCRIPTIONS
+from .climate import ENTITY_CLIMATE_DESCRIPTIONS
+from .general import ENTITY_GENERAL_DESCRIPTIONS
+from .maintenance import ENTITY_MAINTENANCE_DESCRIPTIONS
+from .position import ENTITY_POSITION_DESCRIPTIONS
+from .running import ENTITY_RUNNING_DESCRIPTIONS
+from .safety import ENTITY_SAFETY_DESCRIPTIONS
+from .tire import ENTITY_TIRE_DESCRIPTIONS
+
+__all__ = [
+    "ENTITY_BATTERY_DESCRIPTIONS",
+    "ENTITY_CLIMATE_DESCRIPTIONS",
+    "ENTITY_GENERAL_DESCRIPTIONS",
+    "ENTITY_MAINTENANCE_DESCRIPTIONS",
+    "ENTITY_POSITION_DESCRIPTIONS",
+    "ENTITY_RUNNING_DESCRIPTIONS",
+    "ENTITY_SAFETY_DESCRIPTIONS",
+    "ENTITY_TIRE_DESCRIPTIONS",
+]
