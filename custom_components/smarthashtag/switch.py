@@ -24,23 +24,7 @@ if TYPE_CHECKING:
 async def async_setup_entry(
     hass: HomeAssistant, entry: SmartHashtagConfigEntry, async_add_entities
 ):
-    """
-    Initialize and set up the Smart switch entities from the provided configuration entry.
-
-    This asynchronous function extracts the coordinator from the entry's runtime data, retrieves the vehicle
-    information using the CONF_VEHICLE key from the coordinator's configuration, creates an instance of
-    SmartChargingSwitch using this data, and adds the created entity to Home Assistant via the async_add_entities
-    callback with an option to update the entity before it is added.
-
-    Parameters:
-        hass (HomeAssistant): The Home Assistant instance.
-        entry (SmartHashtagConfigEntry): The configuration entry containing runtime and configuration data.
-        async_add_entities (Callable): Callback function to add entities to Home Assistant. Entities added will be updated
-            before being integrated.
-
-    Returns:
-        None
-    """
+    """Set up Smart switch entities from a config entry."""
     coordinator = entry.runtime_data
     vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
     entities = []
@@ -51,7 +35,21 @@ async def async_setup_entry(
 
 
 class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
-    """Representation of the Smart car charging control switch."""
+    """
+    Switch entity for controlling and monitoring the charging state of a Smart #1/#3 vehicle.
+
+    This switch reflects whether the vehicle is currently charging by monitoring the
+    `charging_status` attribute of the vehicle's battery. It considers the switch "on"
+    when `charging_status` is either "charging" or "dc_charging".
+
+    Turning the switch on or off will start or stop charging, respectively, by invoking
+    the vehicle API via the `ChargingControl` interface.
+
+    After a charging state change (on/off), the switch triggers a fast polling interval
+    (using `FAST_INTERVAL`) to quickly update the entity's state in Home Assistant.
+    Once the charging state stabilizes (i.e., no further change detected), the polling
+    interval is reset to normal to reduce API calls.
+    """
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:ev-station"
@@ -63,11 +61,18 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if charging is active."""
-        return bool(
-            self._vehicle.battery
-            and self._vehicle.battery.charging_status
-            and self._vehicle.battery.charging_status in ["charging", "dc_charging"]
-        )
+        try:
+            return bool(
+                self._vehicle.battery
+                and self._vehicle.battery.charging_status
+                and self._vehicle.battery.charging_status.upper() in ["CHARGING", "DC_CHARGING"]
+            )
+        except Exception as e:
+            LOGGER.warning(
+                "Error accessing charging status for vehicle %s: %s",
+                getattr(self._vehicle, "vin", "unknown"),
+                e,
+            )
 
     def __init__(
         self,
@@ -83,21 +88,29 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Start charging the vehicle."""
         LOGGER.debug("Starting charging for vehicle %s", self._vehicle.vin)
-        await self._vehicle.charging_control.start_charging()
-        # Set fast polling to quickly reflect state changes
-        self.coordinator.set_update_interval(
-            "charging_switch", timedelta(seconds=FAST_INTERVAL)
-        )
+        try:
+            await self._vehicle.charging_control.start_charging()
+            # Set fast polling to quickly reflect state changes
+            self.coordinator.set_update_interval(
+                "charging_switch", timedelta(seconds=FAST_INTERVAL)
+            )
+        except Exception as e:
+            LOGGER.error("Error turning on charging. {}", e)
+
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Stop charging the vehicle."""
         LOGGER.debug("Stopping charging for vehicle %s", self._vehicle.vin)
-        await self._vehicle.charging_control.stop_charging()
-        # Set fast polling to quickly reflect state changes
-        self.coordinator.set_update_interval(
-            "charging_switch", timedelta(seconds=FAST_INTERVAL)
-        )
+        try:
+            await self._vehicle.charging_control.stop_charging()
+            # Set fast polling to quickly reflect state changes
+            self.coordinator.set_update_interval(
+                "charging_switch", timedelta(seconds=FAST_INTERVAL)
+            )
+        except Exception as e:
+            LOGGER.error("Error turning off charging. {}", e)
+
         await self.coordinator.async_request_refresh()
 
     async def async_update(self) -> None:
