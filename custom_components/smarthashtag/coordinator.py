@@ -122,7 +122,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         """Remove interval for this key and select shortest remaining or default"""
         if key in self._update_intervals:
             del self._update_intervals[key]
-            LOGGER.info(f"Updatefrequency reset for {key}")
+            LOGGER.info("Update frequency reset for %s", key)
 
         # Recalculate the update interval
         if self._update_intervals:
