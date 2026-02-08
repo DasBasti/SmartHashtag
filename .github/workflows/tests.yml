@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.13", "3.14"]
     name: Pre-commit
     steps:
       - name: Check out the repository
@@ -72,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.13", "3.14"]
     runs-on: "ubuntu-latest"
     name: Run tests
     steps:
