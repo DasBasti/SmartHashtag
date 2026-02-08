@@ -245,7 +245,7 @@ async def test_coordinator_max_transient_failures_threshold(
     1. Cached data is returned when consecutive failures are below MAX_TRANSIENT_FAILURES
     2. UpdateFailed is raised once MAX_TRANSIENT_FAILURES is reached (entities become unavailable)
     """
-    from homeassistant.exceptions import UpdateFailed
+    from homeassistant.helpers.update_coordinator import UpdateFailed
 
     from custom_components.smarthashtag.coordinator import MAX_TRANSIENT_FAILURES
 
