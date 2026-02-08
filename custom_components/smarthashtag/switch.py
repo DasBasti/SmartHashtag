@@ -95,8 +95,12 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
             self.coordinator.set_update_interval(
                 "charging_switch", timedelta(seconds=FAST_INTERVAL)
             )
-        except Exception as e:
-            LOGGER.error("Error turning on charging. {}", e)
+        except Exception:
+            # Log with exception info to avoid formatting errors and aid debugging
+            LOGGER.exception(
+                "Error turning on charging for vehicle %s",
+                getattr(self._vehicle, "vin", "unknown"),
+            )
 
         await self.coordinator.async_request_refresh()
 
@@ -109,8 +113,11 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
             self.coordinator.set_update_interval(
                 "charging_switch", timedelta(seconds=FAST_INTERVAL)
             )
-        except Exception as e:
-            LOGGER.error("Error turning off charging. {}", e)
+        except Exception:
+            LOGGER.exception(
+                "Error turning off charging for vehicle %s",
+                getattr(self._vehicle, "vin", "unknown"),
+            )
 
         await self.coordinator.async_request_refresh()
 
