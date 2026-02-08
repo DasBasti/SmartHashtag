@@ -310,8 +310,11 @@ async def test_coordinator_max_transient_failures_threshold(
 
     # The next failure should be the MAX_TRANSIENT_FAILURES-th failure
     # This should raise UpdateFailed and make entities unavailable
-    with pytest.raises(UpdateFailed):
+    with pytest.raises(UpdateFailed) as exc_info:
         await coordinator.async_refresh()
+
+    # Verify the error message mentions the failure count
+    assert str(MAX_TRANSIENT_FAILURES) in str(exc_info.value)
 
     # Verify failure counter reached the threshold
     assert coordinator._consecutive_failures == MAX_TRANSIENT_FAILURES
