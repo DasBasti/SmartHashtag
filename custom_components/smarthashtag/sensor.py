@@ -64,6 +64,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
             "default": "default",
             "not_charging": "not charging",
             "error": "Error",
+            "unknown": "unknown",
         },
         device_class=SensorDeviceClass.ENUM,
     ),
@@ -1101,6 +1102,14 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             if "charging_status" in self.entity_description.key:
                 if isinstance(data, str):
                     data = data.lower()
+                    allowed = set(self.entity_description.options or {})
+                    if allowed and data not in allowed:
+                        LOGGER.debug(
+                            "Charging status %s not in allowed options %s; reporting unknown",
+                            data,
+                            allowed,
+                        )
+                        return None
                 return data
 
             # invert power consumption value to display the consumed power as positive
