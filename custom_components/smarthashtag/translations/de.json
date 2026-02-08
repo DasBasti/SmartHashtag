@@ -48,6 +48,11 @@
         "name": "Klimaanlage"
       }
     },
+    "switch": {
+      "charging_control": {
+        "name": "Ladesteuerung"
+      }
+    },
     "select": {
       "steering_wheel_heater": {
         "name": "Lenkradheizung"

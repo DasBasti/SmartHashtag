@@ -78,6 +78,11 @@ async def async_setup_entry(
     vehicle = coordinator.config_entry.data.get(CONF_VEHICLE)
     entities = []
 
+    vehicles = coordinator.account.vehicles or {}
+    if vehicle not in vehicles:
+        LOGGER.error("Vehicle %s not available; skipping select setup", vehicle)
+        return
+
     for location in HeatingLocation:
         entities.append(SmartPreHeatedLocation(coordinator, vehicle, location))
 
@@ -96,7 +101,14 @@ class SmartPreHeatedLocation(SelectEntity):
         """Initialize heated seat entity."""
         super().__init__()
         self.coordinator = coordinator
-        self._vehicle = self.coordinator.account.vehicles[vehicle]
+        self._vehicle_vin = vehicle
+        self._vehicle = self.coordinator.account.vehicles.get(vehicle)
+        if self._vehicle is None:
+            LOGGER.error(
+                "Vehicle %s not available for preheating select", self._vehicle_vin
+            )
+            self._attr_available = False
+            return
         self._attr_name = (
             f"Smart {vehicle} Conditioning {HEATING_LOCATION_NAMES[location]}"
         )
@@ -126,6 +138,13 @@ class SmartPreHeatedLocation(SelectEntity):
 
     async def async_select_option(self, option: str, **kwargs):
         """Change the selected option."""
+        if self._vehicle is None:
+            LOGGER.warning(
+                "Cannot set option %s; vehicle %s unavailable",
+                option,
+                self._vehicle_vin,
+            )
+            return
 
         level: int = HEATING_LEVEL_OPTIONS_MAP[option]
         self._vehicle.climate_control.set_heating_level(self._location, level)
@@ -146,6 +165,9 @@ class SmartPreHeatedLocation(SelectEntity):
     @property
     def current_option(self) -> str:
         """Return current heated steering setting."""
+        if self._vehicle is None:
+            return STEERING_HEATER_OPTIONS[0]
+
         current_value = self._get_level_for_location(self._location)
         self._vehicle.climate_control.set_heating_level(self._location, current_value)
         current_str = next(

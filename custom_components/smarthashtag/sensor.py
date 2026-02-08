@@ -64,6 +64,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
             "default": "default",
             "not_charging": "not charging",
             "error": "Error",
+            "unknown": "unknown",
         },
         device_class=SensorDeviceClass.ENUM,
     ),
@@ -1060,6 +1061,9 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             vehicle = self.coordinator.account.vehicles.get(
                 vin_from_key(self.entity_description.key)
             )
+            if vehicle is None or vehicle.battery is None:
+                return self._last_valid_value
+
             data = getattr(
                 vehicle.battery,
                 remove_vin_from_key(self.entity_description.key),
@@ -1098,6 +1102,14 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
             if "charging_status" in self.entity_description.key:
                 if isinstance(data, str):
                     data = data.lower()
+                    allowed = set(self.entity_description.options or {})
+                    if allowed and data not in allowed:
+                        LOGGER.debug(
+                            "Charging status %s not in allowed options %s; reporting unknown",
+                            data,
+                            allowed,
+                        )
+                        return None
                 return data
 
             # invert power consumption value to display the consumed power as positive
@@ -1120,20 +1132,31 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        data = getattr(
-            self.coordinator.account.vehicles.get(
+        try:
+            vehicle = self.coordinator.account.vehicles.get(
                 vin_from_key(self.entity_description.key)
-            ).battery,
-            remove_vin_from_key(self.entity_description.key),
-        )
-        if "charging_status" in self.entity_description.key:
-            return None
-        if "charger_connection_status" in self.entity_description.key:
-            return None
-        if isinstance(data, ValueWithUnit):
-            return data.unit
+            )
+            if vehicle is None or vehicle.battery is None:
+                return None
 
-        return data
+            data = getattr(
+                vehicle.battery,
+                remove_vin_from_key(self.entity_description.key),
+            )
+            if "charging_status" in self.entity_description.key:
+                return None
+            if "charger_connection_status" in self.entity_description.key:
+                return None
+            if isinstance(data, ValueWithUnit):
+                return data.unit
+
+            return data
+
+        except AttributeError as err:
+            LOGGER.debug(
+                "AttributeError unit: %s (%s)", self.entity_description.key, err
+            )
+            return None
 
 
 class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
@@ -1156,30 +1179,43 @@ class SmartHashtagTireSensor(SmartHashtagEntity, SensorEntity):
         try:
             key = "_".join(self.entity_description.key.split("_")[1:-1])
             tire_idx = int(self.entity_description.key.split("_")[-1])
-            return getattr(
-                self.coordinator.account.vehicles.get(
-                    vin_from_key(self.entity_description.key)
-                ).tires,
-                key,
-            )[tire_idx].value
+            tires = self.coordinator.account.vehicles.get(
+                vin_from_key(self.entity_description.key)
+            ).tires
 
-        except AttributeError as err:
-            LOGGER.error(
-                "AttributeError value: %s (%s)", self.entity_description.key, err
+            if not tires:
+                return self._last_valid_value
+
+            value = getattr(tires, key)[tire_idx].value
+            self._last_valid_value = value
+            return value
+
+        except (AttributeError, IndexError, TypeError) as err:
+            LOGGER.debug(
+                "Tire value unavailable for %s: %s", self.entity_description.key, err
             )
             return self._last_valid_value
 
     @property
     def native_unit_of_measurement(self) -> str:
         """Return the unit of measurement of the sensor."""
-        key = "_".join(self.entity_description.key.split("_")[1:-1])
-        tire_idx = int(self.entity_description.key.split("_")[-1])
-        data = getattr(
-            self.coordinator.account.vehicles.get(
+        try:
+            key = "_".join(self.entity_description.key.split("_")[1:-1])
+            tire_idx = int(self.entity_description.key.split("_")[-1])
+            tires = self.coordinator.account.vehicles.get(
                 vin_from_key(self.entity_description.key)
-            ).tires,
-            key,
-        )[tire_idx]
+            ).tires
+
+            if not tires:
+                return None
+
+            data = getattr(tires, key)[tire_idx]
+
+        except (AttributeError, IndexError, TypeError) as err:
+            LOGGER.debug(
+                "Tire unit unavailable for %s: %s", self.entity_description.key, err
+            )
+            return None
 
         # FIXME: if pysmarthashtag is updated to return the unit as °C remove this
         if data.unit == "C":
@@ -1208,13 +1244,18 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
         try:
             key = remove_vin_from_key(self.entity_description.key)
             vin = vin_from_key(self.entity_description.key)
+            vehicle = self.coordinator.account.vehicles.get(vin)
+            if vehicle is None:
+                return self._last_valid_value
+
             if key.startswith("service"):
                 key = self.entity_description.key.split("_")[-1]
-                data = self.coordinator.account.vehicles.get(vin).service[key]
+                if vehicle.service is None:
+                    return self._last_valid_value
+                data = vehicle.service[key]
             else:
                 data = getattr(
-                    self.coordinator.account.vehicles.get(vin),
-                    remove_vin_from_key(self.entity_description.key),
+                    vehicle, remove_vin_from_key(self.entity_description.key)
                 )
 
             if key == "engine_state":
@@ -1256,6 +1297,8 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                 return self.entity_description.native_unit_of_measurement
             if key.startswith("service"):
                 key = key.rsplit("_", maxsplit=1)[-1]
+                if vehicle.service is None:
+                    return self.entity_description.native_unit_of_measurement
                 data = vehicle.service[key]
             else:
                 data = getattr(vehicle, key)
@@ -1298,6 +1341,7 @@ class SmartHashtagMaintenanceSensor(SmartHashtagEntity, SensorEntity):
         super().__init__(coordinator)
         self._attr_unique_id = f"{self._attr_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
+        self._last_valid_value = None
 
     @property
     def native_value(self) -> str:
@@ -1305,19 +1349,22 @@ class SmartHashtagMaintenanceSensor(SmartHashtagEntity, SensorEntity):
         try:
             key = remove_vin_from_key(self.entity_description.key)
             vin = vin_from_key(self.entity_description.key)
-            data = getattr(
-                self.coordinator.account.vehicles.get(vin).maintenance,
-                key,
-            )
+            vehicle = self.coordinator.account.vehicles.get(vin)
+            if vehicle is None or vehicle.maintenance is None:
+                return self._last_valid_value
+
+            data = getattr(vehicle.maintenance, key)
             if isinstance(data, ValueWithUnit):
+                self._last_valid_value = data.value
                 return data.value
+            self._last_valid_value = data
             return data
 
         except AttributeError as err:
             LOGGER.error(
                 "AttributeError value: %s (%s)", self.entity_description.key, err
             )
-            return None
+            return self._last_valid_value
 
 
 class SmartHashtagRunningSensor(SmartHashtagEntity, SensorEntity):
@@ -1340,12 +1387,15 @@ class SmartHashtagRunningSensor(SmartHashtagEntity, SensorEntity):
         try:
             key = remove_vin_from_key(self.entity_description.key)
             vin = vin_from_key(self.entity_description.key)
-            data = getattr(
-                self.coordinator.account.vehicles.get(vin).running,
-                key,
-            )
+            vehicle = self.coordinator.account.vehicles.get(vin)
+            if vehicle is None or vehicle.running is None:
+                return self._last_valid_value
+
+            data = getattr(vehicle.running, key)
             if isinstance(data, ValueWithUnit):
+                self._last_valid_value = data.value
                 return data.value
+            self._last_valid_value = data
             return data
 
         except AttributeError as err:
@@ -1395,12 +1445,15 @@ class SmartHashtagClimateSensor(SmartHashtagEntity, SensorEntity):
         try:
             key = remove_vin_from_key(self.entity_description.key)
             vin = vin_from_key(self.entity_description.key)
-            data = getattr(
-                self.coordinator.account.vehicles.get(vin).climate,
-                key,
-            )
+            vehicle = self.coordinator.account.vehicles.get(vin)
+            if vehicle is None or vehicle.climate is None:
+                return self._last_valid_value
+
+            data = getattr(vehicle.climate, key)
             if isinstance(data, ValueWithUnit):
+                self._last_valid_value = data.value
                 return data.value
+            self._last_valid_value = data
             return data
 
         except AttributeError as err:
@@ -1458,12 +1511,15 @@ class SmartHashtagSafetySensor(SmartHashtagEntity, SensorEntity):
         try:
             key = remove_vin_from_key(self.entity_description.key)
             vin = vin_from_key(self.entity_description.key)
-            data = getattr(
-                self.coordinator.account.vehicles.get(vin).safety,
-                key,
-            )
+            vehicle = self.coordinator.account.vehicles.get(vin)
+            if vehicle is None or vehicle.safety is None:
+                return self._last_valid_value
+
+            data = getattr(vehicle.safety, key)
             if isinstance(data, ValueWithUnit):
+                self._last_valid_value = data.value
                 return data.value
+            self._last_valid_value = data
             return data
 
         except AttributeError as err:
