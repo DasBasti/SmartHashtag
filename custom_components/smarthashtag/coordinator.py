@@ -139,6 +139,4 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         else:
             # Fallback to default if no config entry
             self.update_interval = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
-            LOGGER.warning(
-                "Using fallback update interval due to missing config_entry"
-            )
+            LOGGER.warning("Using fallback update interval due to missing config_entry")
