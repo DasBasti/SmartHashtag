@@ -65,7 +65,8 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
             return bool(
                 self._vehicle.battery
                 and self._vehicle.battery.charging_status
-                and self._vehicle.battery.charging_status.upper() in ["CHARGING", "DC_CHARGING"]
+                and self._vehicle.battery.charging_status.upper()
+                in ["CHARGING", "DC_CHARGING"]
             )
         except Exception as e:
             LOGGER.warning(
