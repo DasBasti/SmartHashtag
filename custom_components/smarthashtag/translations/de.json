@@ -22,13 +22,29 @@
           "api_base_url": "API-Basis-URL",
           "api_base_url_v2": "API-Basis-URL v2"
         }
+      },
+      "reconfigure": {
+        "description": "Aktualisieren Sie Ihre Smart-Kontodaten oder ändern Sie die Region. Die Integration wird nach dem Speichern neu geladen.",
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort",
+          "region": "Region / Endpunkt"
+        }
+      },
+      "reconfigure_vehicle": {
+        "description": "Fahrzeug-VIN für das aktualisierte Konto auswählen",
+        "data": {
+          "vehicle": "Vehicle Identification Number"
+        }
       }
     },
     "error": {
       "auth": "Authentifizierung fehlgeschlagen, bitte überprüfen Sie Ihre Anmeldeinformationen und versuchen Sie es erneut.",
       "custom_endpoints_required": "Mindestens eine benutzerdefinierte Endpunkt-URL muss angegeben werden"
     },
-    "abort": {}
+    "abort": {
+      "reconfigure_successful": "Konto erfolgreich aktualisiert. Die Integration wird neu geladen."
+    }
   },
   "options": {
     "step": {

@@ -22,13 +22,29 @@
           "api_base_url": "API Base URL",
           "api_base_url_v2": "API Base URL v2"
         }
+      },
+      "reconfigure": {
+        "description": "Update your Smart account credentials or change region. The integration will reload after saving.",
+        "data": {
+          "username": "Username",
+          "password": "Password",
+          "region": "Region / Endpoint"
+        }
+      },
+      "reconfigure_vehicle": {
+        "description": "Select vehicle VIN for the updated account",
+        "data": {
+          "vehicle": "Vehicle identification number"
+        }
       }
     },
     "error": {
       "auth": "Auth failed, please check your username and password",
       "custom_endpoints_required": "At least one custom endpoint URL must be provided"
     },
-    "abort": {}
+    "abort": {
+      "reconfigure_successful": "Account updated successfully. The integration will reload."
+    }
   },
   "options": {
     "step": {
