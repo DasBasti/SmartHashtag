@@ -57,12 +57,21 @@ actions:
         {% else %}
         0
         {% endif %}
-      speed: ""
-      lat: "{{ state_attr('device_tracker.smart_none', 'latitude') | default('') }}"
-      lon: "{{ state_attr('device_tracker.smart_none', 'longitude') | default('') }}"
+      lat: >
+        {% if state_attr('device_tracker.smart_none', 'latitude') != None %}
+          {{ state_attr('device_tracker.smart_none', 'latitude') }}
+        {% else %}
+          null
+        {% endif %}
+      lon: >
+        {% if state_attr('device_tracker.smart_none', 'longitude') != None %}
+          {{ state_attr('device_tracker.smart_none', 'longitude') }}
+        {% else %}
+          null
+        {% endif %}
       elevation: >-
         {{ state_attr('device_tracker.smart_none', 'altitude').value |
-        default('') }}
+        default('null') }}
       is_charging: >
         {% if states('sensor.smart_charging_status') == 'charging' or
         states('sensor.smart_charging_status') == 'DC charging' %}
@@ -76,7 +85,12 @@ actions:
         {% else %}
             0
         {% endif %}
-      is_parked: "{{ states('binary_sensor.smart_electric_park_brake_status') | default(0) }}"
+      is_parked: |
+        {% if states('binary_sensor.smart_electric_park_brake_status') %}
+            1
+        {% else %}
+            0
+        {% endif %}
       ext_temp: >-
         {{ states('sensor.smart_exterior_temperature', rounded=False,
         with_unit=False) | default('') }}
@@ -93,12 +107,14 @@ And this to your `configuration.yaml` to create the `rest_command`.
 
 ```yaml
 rest_command:
-  abrp:
+  abrp: # As documented in https://documenter.getpostman.com/view/7396339/SWTK5a8w#fdb20525-51da-4195-8138-54deabe907d5
     url: https://api.iternio.com/1/tlm/send
     method: post
     headers:
       Authorization: "APIKEY {{ api_key }}"
-    payload: {"data":[{"token":"{{ token }}",{"tlm":{"utc":{{utc}},"soc":{{soc}},"soh":{{soh}},"power":{{power}},"speed":{{speed}},"lat":{{lat}},"lon":{{lon}},"is_charging":{{is_charging}},"is_dcfc":{{is_dcfc}},"is_parked":{{is_parked}},"elevation":{{elevation}},"ext_temp":{{ext_temp}},"odometer":{{odometer}},"est_battery_range":{{est_battery_range}}}]}
+      accept: "application/json"
+    content_type: "application/json"
+    payload: '{"data":[{"token":"{{ token }}",{"tlm":{"utc":{{ utc }},"soc":{{ soc }},"soh":{{ soh }},"power":{{ power }},"lat":{{ lat }},"lon":{{ lon }},"is_charging":{{ is_charging }},"is_dcfc":{{ is_dcfc }},"is_parked":{{ is_parked }},"elevation":{{ elevation }},"ext_temp":{{ ext_temp }},"odometer":{{ odometer }},"est_battery_range":{{est_battery_range}}}}}]}'
 ```
 
 ## Connect to EVCC
