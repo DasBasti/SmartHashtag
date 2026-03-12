@@ -45,7 +45,8 @@ actions:
     data:
       token: 99999999-aaaa-aaaa-bbbb-eeeeeeeeee # generated for each car in ABRP app
       api_key: 8888888-2222-44444-bbbb-333333333 # obtained from contact@iternio.com , see https://documenter.getpostman.com/view/7396339/SWTK5a8w
-      utc: "{{ as_timestamp(states('sensor.smart_last_update')) | int }}"
+      utc: >-
+        {{ as_timestamp(states('sensor.smart_last_update')) | int }}
       soc: >-
         {{ states('sensor.smart_battery', rounded=False, with_unit=False) |
         default('') }}
@@ -57,18 +58,12 @@ actions:
         {% else %}
         0
         {% endif %}
-      lat: >
-        {% if state_attr('device_tracker.smart_none', 'latitude') != None %}
-          {{ state_attr('device_tracker.smart_none', 'latitude') }}
-        {% else %}
-          null
-        {% endif %}
-      lon: >
-        {% if state_attr('device_tracker.smart_none', 'longitude') != None %}
-          {{ state_attr('device_tracker.smart_none', 'longitude') }}
-        {% else %}
-          null
-        {% endif %}
+      lat: >-
+        {{ state_attr('device_tracker.smart_none', 'latitude') |
+        default('null') }}
+      lon: >-
+        {{ state_attr('device_tracker.smart_none', 'longitude') |
+        default('null') }}
       elevation: >-
         {{ state_attr('device_tracker.smart_none', 'altitude').value |
         default('null') }}
@@ -86,7 +81,7 @@ actions:
             0
         {% endif %}
       is_parked: |
-        {% if states('binary_sensor.smart_electric_park_brake_status') %}
+        {% if states('binary_sensor.smart_electric_park_brake_status') == 'off' %}
             1
         {% else %}
             0
@@ -108,13 +103,10 @@ And this to your `configuration.yaml` to create the `rest_command`.
 ```yaml
 rest_command:
   abrp: # As documented in https://documenter.getpostman.com/view/7396339/SWTK5a8w#fdb20525-51da-4195-8138-54deabe907d5
-    url: https://api.iternio.com/1/tlm/send
+    url: https://api.iternio.com/1/tlm/send?token={{ token }}&tlm={"utc":{{ utc }},"soc":{{ soc }},"soh":{{ soh }},"power":{{ power }},"lat":{{ lat }},"lon":{{ lon }},"is_charging":{{ is_charging }},"is_dcfc":{{ is_dcfc }},"is_parked":{{ is_parked }},"elevation":{{ elevation }},"ext_temp":{{ ext_temp }},"odometer":{{ odometer }},"est_battery_range":{{ est_battery_range }}}
     method: post
     headers:
       Authorization: "APIKEY {{ api_key }}"
-      accept: "application/json"
-    content_type: "application/json"
-    payload: '{"data":[{"token":"{{ token }}",{"tlm":{"utc":{{ utc }},"soc":{{ soc }},"soh":{{ soh }},"power":{{ power }},"lat":{{ lat }},"lon":{{ lon }},"is_charging":{{ is_charging }},"is_dcfc":{{ is_dcfc }},"is_parked":{{ is_parked }},"elevation":{{ elevation }},"ext_temp":{{ ext_temp }},"odometer":{{ odometer }},"est_battery_range":{{est_battery_range}}}}}]}'
 ```
 
 ## Connect to EVCC
