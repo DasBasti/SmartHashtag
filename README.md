@@ -39,13 +39,16 @@ triggers:
   - entity_id:
       - sensor.smart_last_update
     trigger: state
-conditions: []
+conditions:
+  - condition: template
+    value_template: "{{ states('sensor.smart_last_update') not in ['unavailable', 'unknown'] }}"
 actions:
   - action: rest_command.abrp
     data:
       token: 99999999-aaaa-aaaa-bbbb-eeeeeeeeee # generated for each car in ABRP app
       api_key: 8888888-2222-44444-bbbb-333333333 # obtained from contact@iternio.com , see https://documenter.getpostman.com/view/7396339/SWTK5a8w
-      utc: "{{ as_timestamp(states('sensor.smart_last_update')) | int }}"
+      utc: >-
+        {{ as_timestamp(states('sensor.smart_last_update')) | int }}
       soc: >-
         {{ states('sensor.smart_battery', rounded=False, with_unit=False) |
         default('') }}
@@ -57,12 +60,15 @@ actions:
         {% else %}
         0
         {% endif %}
-      speed: ""
-      lat: "{{ state_attr('device_tracker.smart_none', 'latitude') | default('') }}"
-      lon: "{{ state_attr('device_tracker.smart_none', 'longitude') | default('') }}"
+      lat: >-
+        {{ state_attr('device_tracker.smart_none', 'latitude') |
+        default('null') }}
+      lon: >-
+        {{ state_attr('device_tracker.smart_none', 'longitude') |
+        default('null') }}
       elevation: >-
         {{ state_attr('device_tracker.smart_none', 'altitude').value |
-        default('') }}
+        default('null') }}
       is_charging: >
         {% if states('sensor.smart_charging_status') == 'charging' or
         states('sensor.smart_charging_status') == 'DC charging' %}
@@ -76,7 +82,12 @@ actions:
         {% else %}
             0
         {% endif %}
-      is_parked: "{{ states('binary_sensor.smart_electric_park_brake_status') | default(0) }}"
+      is_parked: |
+        {% if states('binary_sensor.smart_electric_park_brake_status') == 'off' %}
+            1
+        {% else %}
+            0
+        {% endif %}
       ext_temp: >-
         {{ states('sensor.smart_exterior_temperature', rounded=False,
         with_unit=False) | default('') }}
@@ -93,12 +104,11 @@ And this to your `configuration.yaml` to create the `rest_command`.
 
 ```yaml
 rest_command:
-  abrp:
-    url: https://api.iternio.com/1/tlm/send
+  abrp: # As documented in https://documenter.getpostman.com/view/7396339/SWTK5a8w#fdb20525-51da-4195-8138-54deabe907d5
+    url: https://api.iternio.com/1/tlm/send?token={{ token }}&tlm={"utc":{{ utc }},"soc":{{ soc }},"soh":{{ soh }},"power":{{ power }},"lat":{{ lat }},"lon":{{ lon }},"is_charging":{{ is_charging }},"is_dcfc":{{ is_dcfc }},"is_parked":{{ is_parked }},"elevation":{{ elevation }},"ext_temp":{{ ext_temp }},"odometer":{{ odometer }},"est_battery_range":{{ est_battery_range }}}
     method: post
     headers:
       Authorization: "APIKEY {{ api_key }}"
-    payload: {"data":[{"token":"{{ token }}",{"tlm":{"utc":{{utc}},"soc":{{soc}},"soh":{{soh}},"power":{{power}},"speed":{{speed}},"lat":{{lat}},"lon":{{lon}},"is_charging":{{is_charging}},"is_dcfc":{{is_dcfc}},"is_parked":{{is_parked}},"elevation":{{elevation}},"ext_temp":{{ext_temp}},"odometer":{{odometer}},"est_battery_range":{{est_battery_range}}}]}
 ```
 
 ## Connect to EVCC
