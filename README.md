@@ -39,7 +39,9 @@ triggers:
   - entity_id:
       - sensor.smart_last_update
     trigger: state
-conditions: []
+conditions:
+  - condition: template
+    value_template: "{{ states('sensor.smart_last_update') not in ['unavailable', 'unknown'] }}"
 actions:
   - action: rest_command.abrp
     data:
