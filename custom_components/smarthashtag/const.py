@@ -9,7 +9,7 @@ LOGGER: Logger = getLogger(__package__)
 NAME = "Smart"
 DOMAIN = "smarthashtag"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.8.0"
+VERSION = "0.8.0-intl"
 
 ATTRIBUTION = "Data provided by http://smart.com/"
 ISSUE_URL = "https://github.com/DasBasti/SmartHashtag/issues"
@@ -51,10 +51,12 @@ DEFAULT_REGION = "eu"
 
 # Region options
 REGION_EU = "eu"
+REGION_INTL = "intl"
 REGION_CUSTOM = "custom"
 
 REGIONS = {
     REGION_EU: "Europe (Hello Smart EU)",
+    REGION_INTL: "International (Hello Smart International - Australia, Singapore, etc.)",
     REGION_CUSTOM: "Custom Endpoints",
 }
 

@@ -15,7 +15,7 @@ from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from pysmarthashtag.account import SmartAccount
-from pysmarthashtag.const import EndpointUrls
+from pysmarthashtag.const import EndpointUrls, SmartRegion, get_endpoint_urls_for_region
 from pysmarthashtag.models import (
     SmartAPIError,
 )
@@ -40,6 +40,8 @@ from .const import (
     MIN_SCAN_INTERVAL,
     NAME,
     REGION_CUSTOM,
+    REGION_EU,
+    REGION_INTL,
     REGIONS,
 )
 
@@ -167,6 +169,9 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self.init_info[CONF_API_BASE_URL] = api_base_url
                     self.init_info[CONF_API_BASE_URL_V2] = api_base_url_v2
                     self.init_info[CONF_VEHICLES] = list(vehicles)
+                    # If reconfiguring, skip vehicle selection and update directly
+                    if self._is_reconfigure:
+                        return await self._finish_reconfigure()
                     return await self.async_step_vehicle()
 
         return self.async_show_form(
@@ -194,6 +199,155 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=_errors,
         )
 
+    @property
+    def _is_reconfigure(self) -> bool:
+        """Check if we are in a reconfigure flow."""
+        return self.init_info.get("_reconfigure", False)
+
+    async def async_step_reconfigure(
+        self,
+        user_input: dict | None = None,
+    ) -> config_entries.FlowResult:
+        """Handle reconfiguration of credentials and region."""
+        _errors = {}
+        reconfigure_entry = self._get_reconfigure_entry()
+
+        if user_input is not None:
+            # Check if custom endpoints are selected and redirect to custom step
+            if user_input.get(CONF_REGION) == REGION_CUSTOM:
+                self.init_info = user_input
+                self.init_info["_reconfigure"] = True
+                return await self.async_step_custom_endpoints()
+
+            try:
+                vehicles = await self._test_credentials(
+                    username=user_input[CONF_USERNAME],
+                    password=user_input[CONF_PASSWORD],
+                    region=user_input.get(CONF_REGION, DEFAULT_REGION),
+                )
+            except SmartAPIError as exception:
+                LOGGER.warning(exception)
+                _errors["base"] = "auth"
+            else:
+                self.init_info = user_input
+                self.init_info["_reconfigure"] = True
+                self.init_info[CONF_VEHICLES] = list(vehicles)
+                return await self._finish_reconfigure()
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_USERNAME,
+                        default=(user_input or {}).get(
+                            CONF_USERNAME, reconfigure_entry.data.get(CONF_USERNAME)
+                        ),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.EMAIL,
+                            autocomplete="username",
+                        ),
+                    ),
+                    vol.Required(
+                        CONF_PASSWORD,
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.PASSWORD,
+                            autocomplete="current-password",
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_REGION,
+                        default=(user_input or {}).get(
+                            CONF_REGION,
+                            reconfigure_entry.data.get(CONF_REGION, DEFAULT_REGION),
+                        ),
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                selector.SelectOptionDict(value=k, label=v)
+                                for k, v in REGIONS.items()
+                            ],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        ),
+                    ),
+                }
+            ),
+            errors=_errors,
+        )
+
+    async def _finish_reconfigure(self) -> config_entries.FlowResult:
+        """Complete reconfiguration by selecting a vehicle and updating the entry."""
+        reconfigure_entry = self._get_reconfigure_entry()
+        vehicles = self.init_info[CONF_VEHICLES]
+
+        # Build updated data, removing internal flags
+        data_updates = {
+            CONF_USERNAME: self.init_info[CONF_USERNAME],
+            CONF_PASSWORD: self.init_info[CONF_PASSWORD],
+            CONF_REGION: self.init_info.get(CONF_REGION, DEFAULT_REGION),
+        }
+
+        # Include custom endpoint URLs if present
+        if CONF_API_BASE_URL in self.init_info:
+            data_updates[CONF_API_BASE_URL] = self.init_info[CONF_API_BASE_URL]
+        if CONF_API_BASE_URL_V2 in self.init_info:
+            data_updates[CONF_API_BASE_URL_V2] = self.init_info[CONF_API_BASE_URL_V2]
+
+        # If only one vehicle or if the current vehicle is still available, auto-select
+        current_vehicle = reconfigure_entry.data.get(CONF_VEHICLE)
+        if len(vehicles) == 1:
+            data_updates[CONF_VEHICLE] = vehicles[0]
+            data_updates[CONF_VEHICLES] = vehicles
+        elif current_vehicle and current_vehicle in vehicles:
+            data_updates[CONF_VEHICLE] = current_vehicle
+            data_updates[CONF_VEHICLES] = vehicles
+        else:
+            # Multiple vehicles and current one not found - show vehicle picker
+            return await self.async_step_reconfigure_vehicle()
+
+        return self.async_update_reload_and_abort(
+            reconfigure_entry,
+            data_updates=data_updates,
+        )
+
+    async def async_step_reconfigure_vehicle(
+        self,
+        user_input: dict | None = None,
+    ) -> config_entries.FlowResult:
+        """Handle vehicle selection during reconfigure."""
+        reconfigure_entry = self._get_reconfigure_entry()
+
+        if user_input is not None:
+            data_updates = {
+                CONF_USERNAME: self.init_info[CONF_USERNAME],
+                CONF_PASSWORD: self.init_info[CONF_PASSWORD],
+                CONF_REGION: self.init_info.get(CONF_REGION, DEFAULT_REGION),
+                CONF_VEHICLE: user_input[CONF_VEHICLE],
+                CONF_VEHICLES: self.init_info[CONF_VEHICLES],
+            }
+            if CONF_API_BASE_URL in self.init_info:
+                data_updates[CONF_API_BASE_URL] = self.init_info[CONF_API_BASE_URL]
+            if CONF_API_BASE_URL_V2 in self.init_info:
+                data_updates[CONF_API_BASE_URL_V2] = self.init_info[CONF_API_BASE_URL_V2]
+
+            return self.async_update_reload_and_abort(
+                reconfigure_entry,
+                data_updates=data_updates,
+            )
+
+        return self.async_show_form(
+            step_id="reconfigure_vehicle",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_VEHICLE): vol.In(
+                        self.init_info[CONF_VEHICLES]
+                    )
+                }
+            ),
+        )
+
     async def _test_credentials(
         self,
         username: str,
@@ -212,7 +366,12 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 api_base_url=custom_api_base_url or None,
                 api_base_url_v2=custom_api_base_url_v2 or None,
             )
-        # For EU region (default) or other regions, use default endpoints
+        elif region and region != REGION_CUSTOM:
+            # Predefined region
+            if region == REGION_EU:
+                endpoint_urls = get_endpoint_urls_for_region(SmartRegion.EU)
+            elif region == REGION_INTL:
+                endpoint_urls = get_endpoint_urls_for_region(SmartRegion.INTL)
 
         client = SmartAccount(
             username=username,
