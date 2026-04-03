@@ -11,6 +11,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
+from pysmarthashtag.control.climate import HeatingLocation
 
 from .const import (
     CONF_CONDITIONING_TEMP,
@@ -140,6 +141,18 @@ class SmartConditioningMode(ClimateEntity):
         except Exception as e:
             LOGGER.error(f"Cannot access coordinator config: {e}")
 
+    def _restore_heating_levels(self) -> None:
+        """Restore heating levels from saved config entry data to the climate control."""
+        selects = self.coordinator.config_entry.data.get("selects", {})
+        for location in HeatingLocation:
+            level = selects.get(location.value, 0)
+            try:
+                self._vehicle.climate_control.set_heating_level(location, level)
+            except Exception as e:
+                LOGGER.warning(
+                    "Failed to restore heating level for %s: %s", location, e
+                )
+
     async def async_turn_on(self) -> None:
         """Turn on the climate system."""
         if self._vehicle is None:
@@ -147,6 +160,8 @@ class SmartConditioningMode(ClimateEntity):
                 "Cannot turn on climate; vehicle %s unavailable", self._vehicle_vin
             )
             return
+        await self.coordinator.account.select_active_vehicle(self._vehicle_vin)
+        self._restore_heating_levels()
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, True
         )

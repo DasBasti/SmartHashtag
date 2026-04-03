@@ -5,6 +5,7 @@ import respx
 from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import ATTR_TEMPERATURE
 from homeassistant.core import HomeAssistant
+from pysmarthashtag.control.climate import HeatingLocation
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.smarthashtag.const import DOMAIN
@@ -300,3 +301,132 @@ async def test_climate_sync_methods_not_implemented(
 
     with pytest.raises(NotImplementedError):
         climate_entity.turn_on()
+
+
+@pytest.mark.asyncio()
+async def test_climate_turn_on_restores_heating_levels(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that turning on climate restores heating levels from config entry.
+
+    When a coordinator refresh creates a new ClimateControll instance, the saved
+    heating levels must be restored before the preconditioning API call is made.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+            "selects": {
+                HeatingLocation.DRIVER_SEAT.value: 2,  # "Mid"
+                HeatingLocation.PASSENGER_SEAT.value: 1,  # "Low"
+                HeatingLocation.STEERING_WHEEL.value: 3,  # "High"
+            },
+        },
+        options={},
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = entry.runtime_data
+    vehicle = coordinator.account.vehicles.get("TestVIN0000000001")
+    assert vehicle is not None
+
+    # Simulate a coordinator refresh by replacing climate_control with a fresh instance
+    # (this happens during normal data updates via combine_data)
+    from pysmarthashtag.control.climate import ClimateControll
+
+    vehicle.climate_control = ClimateControll(coordinator.account, "TestVIN0000000001")
+
+    # Verify heating levels are reset to 0
+    assert vehicle.climate_control.heating_levels[HeatingLocation.DRIVER_SEAT] == 0
+    assert vehicle.climate_control.heating_levels[HeatingLocation.STEERING_WHEEL] == 0
+
+    # Turn on climate — this should restore heating levels from config before the API call
+    entity_id = get_climate_entity_id(hass)
+    assert entity_id is not None
+
+    await hass.services.async_call(
+        "climate",
+        "turn_on",
+        {"entity_id": entity_id},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    # After turn_on, the heating levels should have been restored from the config entry
+    assert vehicle.climate_control.heating_levels[HeatingLocation.DRIVER_SEAT] == 2
+    assert vehicle.climate_control.heating_levels[HeatingLocation.PASSENGER_SEAT] == 1
+    assert vehicle.climate_control.heating_levels[HeatingLocation.STEERING_WHEEL] == 3
+
+
+@pytest.mark.asyncio()
+async def test_climate_turn_on_selects_vehicle_first(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that turning on climate explicitly selects the vehicle before preconditioning.
+
+    The vehicle must be selected via select_active_vehicle before the preconditioning
+    API call is made, ensuring proper session state for the API request.
+    """
+    from unittest.mock import AsyncMock, patch
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+        options={},
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = entry.runtime_data
+    call_order = []
+
+    original_select = coordinator.account.select_active_vehicle
+    original_conditioning = coordinator.account.vehicles[
+        "TestVIN0000000001"
+    ].climate_control.set_climate_conditioning
+
+    async def mock_select(vin):
+        call_order.append("select_active_vehicle")
+        return await original_select(vin)
+
+    async def mock_conditioning(temp, active):
+        call_order.append("set_climate_conditioning")
+        return await original_conditioning(temp, active)
+
+    coordinator.account.select_active_vehicle = mock_select
+    coordinator.account.vehicles[
+        "TestVIN0000000001"
+    ].climate_control.set_climate_conditioning = mock_conditioning
+
+    entity_id = get_climate_entity_id(hass)
+    assert entity_id is not None
+
+    await hass.services.async_call(
+        "climate",
+        "turn_on",
+        {"entity_id": entity_id},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    # select_active_vehicle must be called before set_climate_conditioning
+    assert "select_active_vehicle" in call_order
+    assert "set_climate_conditioning" in call_order
+    select_idx = call_order.index("select_active_vehicle")
+    conditioning_idx = call_order.index("set_climate_conditioning")
+    assert select_idx < conditioning_idx, (
+        "select_active_vehicle must be called before set_climate_conditioning"
+    )
