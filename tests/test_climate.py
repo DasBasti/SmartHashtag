@@ -373,8 +373,6 @@ async def test_climate_turn_on_selects_vehicle_first(
     The vehicle must be selected via select_active_vehicle before the preconditioning
     API call is made, ensuring proper session state for the API request.
     """
-    from unittest.mock import AsyncMock, patch
-
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={
