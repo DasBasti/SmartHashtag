@@ -9,6 +9,7 @@ from pysmarthashtag.control.climate import HeatingLocation
 from . import SmartHashtagConfigEntry
 from .const import CONF_VEHICLE, LOGGER
 from .coordinator import SmartHashtagDataUpdateCoordinator
+from .entity import SmartHashtagEntity
 
 STEERING_HEATER_OPTIONS = [
     "Off",
@@ -89,9 +90,10 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-class SmartPreHeatedLocation(SelectEntity):
+class SmartPreHeatedLocation(SmartHashtagEntity, SelectEntity):
     """Representation of a Smart heated seat / steering wheel select."""
 
+    _attr_has_entity_name = False
     def __init__(
         self,
         coordinator: SmartHashtagDataUpdateCoordinator,
@@ -99,8 +101,7 @@ class SmartPreHeatedLocation(SelectEntity):
         location: HeatingLocation,
     ):
         """Initialize heated seat entity."""
-        super().__init__()
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self._vehicle_vin = vehicle
         self._vehicle = self.coordinator.account.vehicles.get(vehicle)
         if self._vehicle is None:

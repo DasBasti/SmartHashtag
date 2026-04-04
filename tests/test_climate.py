@@ -5,6 +5,8 @@ import respx
 from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import ATTR_TEMPERATURE
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from pysmarthashtag.control.climate import HeatingLocation
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -428,3 +430,38 @@ async def test_climate_turn_on_selects_vehicle_first(
     assert select_idx < conditioning_idx, (
         "select_active_vehicle must be called before set_climate_conditioning"
     )
+
+
+@pytest.mark.asyncio()
+async def test_climate_entity_has_device_info(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that the climate entity is associated with the vehicle device."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+        options={},
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    entity_id = get_climate_entity_id(hass)
+    assert entity_id is not None, "Climate entity not found"
+
+    entity_registry = er.async_get(hass)
+    entity_entry = entity_registry.async_get(entity_id)
+    assert entity_entry is not None, "Climate entity not in registry"
+    assert entity_entry.device_id is not None, (
+        "Climate entity must be associated with a device"
+    )
+
+    device_registry = dr.async_get(hass)
+    device = device_registry.async_get(entity_entry.device_id)
+    assert device is not None, "Device must exist for the climate entity"
