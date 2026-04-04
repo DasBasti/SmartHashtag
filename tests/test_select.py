@@ -3,6 +3,8 @@
 import pytest
 import respx
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from pysmarthashtag.control.climate import HeatingLocation
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -274,3 +276,41 @@ async def test_select_cycling_through_options(
         assert (
             entry.data["selects"][HeatingLocation.DRIVER_SEAT.value] == expected_level
         )
+
+
+@pytest.mark.asyncio()
+async def test_select_entities_have_device_info(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that all select entities are associated with the vehicle device."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    entity_registry = er.async_get(hass)
+    device_registry = dr.async_get(hass)
+
+    select_entity_ids = [
+        "select.smart_testvin0000000001_conditioning_steering_wheel",
+        "select.smart_testvin0000000001_conditioning_driver_seat",
+        "select.smart_testvin0000000001_conditioning_passenger_seat",
+    ]
+
+    for entity_id in select_entity_ids:
+        entity_entry = entity_registry.async_get(entity_id)
+        assert entity_entry is not None, f"Entity {entity_id} not in registry"
+        assert entity_entry.device_id is not None, (
+            f"Select entity {entity_id} must be associated with a device"
+        )
+        device = device_registry.async_get(entity_entry.device_id)
+        assert device is not None, f"Device must exist for entity {entity_id}"

@@ -21,6 +21,7 @@ from .const import (
     LOGGER,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
+from .entity import SmartHashtagEntity
 
 
 async def async_setup_entry(
@@ -57,7 +58,7 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-class SmartConditioningMode(ClimateEntity):
+class SmartConditioningMode(SmartHashtagEntity, ClimateEntity):
     """Representation of the Smart car climate."""
 
     type = "conditioning mode"
@@ -72,7 +73,7 @@ class SmartConditioningMode(ClimateEntity):
         | ClimateEntityFeature.TURN_ON
     )
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
     _attr_icon = "mdi:thermostat-auto"
     _enable_turn_on_off_backwards_compatibility = False
     _last_mode = HVACMode.OFF
@@ -123,8 +124,7 @@ class SmartConditioningMode(ClimateEntity):
         vehicle: str,
     ) -> None:
         """Initialize the Contitioner class."""
-        super().__init__()
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self._vehicle_vin = vehicle
         self._vehicle = self.coordinator.account.vehicles.get(vehicle)
         if self._vehicle is None:
