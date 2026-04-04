@@ -94,6 +94,7 @@ class SmartPreHeatedLocation(SmartHashtagEntity, SelectEntity):
     """Representation of a Smart heated seat / steering wheel select."""
 
     _attr_has_entity_name = False
+
     def __init__(
         self,
         coordinator: SmartHashtagDataUpdateCoordinator,
