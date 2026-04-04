@@ -6,7 +6,6 @@ import asyncio
 import traceback
 from datetime import timedelta
 
-import async_timeout
 import httpx
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
@@ -102,7 +101,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             UpdateFailed: If a SmartRemoteServiceError is raised during the data retrieval.
         """
         try:
-            async with async_timeout.timeout(10):
+            async with asyncio.timeout(10):
                 await self.account.get_vehicles()
                 # Reset failure counter on success
                 if self._consecutive_failures > 0:
