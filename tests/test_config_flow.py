@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, patch
 
+import httpx
 import pytest
 import respx
 from homeassistant import config_entries, setup
@@ -74,9 +75,15 @@ async def test_form_with_eu_region(hass: HomeAssistant, smart_fixture: respx.Rou
     assert result["errors"] == {}
 
     # Mock the SmartAccount to raise SmartAPIError
-    with patch(
-        "custom_components.smarthashtag.config_flow.SmartAccount"
-    ) as mock_account:
+    with (
+        patch(
+            "custom_components.smarthashtag.config_flow.SmartAccount"
+        ) as mock_account,
+        patch(
+            "custom_components.smarthashtag.config_flow.asyncio.sleep",
+            new=AsyncMock(),
+        ),
+    ):
         mock_instance = AsyncMock()
         mock_instance.login = AsyncMock(side_effect=SmartAPIError("Auth failed"))
         mock_account.return_value = mock_instance
@@ -92,6 +99,49 @@ async def test_form_with_eu_region(hass: HomeAssistant, smart_fixture: respx.Rou
     # Should show form again with auth error
     assert result2["type"] == "form"
     assert result2["errors"] == {"base": "auth"}
+
+
+@pytest.mark.asyncio()
+async def test_form_with_transient_connection_error(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test config flow shows cannot_connect for backend transport/server errors."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == "form"
+    assert result["errors"] == {}
+
+    request = httpx.Request("GET", "https://auth.smart.com/test")
+    response = httpx.Response(500, request=request)
+    server_error = httpx.HTTPStatusError(
+        "Server error", request=request, response=response
+    )
+
+    with (
+        patch(
+            "custom_components.smarthashtag.config_flow.SmartAccount"
+        ) as mock_account,
+        patch(
+            "custom_components.smarthashtag.config_flow.asyncio.sleep",
+            new=AsyncMock(),
+        ),
+    ):
+        mock_instance = AsyncMock()
+        mock_instance.login = AsyncMock(side_effect=server_error)
+        mock_account.return_value = mock_instance
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "username": "transient_user",
+                "password": "transient_password",
+            },
+        )
+
+    assert result2["type"] == "form"
+    assert result2["errors"] == {"base": "cannot_connect"}
 
 
 @pytest.mark.asyncio()

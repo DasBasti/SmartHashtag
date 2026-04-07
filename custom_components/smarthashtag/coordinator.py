@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for Smart #1/#3."""
+"""DataUpdateCoordinator for Smart #1/#3/#5."""
 
 from __future__ import annotations
 

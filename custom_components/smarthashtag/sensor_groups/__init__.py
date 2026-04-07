@@ -1,4 +1,4 @@
-"""Sensor entity description groups for the Smart #1/#3 integration."""
+"""Sensor entity description groups for the Smart #1/#3/#5 integration."""
 
 from __future__ import annotations
 
