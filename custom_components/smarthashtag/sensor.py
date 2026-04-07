@@ -1,4 +1,4 @@
-"""Sensor platform for Smar #1/#3 intergration."""
+"""Sensor platform for Smart #1/#3/#5 integration."""
 
 from __future__ import annotations
 

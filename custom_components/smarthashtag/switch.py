@@ -1,4 +1,4 @@
-"""Support for Smart #1 / #3 switches."""
+"""Support for Smart #1 / #3 / #5 switches."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ async def async_setup_entry(
 
 class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
     """
-    Switch entity for controlling and monitoring the charging state of a Smart #1/#3 vehicle.
+    Switch entity for controlling and monitoring the charging state of a Smart #1/#3/#5 vehicle.
 
     This switch reflects whether the vehicle is currently charging by monitoring the
     `charging_status` attribute of the vehicle's battery. It considers the switch "on"

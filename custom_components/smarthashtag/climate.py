@@ -1,4 +1,4 @@
-"""Support for Smart #1 / #3 switches."""
+"""Support for Smart #1 / #3 / #5 switches."""
 
 from datetime import timedelta
 from typing import Any

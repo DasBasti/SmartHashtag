@@ -1,9 +1,11 @@
-"""Adds config flow for Smart #1/#3 integration."""
+"""Adds config flow for Smart #1/#3/#5 integration."""
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, KeysView
 
+import httpx
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import (
@@ -45,9 +47,10 @@ from .const import (
 
 
 class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Smart #1 / #3 integration."""
+    """Config flow for Smart #1 / #3 / #5 integration."""
 
     VERSION = 1
+    _LOGIN_RETRIES = 5
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -71,6 +74,9 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     password=user_input[CONF_PASSWORD],
                     region=user_input.get(CONF_REGION, DEFAULT_REGION),
                 )
+            except CannotConnect as exception:
+                LOGGER.warning(exception)
+                _errors["base"] = "cannot_connect"
             except SmartAPIError as exception:
                 LOGGER.warning(exception)
                 _errors["base"] = "auth"
@@ -159,6 +165,9 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         custom_api_base_url=api_base_url,
                         custom_api_base_url_v2=api_base_url_v2,
                     )
+                except CannotConnect as exception:
+                    LOGGER.warning(exception)
+                    _errors["base"] = "cannot_connect"
                 except SmartAPIError as exception:
                     LOGGER.warning(exception)
                     _errors["base"] = "auth"
@@ -214,14 +223,73 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             )
         # For EU region (default) or other regions, use default endpoints
 
-        client = SmartAccount(
-            username=username,
-            password=password,
-            endpoint_urls=endpoint_urls,
+        for attempt in range(self._LOGIN_RETRIES):
+            try:
+                client = SmartAccount(
+                    username=username,
+                    password=password,
+                    endpoint_urls=endpoint_urls,
+                )
+                await client.login()
+                await client.get_vehicles()
+                return client.vehicles.keys()
+            except (
+                SmartAPIError,
+                httpx.HTTPStatusError,
+                httpx.RequestError,
+                asyncio.TimeoutError,
+                TimeoutError,
+                OSError,
+                ConnectionError,
+            ) as exception:
+                if self._is_retryable_error(exception) and attempt < (
+                    self._LOGIN_RETRIES - 1
+                ):
+                    retry_delay_seconds = min(attempt + 1, 4)
+                    LOGGER.warning(
+                        "Smart login attempt %d/%d failed with %s: %s. Retrying in %ds",
+                        attempt + 1,
+                        self._LOGIN_RETRIES,
+                        type(exception).__name__,
+                        exception,
+                        retry_delay_seconds,
+                    )
+                    await asyncio.sleep(retry_delay_seconds)
+                    continue
+                if self._is_connection_error(exception):
+                    raise CannotConnect from exception
+                if isinstance(exception, SmartAPIError):
+                    raise
+                raise SmartAPIError(str(exception)) from exception
+
+        raise SmartAPIError("Could not validate credentials")
+
+    @staticmethod
+    def _is_connection_error(exception: Exception) -> bool:
+        """Return if exception indicates a temporary transport/backend issue."""
+        if isinstance(
+            exception,
+            (
+                httpx.RequestError,
+                asyncio.TimeoutError,
+                TimeoutError,
+                OSError,
+                ConnectionError,
+            ),
+        ):
+            return True
+
+        if isinstance(exception, httpx.HTTPStatusError):
+            return exception.response.status_code in {429, 500, 502, 503, 504}
+
+        return False
+
+    @classmethod
+    def _is_retryable_error(cls, exception: Exception) -> bool:
+        """Return if exception should trigger a retry during login."""
+        return isinstance(exception, SmartAPIError) or cls._is_connection_error(
+            exception
         )
-        await client.login()
-        await client.get_vehicles()
-        return client.vehicles.keys()
 
     @staticmethod
     @callback
@@ -238,6 +306,10 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             OptionsFlowHandler: A new instance responsible for handling the integration's options flow.
         """
         return OptionsFlowHandler()
+
+
+class CannotConnect(Exception):
+    """Error to indicate we cannot connect right now."""
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
