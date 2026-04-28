@@ -1,5 +1,5 @@
 -r requirements.txt
 pysmarthashtag
-pytest-homeassistant-custom-component>=0.13
+pytest-homeassistant-custom-component>=0.13.325
 pytest-cov
 pytest-asyncio
