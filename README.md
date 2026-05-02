@@ -1,4 +1,4 @@
-# Smart #1 and #3 Integration
+# Smart #1, #3 and #5 Integration
 
 [![GitHub Release][releases-shield]][releases]
 [![License][license-shield]](LICENSE)
@@ -9,7 +9,7 @@
 
 ### Using HACS (Recommended)
 
-1. Search for and install "Smart #1/#3 Integration" in HACS.
+1. Search for and install "Smart #1/#3/#5 Integration" in HACS.
 1. Restart Home Assistant.
 1. In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "Smart"
 
