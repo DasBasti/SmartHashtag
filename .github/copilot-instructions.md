@@ -8,7 +8,7 @@ The integration is distributed via [HACS](https://hacs.xyz/) (Home Assistant Com
 
 ## Tech Stack
 
-- **Language**: Python 3.12+
+- **Language**: Python 3.14+
 - **Framework**: Home Assistant custom component
 - **Testing**: pytest with pytest-homeassistant-custom-component
 - **Linting**: ruff, flake8
@@ -44,7 +44,7 @@ SmartHashtag/
 
 ### Prerequisites
 
-- Python 3.12+
+- Python 3.14+
 - Virtual environment (recommended)
 
 ### Setup Commands
