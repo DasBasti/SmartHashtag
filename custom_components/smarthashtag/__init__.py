@@ -1,4 +1,5 @@
-"""Smart #1/#3/#5 for integration with Home Assistant.
+"""
+Smart #1/#3/#5 integration with Home Assistant.
 
 For more details about this integration, please refer to
 https://github.com/DasBasti/SmartHashtag
