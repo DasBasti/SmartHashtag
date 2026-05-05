@@ -118,7 +118,7 @@ rest_command:
 ```yaml
 vehicles:
   - name: smart
-    title: "Smart #1"
+    title: "Smart"
     type: homeassistant
     uri: http://homeassistant.local:8123
     token: "eyJ0e..." # HA-Token

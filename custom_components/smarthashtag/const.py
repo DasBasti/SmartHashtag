@@ -1,4 +1,4 @@
-"""Constants for Smart #1/#3 integration."""
+"""Constants for Smart #1/#3/#5 integration."""
 
 from logging import Logger, getLogger
 from typing import Final
@@ -9,7 +9,7 @@ LOGGER: Logger = getLogger(__package__)
 NAME = "Smart"
 DOMAIN = "smarthashtag"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.8.2"
+VERSION = "0.8.3"
 
 ATTRIBUTION = "Data provided by http://smart.com/"
 ISSUE_URL = "https://github.com/DasBasti/SmartHashtag/issues"
@@ -63,7 +63,7 @@ STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
 {NAME}
 Version: {VERSION}
-This is the Smart #1/#3 integration!
+This is the Smart #1/#3/#5 integration!
 If you have any issues with this you need to open an issue here:
 {ISSUE_URL}
 -------------------------------------------------------------------
