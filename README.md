@@ -140,6 +140,7 @@ The sensor finishTime should be a point in time, but it seems the time span of t
 ## Create Debug Logs
 
 To create logs for debugging, add this to your `configuration.yaml` file
+
 ```
 logger:
   default: error
