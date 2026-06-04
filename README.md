@@ -137,6 +137,17 @@ vehicles:
 
 The sensor finishTime should be a point in time, but it seems the time span of the sensor works as well.
 
+## Create Debug Logs
+
+To create logs for debugging, add this to your `configuration.yaml` file
+```
+logger:
+  default: error
+  logs:
+    custom_components.smarthashtag: debug
+    pysmarthashtag: debug
+```
+
 ## AI-Assisted Development
 
 This project uses AI tools to assist with development, including GitHub Copilot for code suggestions and commit message generation.
