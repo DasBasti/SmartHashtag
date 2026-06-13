@@ -116,7 +116,7 @@
         "name": "Charging target"
       },
       "average_power_consumption": {
-        "name": "Average Power Consumption"
+        "name": "Range Efficiency Factor"
       },
       "position": {
         "name": "Position"
