@@ -21,6 +21,10 @@ from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
 # Set high enough to tolerate multiple internal API calls failing within a single refresh
 MAX_TRANSIENT_FAILURES = 10
 
+# Timeout (seconds) for a full vehicle data refresh. A healthy refresh is a
+# chain of sequential Smart/Geely cloud calls that can legitimately take ~20s.
+API_TIMEOUT = 30
+
 
 # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
 class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
@@ -101,7 +105,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             UpdateFailed: If a SmartRemoteServiceError is raised during the data retrieval.
         """
         try:
-            async with asyncio.timeout(10):
+            async with asyncio.timeout(API_TIMEOUT):
                 await self.account.get_vehicles()
                 # Reset failure counter on success
                 if self._consecutive_failures > 0:
