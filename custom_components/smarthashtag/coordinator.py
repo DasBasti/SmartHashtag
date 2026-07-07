@@ -178,6 +178,20 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
                 self._consecutive_failures,
                 error_msg,
             )
+            # Defense-in-depth: some cloud errors (e.g. 4038 "vehicle not in
+            # use", 8040 "VIN not bound") surface as HTTP errors on the data
+            # endpoints and never trip pysmarthashtag's token-refresh path, so
+            # the account keeps replaying a stale session and only a full
+            # reload recovers it. Once we cross the failure ceiling, proactively
+            # invalidate the session so the next poll performs a clean
+            # re-login. Guarded with hasattr for older pysmarthashtag releases.
+            if hasattr(self.account, "invalidate_session"):
+                LOGGER.warning(
+                    "Invalidating Smart session after %d consecutive failures; "
+                    "next poll will re-login from scratch",
+                    self._consecutive_failures,
+                )
+                self.account.invalidate_session()
             raise UpdateFailed(
                 f"API unavailable after {self._consecutive_failures} attempts: {error_msg}"
             ) from exception
