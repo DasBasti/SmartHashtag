@@ -149,6 +149,18 @@ logger:
     pysmarthashtag: debug
 ```
 
+## Install a Test Version in HACS
+
+You can use the yaml input of the developer tools to install a specific version/branch/commit using the development tools-
+
+```
+action: update.install
+data:
+  version: 552b43c
+target:
+  entity_id: update.smart_1_3_integration_update
+```
+
 ## AI-Assisted Development
 
 This project uses AI tools to assist with development, including GitHub Copilot for code suggestions and commit message generation.
