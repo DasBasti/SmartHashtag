@@ -116,7 +116,7 @@
         "name": "Ladeziel"
       },
       "average_power_consumption": {
-        "name": "Durchschnittsverbrauch"
+        "name": "Reichweiteneffizienzfaktor"
       },
       "position": {
         "name": "Position"

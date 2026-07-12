@@ -123,9 +123,9 @@ ENTITY_BATTERY_DESCRIPTIONS = (
     SensorEntityDescription(
         key="average_power_consumption",
         translation_key="average_power_consumption",
-        name="Average power consumption",
-        icon="mdi:power",
-        device_class=SensorDeviceClass.POWER,
+        name="Range efficiency factor",
+        icon="mdi:gauge",
+        native_unit_of_measurement="%",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
     ),
