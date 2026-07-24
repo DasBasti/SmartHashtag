@@ -26,7 +26,7 @@ except ImportError:  # pragma: no cover - depends on installed pysmarthashtag
         """Placeholder for older pysmarthashtag without the typed unbound error."""
 
 
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, UNBOUND_VIN_AUTH_MESSAGE
 
 # Maximum consecutive transient failures before raising UpdateFailed
 # Set high enough to tolerate multiple internal API calls failing within a single refresh
@@ -81,7 +81,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             await self.account.get_vehicles()
         except SmartVehicleUnboundError as exception:
-            raise ConfigEntryAuthFailed(exception) from exception
+            raise ConfigEntryAuthFailed(UNBOUND_VIN_AUTH_MESSAGE) from exception
         except SmartAuthError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except SmartRemoteServiceError as exception:
@@ -134,12 +134,8 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             # Neither token refresh nor re-login recovers this — the user must
             # re-add the vehicle in the Smart app. Surface it as a reauth prompt
             # rather than churning transient retries / relogins.
-            LOGGER.error(
-                "Vehicle no longer bound to the Smart account (8040): %s. "
-                "Re-add the vehicle in the Smart app, then re-authenticate.",
-                exception,
-            )
-            raise ConfigEntryAuthFailed(exception) from exception
+            LOGGER.error("%s (8040): %s", UNBOUND_VIN_AUTH_MESSAGE, exception)
+            raise ConfigEntryAuthFailed(UNBOUND_VIN_AUTH_MESSAGE) from exception
         except SmartAuthError as exception:
             LOGGER.error(
                 "Authentication failed for Smart API: %s. "
