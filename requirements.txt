@@ -1,2 +1,2 @@
 colorlog==6.10.1
-pysmarthashtag
+pysmarthashtag==0.12.0

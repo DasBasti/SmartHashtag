@@ -16,6 +16,7 @@ from .const import (
     CONF_API_BASE_URL,
     CONF_API_BASE_URL_V2,
     CONF_REGION,
+    CONF_VEHICLE,
     REGION_CUSTOM,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
@@ -71,12 +72,20 @@ async def async_setup_entry(
     # For EU region (default) or unrecognized region, endpoint_urls remains None
     # and SmartAccount will use default EU endpoints
 
+    # Only track the VIN chosen during setup — never poll or create entities for
+    # other vehicles on the account (e.g. shared cars that appear after switching
+    # cars in the phone app). Falls back to all vehicles for legacy entries with
+    # no stored vehicle.
+    configured_vin = entry.data.get(CONF_VEHICLE)
+    tracked_vins = [configured_vin] if configured_vin else None
+
     entry.runtime_data = SmartHashtagDataUpdateCoordinator(
         hass=hass,
         account=SmartAccount(
             username=entry.data[CONF_USERNAME],
             password=entry.data[CONF_PASSWORD],
             endpoint_urls=endpoint_urls,
+            tracked_vins=tracked_vins,
         ),
         entry=entry,
     )

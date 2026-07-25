@@ -15,7 +15,18 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.models import SmartAPIError, SmartAuthError, SmartRemoteServiceError
 
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
+try:
+    # Typed "VIN no longer bound to this account" (cloud code 8040), added in the
+    # token-lifecycle pysmarthashtag. Fall back to a never-raised placeholder on
+    # older library versions so the except clause stays harmless.
+    from pysmarthashtag.models import SmartVehicleUnboundError
+except ImportError:  # pragma: no cover - depends on installed pysmarthashtag
+
+    class SmartVehicleUnboundError(SmartAPIError):  # noqa: N818
+        """Placeholder for older pysmarthashtag without the typed unbound error."""
+
+
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, UNBOUND_VIN_AUTH_MESSAGE
 
 # Maximum consecutive transient failures before raising UpdateFailed
 # Set high enough to tolerate multiple internal API calls failing within a single refresh
@@ -69,6 +80,8 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         """
         try:
             await self.account.get_vehicles()
+        except SmartVehicleUnboundError as exception:
+            raise ConfigEntryAuthFailed(UNBOUND_VIN_AUTH_MESSAGE) from exception
         except SmartAuthError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except SmartRemoteServiceError as exception:
@@ -116,6 +129,13 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
                 self._consecutive_failures = 0
                 self._last_error = None
                 return self.account.vehicles
+        except SmartVehicleUnboundError as exception:
+            # Terminal: the VIN is no longer bound to the account (cloud 8040).
+            # Neither token refresh nor re-login recovers this — the user must
+            # re-add the vehicle in the Smart app. Surface it as a reauth prompt
+            # rather than churning transient retries / relogins.
+            LOGGER.error("%s (8040): %s", UNBOUND_VIN_AUTH_MESSAGE, exception)
+            raise ConfigEntryAuthFailed(UNBOUND_VIN_AUTH_MESSAGE) from exception
         except SmartAuthError as exception:
             LOGGER.error(
                 "Authentication failed for Smart API: %s. "

@@ -71,3 +71,10 @@ If you have any issues with this you need to open an issue here:
 
 CONF_VEHICLE: Final = "vehicle"
 CONF_VEHICLES: Final = "vehicles"
+
+# Shown when the cloud reports the VIN is no longer bound to the account (8040).
+# No token refresh or re-login recovers this, so tell the user what does.
+UNBOUND_VIN_AUTH_MESSAGE: Final = (
+    "Vehicle no longer bound to the Smart account. "
+    "Re-add the vehicle in the Smart app, then re-authenticate."
+)
