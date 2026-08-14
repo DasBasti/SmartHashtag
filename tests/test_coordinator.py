@@ -399,3 +399,128 @@ async def test_coordinator_max_transient_failures_threshold(
     state = hass.states.get("sensor.smart_last_update")
     assert state
     assert state.state == "unavailable"
+
+
+@pytest.mark.asyncio()
+async def test_coordinator_single_8040_keeps_entities_available(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """
+    Test that a lone 8040 is treated as transient.
+
+    The cloud answers "no vehicle information bounded with this VIN and UID"
+    for a moment right after a session refresh. Escalating on the first one
+    raised ConfigEntryAuthFailed and left every entity unavailable until the
+    entry was reloaded by hand, even though the vehicle was still bound.
+    """
+    call_count = 0
+
+    async def simulate_unbound(request: Request, route: respx.Route) -> Response:
+        nonlocal call_count
+        call_count += 1
+        if call_count <= 2:
+            return Response(200, json=load_response(RESPONSE_DIR / "vehicle_info.json"))
+        return Response(
+            200,
+            json={
+                "code": "8040",
+                "message": (
+                    "No vehicle information bounded with this VIN and UID. "
+                    "Please check the data"
+                ),
+            },
+        )
+
+    smart_fixture.get(
+        "https://api.ecloudeu.com/remote-control/vehicle/status/TestVIN0000000001?latest=True&target=basic%2Cmore&userId=112233",
+    ).mock(side_effect=simulate_unbound)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = entry.runtime_data
+
+    # Second call still succeeds, so the cache is populated.
+    await coordinator.async_refresh()
+    assert hass.states.get("sensor.smart_last_update").state != "unavailable"
+
+    # Stop scheduled refreshes so only the explicit one below counts, and
+    # start from a clean slate regardless of how many calls setup made.
+    if coordinator._unsub_refresh:
+        coordinator._unsub_refresh()
+        coordinator._unsub_refresh = None
+    coordinator._unbound_failures = 0
+    coordinator._consecutive_failures = 0
+
+    # A single 8040: cached data must keep the entity alive.
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert coordinator._unbound_failures == 1
+    state = hass.states.get("sensor.smart_last_update")
+    assert state
+    assert state.state == "2024-01-23T16:44:00+00:00"
+    assert state.state != "unavailable"
+
+
+@pytest.mark.asyncio()
+async def test_coordinator_repeated_8040_asks_for_reauth(hass: HomeAssistant):
+    """
+    Test that a persistent 8040 is still treated as a real unbinding.
+
+    Below the threshold the cached data is served; on the threshold the
+    coordinator raises ConfigEntryAuthFailed so the user is told to re-add
+    the vehicle.
+    """
+    from homeassistant.exceptions import ConfigEntryAuthFailed
+    from pysmarthashtag.models import SmartVehicleUnboundError
+
+    from custom_components.smarthashtag.coordinator import (
+        UNBOUND_FAILURES_BEFORE_REAUTH,
+    )
+
+    class UnboundAccount:
+        vehicles = None
+
+        async def get_vehicles(self):
+            raise SmartVehicleUnboundError(
+                "VIN not bound to account (code=8040): No vehicle information "
+                "bounded with this VIN and UID. Please check the data"
+            )
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    coordinator = SmartHashtagDataUpdateCoordinator(
+        hass=hass,
+        account=UnboundAccount(),
+        entry=entry,
+    )
+    cached = {"cached": "data"}
+    coordinator.data = cached
+
+    # Every attempt below the threshold serves the cache instead of escalating.
+    for expected in range(1, UNBOUND_FAILURES_BEFORE_REAUTH):
+        assert await coordinator._async_update_data() is cached
+        assert coordinator._unbound_failures == expected
+
+    # Reaching the threshold means the vehicle really is gone.
+    with pytest.raises(ConfigEntryAuthFailed):
+        await coordinator._async_update_data()
