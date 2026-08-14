@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import traceback
 from datetime import timedelta
+from typing import Any
 
 import httpx
 from homeassistant.config_entries import ConfigEntry
@@ -197,7 +198,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
                 f"Unexpected error ({error_type}): {error_msg}"
             ) from exception
 
-    def _handle_transient_failure(self, exception: Exception):
+    def _handle_transient_failure(self, exception: Exception) -> Any:
         """Serve cached data for a transient failure, or fail once it persists.
 
         Keeps entities alive across a cloud blip and only raises UpdateFailed
