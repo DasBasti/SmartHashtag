@@ -82,7 +82,14 @@
           "charging": "laden",
           "dc_charging": "DC LAden",
           "default": "Standard",
-          "error": "Fehler"
+          "error": "Fehler",
+          "fully_charged": "voll geladen",
+          "finished_fully_charged": "beendet, voll geladen",
+          "finished_not_full": "beendet, nicht voll",
+          "invalid": "ungültig",
+          "plugged_in": "eingesteckt",
+          "waiting_for_charging": "wartet auf Ladung",
+          "target_reached": "Ziel erreicht"
         }
       },
       "charging_status_raw": {
@@ -91,10 +98,10 @@
       "charger_connection_status": {
         "name": "Ladeanschluss",
         "state": {
-          "0": "nicht verbunden",
-          "1": "dc verbunden",
-          "2": "verbunden, nicht ladend",
-          "3": "laden"
+          "not_connected": "nicht verbunden",
+          "dc_connected": "dc verbunden",
+          "plugged_not_charging": "verbunden, nicht ladend",
+          "charging": "laden"
         }
       },
       "is_charger_connected": {

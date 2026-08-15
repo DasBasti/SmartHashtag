@@ -7,6 +7,12 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
+from pysmarthashtag.vehicle.battery import CHARGER_CONNECTION_STATES, CHARGING_STATES
+
+# Home Assistant only offers a sensor's states in the automation editor when the
+# entity declares them as a list of strings. Both lists are derived from the
+# library so a new state cannot silently go missing here.
+CHARGING_STATUS_OPTIONS = [state.lower() for state in CHARGING_STATES]
 
 ENTITY_BATTERY_DESCRIPTIONS = (
     SensorEntityDescription(
@@ -40,15 +46,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         translation_key="charging_status",
         name="Charging status",
         icon="mdi:power-plug-battery",
-        options={
-            "charging": "charging",
-            "complete": "fully charged",
-            "dc_charging": "DC charging",
-            "default": "default",
-            "not_charging": "not charging",
-            "error": "Error",
-            "unknown": "unknown",
-        },
+        options=CHARGING_STATUS_OPTIONS,
         device_class=SensorDeviceClass.ENUM,
     ),
     SensorEntityDescription(
@@ -63,12 +61,7 @@ ENTITY_BATTERY_DESCRIPTIONS = (
         translation_key="charger_connection_status",
         name="Charger connection status",
         icon="mdi:battery-unknown",
-        options={
-            0: "not connected",
-            1: "tbd",
-            2: "plugged, not charging",
-            3: "charging",
-        },
+        options=list(CHARGER_CONNECTION_STATES),
         device_class=SensorDeviceClass.ENUM,
         entity_registry_enabled_default=False,
     ),
