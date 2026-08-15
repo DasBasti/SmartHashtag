@@ -82,7 +82,14 @@
           "charging": "charging",
           "dc_charging": "DC charging",
           "default": "Default",
-          "error": "Error"
+          "error": "Error",
+          "fully_charged": "fully charged",
+          "finished_fully_charged": "finished, fully charged",
+          "finished_not_full": "finished, not full",
+          "invalid": "invalid",
+          "plugged_in": "plugged in",
+          "waiting_for_charging": "waiting for charging",
+          "target_reached": "target reached"
         }
       },
       "charging_status_raw": {
@@ -91,10 +98,10 @@
       "charger_connection_status": {
         "name": "Charger connection",
         "state": {
-          "0": "not connected",
-          "1": "dc connected",
-          "2": "plugged, not charging",
-          "3": "charging"
+          "not_connected": "not connected",
+          "dc_connected": "dc connected",
+          "plugged_not_charging": "plugged, not charging",
+          "charging": "charging"
         }
       },
       "is_charger_connected": {
