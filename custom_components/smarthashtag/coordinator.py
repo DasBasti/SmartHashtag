@@ -5,12 +5,13 @@ from __future__ import annotations
 import asyncio
 import traceback
 from datetime import timedelta
+from typing import Any
 
 import httpx
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.models import SmartAPIError, SmartAuthError, SmartRemoteServiceError
@@ -31,6 +32,15 @@ from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, UNBOUND_VIN_AUTH_MESSA
 # Maximum consecutive transient failures before raising UpdateFailed
 # Set high enough to tolerate multiple internal API calls failing within a single refresh
 MAX_TRANSIENT_FAILURES = 10
+
+# Consecutive 8040s before the VIN is considered genuinely unbound.
+# A single 8040 is routinely transient: the cloud answers "no vehicle
+# information bounded with this VIN and UID" for a moment right after a
+# session refresh, before it re-associates the VIN with the new session,
+# and the next poll succeeds. Escalating on the first one turns a blip
+# into a reauth prompt that keeps every entity unavailable until someone
+# reloads the entry by hand.
+UNBOUND_FAILURES_BEFORE_REAUTH = 3
 
 # Timeout (seconds) for a full vehicle data refresh. A healthy refresh is a
 # chain of sequential Smart/Geely cloud calls that can legitimately take ~20s.
@@ -69,6 +79,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         )
         self._update_intervals = {}
         self._consecutive_failures = 0
+        self._unbound_failures = 0
         self._last_error: str | None = None
 
     async def _async_setup(self) -> None:
@@ -81,7 +92,10 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             await self.account.get_vehicles()
         except SmartVehicleUnboundError as exception:
-            raise ConfigEntryAuthFailed(UNBOUND_VIN_AUTH_MESSAGE) from exception
+            # Setup has no history to tell a transient 8040 from a real one, so
+            # let HA retry with backoff instead of demanding reauth up front.
+            # A genuine unbinding still surfaces from the update path.
+            raise ConfigEntryNotReady(UNBOUND_VIN_AUTH_MESSAGE) from exception
         except SmartAuthError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except SmartRemoteServiceError as exception:
@@ -127,13 +141,23 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
                         self._consecutive_failures,
                     )
                 self._consecutive_failures = 0
+                self._unbound_failures = 0
                 self._last_error = None
                 return self.account.vehicles
         except SmartVehicleUnboundError as exception:
-            # Terminal: the VIN is no longer bound to the account (cloud 8040).
-            # Neither token refresh nor re-login recovers this — the user must
-            # re-add the vehicle in the Smart app. Surface it as a reauth prompt
-            # rather than churning transient retries / relogins.
+            # Only terminal once it repeats: a lone 8040 is usually the cloud
+            # catching up after a session refresh. Below the threshold it goes
+            # through the normal transient path so cached data keeps the
+            # entities alive and the next poll can clear it.
+            self._unbound_failures += 1
+            if self._unbound_failures < UNBOUND_FAILURES_BEFORE_REAUTH:
+                LOGGER.warning(
+                    "Vehicle reported as unbound (8040) %d/%d, treating as transient: %s",
+                    self._unbound_failures,
+                    UNBOUND_FAILURES_BEFORE_REAUTH,
+                    exception,
+                )
+                return self._handle_transient_failure(exception)
             LOGGER.error("%s (8040): %s", UNBOUND_VIN_AUTH_MESSAGE, exception)
             raise ConfigEntryAuthFailed(UNBOUND_VIN_AUTH_MESSAGE) from exception
         except SmartAuthError as exception:
@@ -160,47 +184,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             OSError,
             ConnectionError,
         ) as exception:
-            self._consecutive_failures += 1
-            error_type = type(exception).__name__
-            error_msg = f"{error_type}: {exception}" if str(exception) else error_type
-
-            # Only log if error changed or first occurrence
-            if self._last_error != error_msg:
-                LOGGER.warning(
-                    "Smart API request failed (attempt %d/%d): %s",
-                    self._consecutive_failures,
-                    MAX_TRANSIENT_FAILURES,
-                    error_msg,
-                )
-                self._last_error = error_msg
-
-            # Return last known data to keep entities available if we have it
-            # and haven't exceeded max failures
-            if (
-                self.data is not None
-                and self._consecutive_failures < MAX_TRANSIENT_FAILURES
-            ):
-                LOGGER.debug("Returning cached data to keep entities available")
-                return self.data
-
-            # If no cached data or too many failures, raise UpdateFailed
-            if self.data is None:
-                LOGGER.info(
-                    "Smart API unavailable and no cached data exists: %s",
-                    error_msg,
-                )
-                raise UpdateFailed(
-                    f"API unavailable with no cached data: {error_msg}"
-                ) from exception
-
-            LOGGER.error(
-                "Smart API unavailable after %d consecutive failures: %s",
-                self._consecutive_failures,
-                error_msg,
-            )
-            raise UpdateFailed(
-                f"API unavailable after {self._consecutive_failures} attempts: {error_msg}"
-            ) from exception
+            return self._handle_transient_failure(exception)
         except Exception as exception:
             error_type = type(exception).__name__
             error_msg = str(exception) or "No error message"
@@ -213,6 +197,54 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(
                 f"Unexpected error ({error_type}): {error_msg}"
             ) from exception
+
+    def _handle_transient_failure(self, exception: Exception) -> Any:
+        """Serve cached data for a transient failure, or fail once it persists.
+
+        Keeps entities alive across a cloud blip and only raises UpdateFailed
+        when there is nothing cached or the failures stop looking transient.
+        """
+        self._consecutive_failures += 1
+        error_type = type(exception).__name__
+        error_msg = f"{error_type}: {exception}" if str(exception) else error_type
+
+        # Only log if error changed or first occurrence
+        if self._last_error != error_msg:
+            LOGGER.warning(
+                "Smart API request failed (attempt %d/%d): %s",
+                self._consecutive_failures,
+                MAX_TRANSIENT_FAILURES,
+                error_msg,
+            )
+            self._last_error = error_msg
+
+        # Return last known data to keep entities available if we have it
+        # and haven't exceeded max failures
+        if (
+            self.data is not None
+            and self._consecutive_failures < MAX_TRANSIENT_FAILURES
+        ):
+            LOGGER.debug("Returning cached data to keep entities available")
+            return self.data
+
+        # If no cached data or too many failures, raise UpdateFailed
+        if self.data is None:
+            LOGGER.info(
+                "Smart API unavailable and no cached data exists: %s",
+                error_msg,
+            )
+            raise UpdateFailed(
+                f"API unavailable with no cached data: {error_msg}"
+            ) from exception
+
+        LOGGER.error(
+            "Smart API unavailable after %d consecutive failures: %s",
+            self._consecutive_failures,
+            error_msg,
+        )
+        raise UpdateFailed(
+            f"API unavailable after {self._consecutive_failures} attempts: {error_msg}"
+        ) from exception
 
     def set_update_interval(self, key: str, deltatime: timedelta) -> None:
         """Update intervals by key and select the shortest"""
