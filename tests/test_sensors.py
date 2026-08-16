@@ -4,13 +4,18 @@ import logging
 
 import pytest
 import respx
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.core import HomeAssistant
 from httpx import Request, Response
 from pysmarthashtag.tests import RESPONSE_DIR, load_response
+from pysmarthashtag.vehicle.battery import CHARGER_CONNECTION_STATES, CHARGING_STATES
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.smarthashtag.const import DOMAIN
 from custom_components.smarthashtag.sensor import remove_vin_from_key, vin_from_key
+from custom_components.smarthashtag.sensor_groups.battery import (
+    ENTITY_BATTERY_DESCRIPTIONS,
+)
 
 
 def test_remove_vin_from_key():
@@ -743,3 +748,78 @@ async def test_native_unit_of_measurement_with_none_vehicle(
     state = hass.states.get("sensor.smart_last_update")
     assert state is not None
     assert state.state == "2024-01-23T16:44:00+00:00"
+
+
+def test_enum_descriptions_declare_their_options_as_a_list():
+    """Test that every enum sensor declares its states as a list of strings.
+
+    Home Assistant only offers a sensor's states as automation trigger values when
+    the entity exposes them in the "options" attribute as a JSON list. A mapping
+    left the From/To pickers of the automation editor empty, see issue #439.
+    """
+    enum_descriptions = [
+        description
+        for description in ENTITY_BATTERY_DESCRIPTIONS
+        if description.device_class == SensorDeviceClass.ENUM
+    ]
+    assert enum_descriptions
+
+    for description in enum_descriptions:
+        assert isinstance(description.options, list), description.key
+        assert all(isinstance(option, str) for option in description.options), (
+            description.key
+        )
+
+
+def test_charging_status_offers_every_library_state():
+    """Test that no state the library can report is missing from the options.
+
+    States that were not listed got reported as unknown, so they could neither be
+    seen nor selected.
+    """
+    description = next(
+        description
+        for description in ENTITY_BATTERY_DESCRIPTIONS
+        if description.key == "charging_status"
+    )
+
+    assert set(description.options) == {state.lower() for state in CHARGING_STATES}
+
+
+def test_charger_connection_offers_every_library_state():
+    """Test that the charger connection lists the names the library reports."""
+    description = next(
+        description
+        for description in ENTITY_BATTERY_DESCRIPTIONS
+        if description.key == "charger_connection_status"
+    )
+
+    assert set(description.options) == set(CHARGER_CONNECTION_STATES)
+
+
+@pytest.mark.asyncio()
+async def test_charging_status_state_is_selectable(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that the charging status publishes a state contained in its options."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.smart_charging_status")
+    assert state
+    assert state.attributes["device_class"] == "enum"
+
+    options = state.attributes["options"]
+    assert isinstance(options, list)
+    assert state.state in options

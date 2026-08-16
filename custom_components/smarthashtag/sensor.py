@@ -195,6 +195,11 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
                 if data.value == -0.0:
                     return 0.0
 
+            if "charger_connection_status" in self.entity_description.key:
+                # The raw code cannot serve as an enum option, so report the name
+                # the library derives from it.
+                return vehicle.battery.charger_connection_state
+
             if "charging_status" in self.entity_description.key:
                 if isinstance(data, str):
                     data = data.lower()
