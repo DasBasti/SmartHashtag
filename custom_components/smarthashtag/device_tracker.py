@@ -1,7 +1,6 @@
 """Support for Smart device tracker."""
 
-from homeassistant.components.device_tracker import SourceType
-from homeassistant.components.device_tracker.config_entry import TrackerEntity
+from homeassistant.components.device_tracker import SourceType, TrackerEntity
 from homeassistant.core import HomeAssistant
 
 from custom_components.smarthashtag.entity import SmartHashtagEntity
@@ -118,18 +117,3 @@ class SmartVehicleLocation(SmartHashtagEntity, TrackerEntity):
     def force_update(self):
         """Disable forced updated since we are polling via the coordinator updates."""
         return False
-
-    @property
-    def battery_level(self) -> int | None:
-        """Return the battery level of the device.
-
-        Percentage from 0-100.
-        """
-        try:
-            vehicle = self._get_vehicle_data()
-            if vehicle is None:
-                return None
-            return vehicle.battery.remaining_battery_percent.value
-        except AttributeError as err:
-            LOGGER.error("AttributeError getting battery_level: %s", err)
-            return None

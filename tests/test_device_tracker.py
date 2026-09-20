@@ -218,11 +218,14 @@ async def test_device_tracker_source_type(
 
 
 @pytest.mark.asyncio()
-async def test_device_tracker_battery_level(
+async def test_device_tracker_has_no_battery_level(
     hass: HomeAssistant, smart_fixture: respx.Router
 ):
     """
-    Test that device tracker reports correct battery level.
+    Test that the device tracker does not expose the deprecated battery level.
+
+    Home Assistant deprecated ``battery_level`` on tracker entities. The battery
+    charge is reported by the dedicated ``sensor.smart_battery`` entity instead.
     """
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -245,7 +248,10 @@ async def test_device_tracker_battery_level(
     state = hass.states.get(entity_id)
     assert state is not None
 
-    # Check battery level is present
-    battery_level = state.attributes.get("battery_level")
-    assert battery_level is not None
-    assert isinstance(battery_level, int)
+    # The deprecated attribute is gone from the tracker entity ...
+    assert "battery_level" not in state.attributes
+
+    # ... and the battery charge is available as its own sensor.
+    battery_state = hass.states.get("sensor.smart_battery")
+    assert battery_state is not None
+    assert float(battery_state.state) >= 0
