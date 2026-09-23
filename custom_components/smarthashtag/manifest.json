@@ -7,6 +7,8 @@
   "integration_type": "device",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/DasBasti/SmartHashtag/issues",
-  "requirements": ["pysmarthashtag==0.12.3"],
+  "requirements": [
+    "git+https://github.com/DasBasti/pySmartHashtag.git@2360b1a553a3e0643b0905599c84710ad6913866#pysmarthashtag>=0.12.4.dev0"
+  ],
   "version": "0.8.10"
 }
