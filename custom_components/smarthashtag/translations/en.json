@@ -51,6 +51,9 @@
     "switch": {
       "charging_control": {
         "name": "Charging control"
+      },
+      "defrost_control": {
+        "name": "Front defrost"
       }
     },
     "select": {

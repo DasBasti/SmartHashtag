@@ -51,6 +51,9 @@
     "switch": {
       "charging_control": {
         "name": "Ladesteuerung"
+      },
+      "defrost_control": {
+        "name": "Frontscheibenenteisung"
       }
     },
     "select": {

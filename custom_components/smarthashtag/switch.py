@@ -36,6 +36,11 @@ async def async_setup_entry(
 
     entities.append(SmartChargingSwitch(coordinator, vehicle))
 
+    # Requires a pysmarthashtag release that provides ClimateControll.set_defrost
+    climate_control = getattr(vehicles[vehicle], "climate_control", None)
+    if hasattr(climate_control, "set_defrost"):
+        entities.append(SmartDefrostSwitch(coordinator, vehicle))
+
     async_add_entities(entities, update_before_add=True)
 
 
@@ -149,4 +154,82 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
         # Reset to normal interval when state has stabilized
         if self._last_state is not None and current_state == self._last_state:
             self.coordinator.reset_update_interval("charging_switch")
+        self._last_state = current_state
+
+
+class SmartDefrostSwitch(SmartHashtagEntity, SwitchEntity):
+    """
+    Switch entity for the front windscreen defrost of a Smart vehicle.
+
+    The state follows the vehicle's reported `defrosting_active` climate value.
+    Turning the switch on or off starts or stops the defrost via the RCE_2
+    remote climate service, then polls fast until the state settles.
+    """
+
+    _attr_icon = "mdi:car-defrost-front"
+
+    @property
+    def translation_key(self):
+        return "defrost_control"
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the front windscreen defrost is active."""
+        if self._vehicle is None or self._vehicle.climate is None:
+            return False
+        return bool(self._vehicle.climate.defrosting_active)
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        vehicle: str,
+    ) -> None:
+        """Initialize the Defrost Switch class."""
+        super().__init__(coordinator)
+        self._vehicle_vin = vehicle
+        self._vehicle = self.coordinator.account.vehicles.get(vehicle)
+        if self._vehicle is None:
+            LOGGER.error("Vehicle %s not available for defrost switch", vehicle)
+            self._attr_available = False
+            return
+        self._attr_unique_id = f"{self._attr_unique_id}_defrost_switch"
+        self._last_state: bool | None = None
+
+    async def _set_defrost(self, active: bool) -> None:
+        if self._vehicle is None:
+            LOGGER.warning(
+                "Cannot set defrost; vehicle %s unavailable", self._vehicle_vin
+            )
+            return
+        LOGGER.debug(
+            "Setting front defrost to %s for vehicle %s", active, self._vehicle.vin
+        )
+        try:
+            await self._vehicle.climate_control.set_defrost(active)
+            # Set fast polling to quickly reflect state changes
+            self.coordinator.set_update_interval(
+                "defrost_switch", timedelta(seconds=FAST_INTERVAL)
+            )
+        except Exception:
+            LOGGER.exception(
+                "Error setting front defrost for vehicle %s",
+                getattr(self._vehicle, "vin", "unknown"),
+            )
+
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Start the front windscreen defrost."""
+        await self._set_defrost(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Stop the front windscreen defrost."""
+        await self._set_defrost(False)
+
+    async def async_update(self) -> None:
+        """Update the entity state and reset polling interval when stable."""
+        current_state = self.is_on
+        # Reset to normal interval when state has stabilized
+        if self._last_state is not None and current_state == self._last_state:
+            self.coordinator.reset_update_interval("defrost_switch")
         self._last_state = current_state
