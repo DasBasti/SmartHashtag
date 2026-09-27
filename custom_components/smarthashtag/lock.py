@@ -37,6 +37,10 @@ async def async_setup_entry(
 
     # Requires a pysmarthashtag release that provides Vehicle.door_lock_control
     if getattr(vehicles[vehicle], "door_lock_control", None) is None:
+        LOGGER.warning(
+            "Installed pysmarthashtag does not support door lock control; "
+            "skipping door lock"
+        )
         return
 
     async_add_entities([SmartDoorLock(coordinator, vehicle)], update_before_add=True)

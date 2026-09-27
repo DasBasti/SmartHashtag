@@ -42,6 +42,10 @@ async def async_setup_entry(
     # Requires a pysmarthashtag release that provides DoorLockControl.open_trunk
     lock_control = getattr(vehicles[vehicle], "door_lock_control", None)
     if not hasattr(lock_control, "open_trunk"):
+        LOGGER.warning(
+            "Installed pysmarthashtag does not support trunk control; "
+            "skipping trunk cover"
+        )
         return
 
     async_add_entities([SmartTrunk(coordinator, vehicle)], update_before_add=True)
