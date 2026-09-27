@@ -6,13 +6,15 @@ from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_VEHICLE,
     FAST_INTERVAL,
     LOGGER,
+    PENDING_STATE_TIMEOUT,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
@@ -163,7 +165,9 @@ class SmartDefrostSwitch(SmartHashtagEntity, SwitchEntity):
 
     The state follows the vehicle's reported `defrosting_active` climate value.
     Turning the switch on or off starts or stops the defrost via the RCE_2
-    remote climate service, then polls fast until the state settles.
+    remote climate service. The vehicle takes a while to report the new state,
+    so the requested state is shown until the vehicle confirms it or
+    `PENDING_STATE_TIMEOUT` expires; meanwhile the coordinator polls fast.
     """
 
     _attr_icon = "mdi:car-defrost-front"
@@ -173,11 +177,18 @@ class SmartDefrostSwitch(SmartHashtagEntity, SwitchEntity):
         return "defrost_control"
 
     @property
-    def is_on(self) -> bool:
-        """Return true if the front windscreen defrost is active."""
+    def _reported_state(self) -> bool:
+        """Return the defrost state reported by the vehicle."""
         if self._vehicle is None or self._vehicle.climate is None:
             return False
         return bool(self._vehicle.climate.defrosting_active)
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if the front windscreen defrost is active."""
+        if self._pending_state is not None:
+            return self._pending_state
+        return self._reported_state
 
     def __init__(
         self,
@@ -187,13 +198,29 @@ class SmartDefrostSwitch(SmartHashtagEntity, SwitchEntity):
         """Initialize the Defrost Switch class."""
         super().__init__(coordinator)
         self._vehicle_vin = vehicle
+        self._pending_state: bool | None = None
+        self._pending_until = None
         self._vehicle = self.coordinator.account.vehicles.get(vehicle)
         if self._vehicle is None:
             LOGGER.error("Vehicle %s not available for defrost switch", vehicle)
             self._attr_available = False
             return
         self._attr_unique_id = f"{self._attr_unique_id}_defrost_switch"
-        self._last_state: bool | None = None
+
+    def _clear_pending_state(self) -> None:
+        self._pending_state = None
+        self._pending_until = None
+        self.coordinator.reset_update_interval("defrost_switch")
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Drop the requested state once the vehicle confirms it or it times out."""
+        if self._pending_state is not None and (
+            self._reported_state == self._pending_state
+            or dt_util.utcnow() >= self._pending_until
+        ):
+            self._clear_pending_state()
+        super()._handle_coordinator_update()
 
     async def _set_defrost(self, active: bool) -> None:
         if self._vehicle is None:
@@ -205,16 +232,30 @@ class SmartDefrostSwitch(SmartHashtagEntity, SwitchEntity):
             "Setting front defrost to %s for vehicle %s", active, self._vehicle.vin
         )
         try:
-            await self._vehicle.climate_control.set_defrost(active)
-            # Set fast polling to quickly reflect state changes
-            self.coordinator.set_update_interval(
-                "defrost_switch", timedelta(seconds=FAST_INTERVAL)
-            )
+            success = await self._vehicle.climate_control.set_defrost(active)
         except Exception:
             LOGGER.exception(
                 "Error setting front defrost for vehicle %s",
                 getattr(self._vehicle, "vin", "unknown"),
             )
+            success = False
+
+        if success:
+            # Show the requested state until the vehicle reports it
+            self._pending_state = active
+            self._pending_until = dt_util.utcnow() + timedelta(
+                seconds=PENDING_STATE_TIMEOUT
+            )
+            self.coordinator.set_update_interval(
+                "defrost_switch", timedelta(seconds=FAST_INTERVAL)
+            )
+        else:
+            LOGGER.warning(
+                "Vehicle %s did not accept the front defrost command",
+                self._vehicle.vin,
+            )
+            self._clear_pending_state()
+        self.async_write_ha_state()
 
         await self.coordinator.async_request_refresh()
 
@@ -225,11 +266,3 @@ class SmartDefrostSwitch(SmartHashtagEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Stop the front windscreen defrost."""
         await self._set_defrost(False)
-
-    async def async_update(self) -> None:
-        """Update the entity state and reset polling interval when stable."""
-        current_state = self.is_on
-        # Reset to normal interval when state has stabilized
-        if self._last_state is not None and current_state == self._last_state:
-            self.coordinator.reset_update_interval("defrost_switch")
-        self._last_state = current_state

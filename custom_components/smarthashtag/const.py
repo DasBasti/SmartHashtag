@@ -44,6 +44,9 @@ DEFAULT_SCAN_INTERVAL = 300
 DEFAULT_CHARGING_INTERVAL = 30
 DEFAULT_DRIVING_INTERVAL = 60
 FAST_INTERVAL = 5
+# How long a remote command's requested state is shown before falling back to
+# the state reported by the vehicle, which can take a while to catch up.
+PENDING_STATE_TIMEOUT = 120
 MIN_SCAN_INTERVAL = 10
 DEFAULT_CONDITIONING_TEMP = 21
 DEFAULT_SEATHEATING_LEVEL = 3
