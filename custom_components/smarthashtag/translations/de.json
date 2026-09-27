@@ -53,6 +53,11 @@
         "name": "Ladesteuerung"
       }
     },
+    "cover": {
+      "trunk": {
+        "name": "Kofferraum"
+      }
+    },
     "lock": {
       "door_lock": {
         "name": "Türverriegelung"
