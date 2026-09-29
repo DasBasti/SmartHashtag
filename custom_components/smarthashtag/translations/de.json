@@ -53,6 +53,11 @@
         "name": "Ladesteuerung"
       }
     },
+    "lock": {
+      "door_lock": {
+        "name": "Türverriegelung"
+      }
+    },
     "select": {
       "steering_wheel_heater": {
         "name": "Lenkradheizung"
