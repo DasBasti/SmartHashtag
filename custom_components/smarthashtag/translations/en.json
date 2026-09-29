@@ -53,11 +53,6 @@
         "name": "Charging control"
       }
     },
-    "cover": {
-      "trunk": {
-        "name": "Trunk"
-      }
-    },
     "lock": {
       "door_lock": {
         "name": "Door lock"
