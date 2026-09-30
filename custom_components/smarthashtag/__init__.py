@@ -94,7 +94,26 @@ async def async_setup_entry(
     await entry.runtime_data.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
+    # Saving a heating level ("selects") must not reload the entry, otherwise all
+    # entities become unavailable for a moment.
+    def _reload_snapshot() -> tuple[dict, dict]:
+        return (
+            {k: v for k, v in entry.data.items() if k != "selects"},
+            dict(entry.options),
+        )
+
+    last_snapshot = _reload_snapshot()
+
+    async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+        nonlocal last_snapshot
+        snapshot = _reload_snapshot()
+        if snapshot == last_snapshot:
+            return
+        last_snapshot = snapshot
+        await async_reload_entry(hass, entry)
+
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
 
     return True
 
