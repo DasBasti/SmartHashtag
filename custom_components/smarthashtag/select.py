@@ -7,12 +7,7 @@ from homeassistant.core import HomeAssistant
 from pysmarthashtag.control.climate import HeatingLocation
 
 from . import SmartHashtagConfigEntry
-from .const import (
-    CONF_CONDITIONING_TEMP,
-    CONF_VEHICLE,
-    DEFAULT_CONDITIONING_TEMP,
-    LOGGER,
-)
+from .const import CONF_VEHICLE, LOGGER
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
 
@@ -169,17 +164,6 @@ class SmartPreHeatedLocation(SmartHashtagEntity, SelectEntity):
         )
         LOGGER.debug(f"Setting {self._location} to %s", level)
         self.async_write_ha_state()
-
-        # send the preconditioning request so the heating is activated
-        if level > 0:
-            temperature = self.coordinator.config_entry.options.get(
-                CONF_CONDITIONING_TEMP, DEFAULT_CONDITIONING_TEMP
-            )
-            await self.coordinator.account.select_active_vehicle(self._vehicle_vin)
-            await self._vehicle.climate_control.set_climate_conditioning(
-                temperature, True
-            )
-            await self.coordinator.async_request_refresh()
 
     @property
     def current_option(self) -> str:

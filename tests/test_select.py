@@ -314,3 +314,40 @@ async def test_select_entities_have_device_info(
         )
         device = device_registry.async_get(entity_entry.device_id)
         assert device is not None, f"Device must exist for entity {entity_id}"
+
+
+@pytest.mark.asyncio()
+async def test_select_option_does_not_send_command(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that changing a heating level only stores it and sends no command."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {
+            "entity_id": "select.smart_testvin0000000001_conditioning_driver_seat",
+            "option": "High",
+        },
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    assert entry.data["selects"][HeatingLocation.DRIVER_SEAT.value] == 3
+    assert not [
+        call
+        for call in smart_fixture.calls
+        if call.request.method == "PUT"
+        and "/vehicle/telematics/" in call.request.url.path
+    ]

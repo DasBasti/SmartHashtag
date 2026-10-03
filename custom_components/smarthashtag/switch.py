@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -9,9 +10,11 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.util import dt as dt_util
+from pysmarthashtag.control.climate import HeatingLocation
 
 from .const import (
     CONF_VEHICLE,
+    DEFAULT_SEATHEATING_LEVEL,
     FAST_INTERVAL,
     LOGGER,
     PENDING_STATE_TIMEOUT,
@@ -42,6 +45,13 @@ async def async_setup_entry(
     climate_control = getattr(vehicles[vehicle], "climate_control", None)
     if hasattr(climate_control, "set_defrost"):
         entities.append(SmartDefrostSwitch(coordinator, vehicle))
+
+    # Requires a pysmarthashtag release that provides ClimateControll.set_heating
+    if hasattr(climate_control, "set_heating"):
+        entities.extend(
+            SmartHeatingSwitch(coordinator, vehicle, description)
+            for description in HEATING_SWITCH_DESCRIPTIONS
+        )
 
     async_add_entities(entities, update_before_add=True)
 
@@ -159,18 +169,135 @@ class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
         self._last_state = current_state
 
 
-class SmartDefrostSwitch(SmartHashtagEntity, SwitchEntity):
+class SmartPendingStateSwitch(SmartHashtagEntity, SwitchEntity):
+    """
+    Base for switches that send a remote command the vehicle confirms with a delay.
+
+    The vehicle takes a while to report the new state, so the requested state is
+    shown until the vehicle confirms it or `PENDING_STATE_TIMEOUT` expires;
+    meanwhile the coordinator polls fast.
+    """
+
+    # Name of the fast polling request registered with the coordinator
+    _interval_key: str
+    # Human readable command name for log messages
+    _command_name: str
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        vehicle: str,
+    ) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator)
+        self._vehicle_vin = vehicle
+        self._pending_state: bool | None = None
+        self._pending_until = None
+        self._vehicle = self.coordinator.account.vehicles.get(vehicle)
+        if self._vehicle is None:
+            LOGGER.error(
+                "Vehicle %s not available for %s switch", vehicle, self._command_name
+            )
+            self._attr_available = False
+            return
+        self._attr_unique_id = f"{self._attr_unique_id}_{self._interval_key}"
+
+    @property
+    def _reported_state(self) -> bool:
+        """Return the state reported by the vehicle."""
+        raise NotImplementedError
+
+    async def _send_command(self, active: bool) -> bool:
+        """Send the command to the vehicle and return whether it was accepted."""
+        raise NotImplementedError
+
+    @property
+    def is_on(self) -> bool:
+        """Return the requested state while pending, else the reported state."""
+        if self._pending_state is not None:
+            return self._pending_state
+        return self._reported_state
+
+    def _clear_pending_state(self) -> None:
+        self._pending_state = None
+        self._pending_until = None
+        self.coordinator.reset_update_interval(self._interval_key)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Drop the requested state once the vehicle confirms it or it times out."""
+        if self._pending_state is not None and (
+            self._reported_state == self._pending_state
+            or dt_util.utcnow() >= self._pending_until
+        ):
+            self._clear_pending_state()
+        super()._handle_coordinator_update()
+
+    async def _set_state(self, active: bool) -> None:
+        if self._vehicle is None:
+            LOGGER.warning(
+                "Cannot set %s; vehicle %s unavailable",
+                self._command_name,
+                self._vehicle_vin,
+            )
+            return
+        LOGGER.debug(
+            "Setting %s to %s for vehicle %s",
+            self._command_name,
+            active,
+            self._vehicle.vin,
+        )
+        try:
+            success = await self._send_command(active)
+        except Exception:
+            LOGGER.exception(
+                "Error setting %s for vehicle %s",
+                self._command_name,
+                getattr(self._vehicle, "vin", "unknown"),
+            )
+            success = False
+
+        if success:
+            # Show the requested state until the vehicle reports it
+            self._pending_state = active
+            self._pending_until = dt_util.utcnow() + timedelta(
+                seconds=PENDING_STATE_TIMEOUT
+            )
+            self.coordinator.set_update_interval(
+                self._interval_key, timedelta(seconds=FAST_INTERVAL)
+            )
+        else:
+            LOGGER.warning(
+                "Vehicle %s did not accept the %s command",
+                self._vehicle.vin,
+                self._command_name,
+            )
+            self._clear_pending_state()
+        self.async_write_ha_state()
+
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the function on."""
+        await self._set_state(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the function off."""
+        await self._set_state(False)
+
+
+class SmartDefrostSwitch(SmartPendingStateSwitch):
     """
     Switch entity for the front windscreen defrost of a Smart vehicle.
 
     The state follows the vehicle's reported `defrosting_active` climate value.
     Turning the switch on or off starts or stops the defrost via the RCE_2
-    remote climate service. The vehicle takes a while to report the new state,
-    so the requested state is shown until the vehicle confirms it or
-    `PENDING_STATE_TIMEOUT` expires; meanwhile the coordinator polls fast.
+    remote climate service.
     """
 
     _attr_icon = "mdi:car-defrost-front"
+    _interval_key = "defrost_switch"
+    _command_name = "front defrost"
 
     @property
     def translation_key(self):
@@ -183,86 +310,90 @@ class SmartDefrostSwitch(SmartHashtagEntity, SwitchEntity):
             return False
         return bool(self._vehicle.climate.defrosting_active)
 
-    @property
-    def is_on(self) -> bool:
-        """Return true if the front windscreen defrost is active."""
-        if self._pending_state is not None:
-            return self._pending_state
-        return self._reported_state
+    async def _send_command(self, active: bool) -> bool:
+        return await self._vehicle.climate_control.set_defrost(active)
+
+
+@dataclass(frozen=True)
+class HeatingSwitchDescription:
+    """Describes a seat / steering wheel heating switch."""
+
+    key: str
+    icon: str
+    locations: tuple[HeatingLocation, ...]
+    # Climate status attributes; the switch is on when any of them is true
+    status_attributes: tuple[str, ...]
+
+
+HEATING_SWITCH_DESCRIPTIONS = (
+    HeatingSwitchDescription(
+        key="seat_heating",
+        icon="mdi:car-seat-heater",
+        locations=(HeatingLocation.DRIVER_SEAT, HeatingLocation.PASSENGER_SEAT),
+        status_attributes=("driver_heating_status", "passenger_heating_status"),
+    ),
+    HeatingSwitchDescription(
+        key="steering_wheel_heating",
+        icon="mdi:steering",
+        locations=(HeatingLocation.STEERING_WHEEL,),
+        status_attributes=("steering_wheel_heating_status",),
+    ),
+)
+
+
+class SmartHeatingSwitch(SmartPendingStateSwitch):
+    """
+    Switch entity that starts seat or steering wheel heating on its own.
+
+    Unlike climate preconditioning, the air conditioning is not started. The
+    levels come from the heating selects; locations set to "Off" are skipped,
+    and if all are "Off" the default seat heating level is used for all of them.
+    """
 
     def __init__(
         self,
         coordinator: SmartHashtagDataUpdateCoordinator,
         vehicle: str,
+        description: HeatingSwitchDescription,
     ) -> None:
-        """Initialize the Defrost Switch class."""
-        super().__init__(coordinator)
-        self._vehicle_vin = vehicle
-        self._pending_state: bool | None = None
-        self._pending_until = None
-        self._vehicle = self.coordinator.account.vehicles.get(vehicle)
-        if self._vehicle is None:
-            LOGGER.error("Vehicle %s not available for defrost switch", vehicle)
-            self._attr_available = False
-            return
-        self._attr_unique_id = f"{self._attr_unique_id}_defrost_switch"
+        """Initialize the heating switch."""
+        self._description = description
+        self._interval_key = f"{description.key}_switch"
+        self._command_name = description.key.replace("_", " ")
+        self._attr_icon = description.icon
+        super().__init__(coordinator, vehicle)
 
-    def _clear_pending_state(self) -> None:
-        self._pending_state = None
-        self._pending_until = None
-        self.coordinator.reset_update_interval("defrost_switch")
+    @property
+    def translation_key(self):
+        return f"{self._description.key}_control"
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Drop the requested state once the vehicle confirms it or it times out."""
-        if self._pending_state is not None and (
-            self._reported_state == self._pending_state
-            or dt_util.utcnow() >= self._pending_until
-        ):
-            self._clear_pending_state()
-        super()._handle_coordinator_update()
-
-    async def _set_defrost(self, active: bool) -> None:
-        if self._vehicle is None:
-            LOGGER.warning(
-                "Cannot set defrost; vehicle %s unavailable", self._vehicle_vin
-            )
-            return
-        LOGGER.debug(
-            "Setting front defrost to %s for vehicle %s", active, self._vehicle.vin
+    @property
+    def _reported_state(self) -> bool:
+        """Return true if the vehicle reports heating on any of the locations."""
+        if self._vehicle is None or self._vehicle.climate is None:
+            return False
+        return any(
+            bool(getattr(self._vehicle.climate, attr, False))
+            for attr in self._description.status_attributes
         )
-        try:
-            success = await self._vehicle.climate_control.set_defrost(active)
-        except Exception:
-            LOGGER.exception(
-                "Error setting front defrost for vehicle %s",
-                getattr(self._vehicle, "vin", "unknown"),
-            )
-            success = False
 
-        if success:
-            # Show the requested state until the vehicle reports it
-            self._pending_state = active
-            self._pending_until = dt_util.utcnow() + timedelta(
-                seconds=PENDING_STATE_TIMEOUT
+    def _selected_levels(self) -> dict[HeatingLocation, int]:
+        """Return the levels from the heating selects for this switch."""
+        selects = self.coordinator.config_entry.data.get("selects", {})
+        levels = {
+            location: selects.get(location.value, 0)
+            for location in self._description.locations
+        }
+        levels = {location: level for location, level in levels.items() if level > 0}
+        if not levels:
+            levels = dict.fromkeys(
+                self._description.locations, DEFAULT_SEATHEATING_LEVEL
             )
-            self.coordinator.set_update_interval(
-                "defrost_switch", timedelta(seconds=FAST_INTERVAL)
-            )
+        return levels
+
+    async def _send_command(self, active: bool) -> bool:
+        if active:
+            levels = self._selected_levels()
         else:
-            LOGGER.warning(
-                "Vehicle %s did not accept the front defrost command",
-                self._vehicle.vin,
-            )
-            self._clear_pending_state()
-        self.async_write_ha_state()
-
-        await self.coordinator.async_request_refresh()
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Start the front windscreen defrost."""
-        await self._set_defrost(True)
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Stop the front windscreen defrost."""
-        await self._set_defrost(False)
+            levels = dict.fromkeys(self._description.locations, 0)
+        return await self._vehicle.climate_control.set_heating(active, levels)
