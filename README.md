@@ -27,6 +27,48 @@
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=smarthashtag)
 
+## Preconditioning, Seat Heating and Defrost
+
+All climate commands are sent to the car through the Smart cloud. The car takes a while to report a new state. The heating and defrost switches therefore show the requested state for up to two minutes, and the integration polls faster until the car confirms it.
+
+### Entities
+
+| Entity                                           | Type    | What it does                                                                |
+| ------------------------------------------------ | ------- | --------------------------------------------------------------------------- |
+| `climate.smart_<vin>_conditioning`               | Climate | Starts / stops preconditioning (air conditioning to the target temperature) |
+| `select.smart_<vin>_conditioning_driver_seat`    | Select  | Heating level `Off` / `Low` / `Mid` / `High` for the driver seat            |
+| `select.smart_<vin>_conditioning_passenger_seat` | Select  | Heating level for the passenger seat                                        |
+| `select.smart_<vin>_conditioning_steering_wheel` | Select  | Heating level for the steering wheel                                        |
+| Seat heating                                     | Switch  | Turns on the front seat heating without preconditioning                     |
+| Steering wheel heating                           | Switch  | Turns on the steering wheel heating without preconditioning                 |
+| Front defrost                                    | Switch  | Starts / stops the front windscreen defrost                                 |
+
+### Preconditioning
+
+Turning on the climate entity (HVAC mode `heat_cool`) starts preconditioning at the target temperature. The default target temperature is set in the integration options ("Target temperature preconditioning"). Changing the temperature on the climate entity applies to the next start.
+
+Preconditioning also turns on the seat and steering wheel heating at the levels chosen in the heating selects. Locations set to `Off` are not heated. Turning the climate entity off stops preconditioning.
+
+### Heating Levels (Selects)
+
+The selects only store the heating level. Changing a select does **not** send anything to the car. The stored level is used the next time preconditioning or one of the heating switches is turned on, and is kept across restarts.
+
+### Seat and Steering Wheel Heating Switches
+
+The switches turn on heating **without** starting the air conditioning:
+
+- **Seat heating** heats the driver and passenger seat at the levels from their selects. A seat whose select is `Off` is skipped. If both are `Off`, both seats are heated at `High`.
+- **Steering wheel heating** heats the steering wheel at the level from its select, or at `High` if the select is `Off`.
+
+Turning a switch off stops the heating for its locations. The switch state follows the heating status the car reports; the seat heating switch is on while either front seat is heating.
+
+> [!NOTE]
+> Smart #5: the cloud accepts the seat heating command, but the car does not heat the seats yet. Steering wheel heating works. See [#478](https://github.com/DasBasti/SmartHashtag/issues/478).
+
+### Front Defrost
+
+The front defrost switch starts the windscreen defrost and stops it when turned off. Its state follows the "Defrosting active" status reported by the car.
+
 ## Connect to ABRP
 
 [@chriscatuk](https://github.com/chriscatuk) integrated [A Better Route Planner](https://abetterrouteplanner.com/) with data from this component. To automatically send the information everytime the component updates, add this to your automations.
