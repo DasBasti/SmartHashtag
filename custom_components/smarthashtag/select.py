@@ -4,7 +4,7 @@ from typing import Literal
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.core import HomeAssistant
-from pysmarthashtag.control.climate import HeatingLocation
+from pysmarthashtag.control.climate import HeatingLocation, VentilationLocation
 
 from . import SmartHashtagConfigEntry
 from .const import CONF_VEHICLE, LOGGER
@@ -24,6 +24,29 @@ HEATING_LOCATION_NAMES = {
     HeatingLocation.DRIVER_SEAT: "Driver Seat",
     HeatingLocation.PASSENGER_SEAT: "Passenger Seat",
 }
+
+VENTILATION_LOCATION_NAMES = {
+    VentilationLocation.DRIVER_SEAT: "Driver Seat Ventilation",
+    VentilationLocation.PASSENGER_SEAT: "Passenger Seat Ventilation",
+}
+VENTILATION_DESCRIPTIONS = {
+    VentilationLocation.DRIVER_SEAT: SelectEntityDescription(
+        options=STEERING_HEATER_OPTIONS,
+        key="driver_seat_ventilation",
+        translation_key="driver_seat_ventilation",
+        name="Driver Seat Ventilation",
+        icon="mdi:car-seat-cooler",
+    ),
+    VentilationLocation.PASSENGER_SEAT: SelectEntityDescription(
+        options=STEERING_HEATER_OPTIONS,
+        key="passenger_seat_ventilation",
+        translation_key="passenger_seat_ventilation",
+        name="Passenger Seat Ventilation",
+        icon="mdi:car-seat-cooler",
+    ),
+}
+# Config entry "selects" key prefix, so ventilation doesn't clash with heating
+VENTILATION_KEY_PREFIX = "ventilation-"
 
 SELECT_DESCRIPTIONS = {
     HeatingLocation.STEERING_WHEEL: SelectEntityDescription(
@@ -86,6 +109,12 @@ async def async_setup_entry(
 
     for location in HeatingLocation:
         entities.append(SmartPreHeatedLocation(coordinator, vehicle, location))
+
+    # Seat ventilation exists on the Smart #5 only (ZAF climate format)
+    climate_control = vehicles[vehicle].climate_control
+    if climate_control is not None and getattr(climate_control, "use_zaf", False):
+        for v_location in VentilationLocation:
+            entities.append(SmartVentilationLocation(coordinator, vehicle, v_location))
 
     async_add_entities(entities, update_before_add=True)
 
@@ -159,6 +188,9 @@ class SmartPreHeatedLocation(SmartHashtagEntity, SelectEntity):
             # Create a copy of the nested selects dict to avoid mutating the original
             new_data["selects"] = new_data["selects"].copy()
         new_data["selects"][self._location.value] = level
+        if level > 0:
+            # heating and ventilation are mutually exclusive per seat
+            new_data["selects"].pop(VENTILATION_KEY_PREFIX + self._location.value, None)
         self.hass.config_entries.async_update_entry(
             self.coordinator.config_entry, data=new_data
         )
@@ -192,3 +224,59 @@ class SmartPreHeatedLocation(SmartHashtagEntity, SelectEntity):
     def options(self):
         """Return heated seat options."""
         return STEERING_HEATER_OPTIONS
+
+
+class SmartVentilationLocation(SmartHashtagEntity, SelectEntity):
+    """Saved seat ventilation preference (Smart #5); applied when climate is started."""
+
+    _attr_has_entity_name = False
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        vehicle: str,
+        location: VentilationLocation,
+    ):
+        """Initialize ventilated seat entity."""
+        super().__init__(coordinator)
+        self._vehicle_vin = vehicle
+        self._vehicle = self.coordinator.account.vehicles.get(vehicle)
+        self._location = location
+        self._attr_name = f"Smart {vehicle} Conditioning {VENTILATION_LOCATION_NAMES[location]}"
+        self._attr_unique_id = (
+            f"{coordinator.config_entry.entry_id}_preconditioning_"
+            f"{VENTILATION_LOCATION_NAMES[location].lower().replace(' ', '_')}"
+        )
+        self.entity_description = VENTILATION_DESCRIPTIONS[location]
+        self._attr_options = STEERING_HEATER_OPTIONS
+        if self._vehicle is None:
+            self._attr_available = False
+
+    @property
+    def _config_key(self) -> str:
+        return VENTILATION_KEY_PREFIX + self._location.value
+
+    def _saved_level(self) -> int:
+        selects = self.coordinator.config_entry.data.get("selects", {})
+        return selects.get(self._config_key, 0)
+
+    async def async_select_option(self, option: str, **kwargs):
+        """Save the preference; this does not start climate control."""
+        if self._vehicle is None:
+            return
+        level = HEATING_LEVEL_OPTIONS_MAP[option]
+        new_data = self.coordinator.config_entry.data.copy()
+        selects = dict(new_data.get("selects", {}))
+        selects[self._config_key] = level
+        if level > 0:
+            # heating and ventilation are mutually exclusive per seat
+            selects[self._location.value] = 0
+        new_data["selects"] = selects
+        self.hass.config_entries.async_update_entry(self.coordinator.config_entry, data=new_data)
+        self.async_write_ha_state()
+
+    @property
+    def current_option(self) -> str:
+        """Return the saved ventilation level."""
+        level = self._saved_level()
+        return next((k for k, v in HEATING_LEVEL_OPTIONS_MAP.items() if v == level), "Off")
