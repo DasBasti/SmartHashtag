@@ -11,7 +11,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
-from pysmarthashtag.control.climate import HeatingLocation
+from pysmarthashtag.control.climate import HeatingLocation, VentilationLocation
 
 from .const import (
     CONF_CONDITIONING_TEMP,
@@ -153,6 +153,18 @@ class SmartConditioningMode(SmartHashtagEntity, ClimateEntity):
                     "Failed to restore heating level for %s: %s", location, e
                 )
 
+    def _restore_ventilation_levels(self) -> None:
+        """Restore saved seat ventilation levels (Smart #5 only)."""
+        if not getattr(self._vehicle.climate_control, "use_zaf", False):
+            return
+        selects = self.coordinator.config_entry.data.get("selects", {})
+        for location in VentilationLocation:
+            level = selects.get(f"ventilation-{location.value}", 0)
+            try:
+                self._vehicle.climate_control.set_ventilation_level(location, level)
+            except Exception as e:
+                LOGGER.warning("Failed to restore ventilation level for %s: %s", location, e)
+
     async def async_turn_on(self) -> None:
         """Turn on the climate system."""
         if self._vehicle is None:
@@ -162,6 +174,7 @@ class SmartConditioningMode(SmartHashtagEntity, ClimateEntity):
             return
         await self.coordinator.account.select_active_vehicle(self._vehicle_vin)
         self._restore_heating_levels()
+        self._restore_ventilation_levels()
         await self._vehicle.climate_control.set_climate_conditioning(
             self._temperature, True
         )
