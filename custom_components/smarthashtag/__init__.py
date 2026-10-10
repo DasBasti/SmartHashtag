@@ -94,7 +94,21 @@ async def async_setup_entry(
     await entry.runtime_data.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
+    # Saved select profiles are local settings; only reload for other changes so a
+    # multi-select followed by a climate start isn't interrupted by a reload.
+    def _non_select_data() -> dict:
+        return {k: v for k, v in entry.data.items() if k != "selects"}
+
+    known = {"data": _non_select_data(), "options": dict(entry.options)}
+
+    async def _async_update_listener(hass: HomeAssistant, updated: ConfigEntry) -> None:
+        current = {"data": _non_select_data(), "options": dict(updated.options)}
+        if current == known:
+            return
+        await async_reload_entry(hass, updated)
+
+    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
 
     return True
 

@@ -70,6 +70,18 @@
       },
       "passenger_seat_heater": {
         "name": "Beifahrersitzheizung"
+      },
+      "driver_seat_ventilation": {
+        "name": "Fahrersitzbelüftung"
+      },
+      "passenger_seat_ventilation": {
+        "name": "Beifahrersitzbelüftung"
+      },
+      "rear_left_seat_heater": {
+        "name": "Sitzheizung hinten links"
+      },
+      "rear_right_seat_heater": {
+        "name": "Sitzheizung hinten rechts"
       }
     },
     "sensor": {

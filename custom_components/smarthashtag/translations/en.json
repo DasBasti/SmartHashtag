@@ -70,6 +70,18 @@
       },
       "passenger_seat_heater": {
         "name": "Passenger seat heater"
+      },
+      "driver_seat_ventilation": {
+        "name": "Driver seat ventilation"
+      },
+      "passenger_seat_ventilation": {
+        "name": "Passenger seat ventilation"
+      },
+      "rear_left_seat_heater": {
+        "name": "Rear left seat heater"
+      },
+      "rear_right_seat_heater": {
+        "name": "Rear right seat heater"
       }
     },
     "sensor": {

@@ -161,6 +161,14 @@ target:
   entity_id: update.smart_1_3_integration_update
 ```
 
+## Credits
+
+Smart #5 seat heating and ventilation were made possible by community contributors:
+
+- [@radzatm](https://github.com/radzatm) reverse-engineered the working ZAF seat heating request of the Smart #5 and tested the debug builds ([#478](https://github.com/DasBasti/SmartHashtag/issues/478)).
+- [@ooooli](https://github.com/ooooli) documented and confirmed the ZAF request format including front seat ventilation ([#479](https://github.com/DasBasti/SmartHashtag/issues/479)).
+- [@krlimi69](https://github.com/krlimi69) reported the failing seat and steering wheel heating on the Smart #5 Brabus and tested the fixes ([#478](https://github.com/DasBasti/SmartHashtag/issues/478)).
+
 ## AI-Assisted Development
 
 This project uses AI tools to assist with development, including GitHub Copilot for code suggestions and commit message generation.
