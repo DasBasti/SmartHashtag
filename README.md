@@ -137,6 +137,28 @@ vehicles:
 
 The sensor finishTime should be a point in time, but it seems the time span of the sensor works as well.
 
+## Send a destination from Google Maps to the car
+
+Share a place or route from Google Maps to the Home Assistant app and the car's navigation receives it.
+The app fires a `mobile_app.share` event; this automation passes the shared link to the integration,
+which resolves it and sends the destination (the last stop of a route) to the vehicle.
+
+```yaml
+alias: Send shared Maps destination to the car
+triggers:
+  - trigger: event
+    event_type: mobile_app.share
+    event_data:
+      caller: android-app://com.google.android.apps.maps
+actions:
+  - action: smarthashtag.send_shared_destination
+    data:
+      device_id: <your Smart device> # pick it in the automation editor
+      url: "{{ trigger.event.data.url | default(trigger.event.data.text) }}"
+```
+
+You can also call `smarthashtag.send_destination` with coordinates, a name and an optional address.
+
 ## Create Debug Logs
 
 To create logs for debugging, add this to your `configuration.yaml` file
