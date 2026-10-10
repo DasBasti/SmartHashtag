@@ -524,6 +524,11 @@
       "relative_humidity": {
         "name": "Luftfeuchtigkeit"
       }
+    },
+    "number": {
+      "charging_limit": {
+        "name": "Ladelimit"
+      }
     }
   }
 }

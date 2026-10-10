@@ -524,6 +524,11 @@
       "relative_humidity": {
         "name": "Relative humidity"
       }
+    },
+    "number": {
+      "charging_limit": {
+        "name": "Charging limit"
+      }
     }
   }
 }
