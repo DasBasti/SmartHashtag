@@ -538,6 +538,14 @@
       "charging_limit": {
         "name": "Ladelimit"
       }
+    },
+    "button": {
+      "flash_lights": {
+        "name": "Lichthupe"
+      },
+      "honk_horn": {
+        "name": "Hupen"
+      }
     }
   }
 }
