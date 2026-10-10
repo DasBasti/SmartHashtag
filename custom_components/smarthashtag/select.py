@@ -262,7 +262,9 @@ class SmartVentilationLocation(SmartHashtagEntity, SelectEntity):
         self._vehicle_vin = vehicle
         self._vehicle = self.coordinator.account.vehicles.get(vehicle)
         self._location = location
-        self._attr_name = f"Smart {vehicle} Conditioning {VENTILATION_LOCATION_NAMES[location]}"
+        self._attr_name = (
+            f"Smart {vehicle} Conditioning {VENTILATION_LOCATION_NAMES[location]}"
+        )
         self._attr_unique_id = (
             f"{coordinator.config_entry.entry_id}_preconditioning_"
             f"{VENTILATION_LOCATION_NAMES[location].lower().replace(' ', '_')}"
@@ -292,14 +294,18 @@ class SmartVentilationLocation(SmartHashtagEntity, SelectEntity):
             # heating and ventilation are mutually exclusive per seat
             selects[self._location.value] = 0
         new_data["selects"] = selects
-        self.hass.config_entries.async_update_entry(self.coordinator.config_entry, data=new_data)
+        self.hass.config_entries.async_update_entry(
+            self.coordinator.config_entry, data=new_data
+        )
         self.async_write_ha_state()
 
     @property
     def current_option(self) -> str:
         """Return the saved ventilation level."""
         level = self._saved_level()
-        return next((k for k, v in HEATING_LEVEL_OPTIONS_MAP.items() if v == level), "Off")
+        return next(
+            (k for k, v in HEATING_LEVEL_OPTIONS_MAP.items() if v == level), "Off"
+        )
 
 
 class SmartRearHeatedLocation(SmartHashtagEntity, SelectEntity):
@@ -320,9 +326,7 @@ class SmartRearHeatedLocation(SmartHashtagEntity, SelectEntity):
         self._location = location
         name = REAR_HEATING_LOCATION_NAMES[location]
         self._attr_name = f"Smart {vehicle} Conditioning {name}"
-        self._attr_unique_id = (
-            f"{coordinator.config_entry.entry_id}_preconditioning_{name.lower().replace(' ', '_')}"
-        )
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_preconditioning_{name.lower().replace(' ', '_')}"
         self.entity_description = REAR_HEATING_DESCRIPTIONS[location]
         self._attr_options = STEERING_HEATER_OPTIONS
         if self._vehicle is None:
@@ -336,11 +340,17 @@ class SmartRearHeatedLocation(SmartHashtagEntity, SelectEntity):
         selects = dict(new_data.get("selects", {}))
         selects[self._location.value] = HEATING_LEVEL_OPTIONS_MAP[option]
         new_data["selects"] = selects
-        self.hass.config_entries.async_update_entry(self.coordinator.config_entry, data=new_data)
+        self.hass.config_entries.async_update_entry(
+            self.coordinator.config_entry, data=new_data
+        )
         self.async_write_ha_state()
 
     @property
     def current_option(self) -> str:
         """Return the saved rear seat heating level."""
-        level = self.coordinator.config_entry.data.get("selects", {}).get(self._location.value, 0)
-        return next((k for k, v in HEATING_LEVEL_OPTIONS_MAP.items() if v == level), "Off")
+        level = self.coordinator.config_entry.data.get("selects", {}).get(
+            self._location.value, 0
+        )
+        return next(
+            (k for k, v in HEATING_LEVEL_OPTIONS_MAP.items() if v == level), "Off"
+        )

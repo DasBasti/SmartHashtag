@@ -167,13 +167,17 @@ class SmartConditioningMode(SmartHashtagEntity, ClimateEntity):
             try:
                 self._vehicle.climate_control.set_ventilation_level(location, level)
             except Exception as e:
-                LOGGER.warning("Failed to restore ventilation level for %s: %s", location, e)
+                LOGGER.warning(
+                    "Failed to restore ventilation level for %s: %s", location, e
+                )
         for r_location in RearHeatingLocation:
             level = selects.get(r_location.value, 0)
             try:
                 self._vehicle.climate_control.set_rear_heating_level(r_location, level)
             except Exception as e:
-                LOGGER.warning("Failed to restore rear heating level for %s: %s", r_location, e)
+                LOGGER.warning(
+                    "Failed to restore rear heating level for %s: %s", r_location, e
+                )
 
     async def async_turn_on(self) -> None:
         """Turn on the climate system."""
