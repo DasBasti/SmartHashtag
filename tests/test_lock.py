@@ -153,3 +153,77 @@ async def test_rejected_command_raises(
         await _call_lock_service(hass, "unlock", entity_id)
 
     assert hass.states.get(entity_id).state == LockState.LOCKED
+
+
+def get_trunk_lock_entity_id(hass: HomeAssistant) -> str | None:
+    """Find the trunk lock entity ID."""
+    for entity_id in hass.states.async_entity_ids("lock"):
+        if entity_id.startswith("lock.smart") and "trunk_lock" in entity_id:
+            return entity_id
+    return None
+
+
+@pytest.mark.asyncio()
+async def test_trunk_lock_state_follows_trunk_lock_status(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that the trunk lock reflects the reported trunk lock status."""
+    await _setup_entry(hass)
+
+    entity_id = get_trunk_lock_entity_id(hass)
+    assert entity_id is not None, "Trunk lock entity not found"
+    assert hass.states.get(entity_id).state == LockState.LOCKED
+
+
+@pytest.mark.asyncio()
+async def test_trunk_unlock_sends_command_and_shows_unlocking(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that unlocking the trunk sends RDU_2 for the trunk only."""
+    await _setup_entry(hass)
+    entity_id = get_trunk_lock_entity_id(hass)
+
+    await _call_lock_service(hass, "unlock", entity_id)
+
+    payload = _telematics_payloads(smart_fixture)[-1]
+    assert payload["serviceId"] == "RDU_2"
+    assert payload["serviceParameters"] == [{"key": "target", "value": "trunk"}]
+    assert hass.states.get(entity_id).state == LockState.UNLOCKING
+    # The doors are not touched
+    assert hass.states.get(get_lock_entity_id(hass)).state == LockState.LOCKED
+
+
+@pytest.mark.asyncio()
+async def test_trunk_lock_sends_command(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that locking the trunk sends RDL_2 for the trunk only."""
+    await _setup_entry(hass)
+    entity_id = get_trunk_lock_entity_id(hass)
+
+    await _call_lock_service(hass, "lock", entity_id)
+
+    payload = _telematics_payloads(smart_fixture)[-1]
+    assert payload["serviceId"] == "RDL_2"
+    assert payload["serviceParameters"] == [{"key": "target", "value": "trunk"}]
+    assert hass.states.get(entity_id).state == LockState.LOCKING
+
+
+@pytest.mark.asyncio()
+async def test_rejected_trunk_command_raises(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that a trunk command the vehicle does not accept surfaces an error."""
+    await _setup_entry(hass)
+    entity_id = get_trunk_lock_entity_id(hass)
+
+    with (
+        patch(
+            "pysmarthashtag.control.lock.DoorLockControl.unlock_trunk",
+            new=AsyncMock(return_value=False),
+        ),
+        pytest.raises(HomeAssistantError),
+    ):
+        await _call_lock_service(hass, "unlock", entity_id)
+
+    assert hass.states.get(entity_id).state == LockState.LOCKED
