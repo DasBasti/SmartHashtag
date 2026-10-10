@@ -54,6 +54,12 @@
       },
       "defrost_control": {
         "name": "Frontscheibenenteisung"
+      },
+      "window_ventilation": {
+        "name": "Fensterlüftung"
+      },
+      "sunshade": {
+        "name": "Sonnenschutzrollo"
       }
     },
     "lock": {
