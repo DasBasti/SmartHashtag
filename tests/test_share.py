@@ -1,6 +1,7 @@
 """Unit tests for resolving shared maps links."""
 
 from unittest.mock import AsyncMock, patch
+from urllib.parse import quote
 
 import pytest
 import respx
@@ -60,9 +61,15 @@ def test_extract_url_from_text():
         extract_url("no link here")
 
 
-class _FakeResponse:
+class _FakeHop:
     def __init__(self, url: str) -> None:
         self.url = url
+
+
+class _FakeResponse:
+    def __init__(self, url: str, history: list[str] | None = None) -> None:
+        self.url = url
+        self.history = [_FakeHop(u) for u in history or []]
 
     async def __aenter__(self):
         return self
@@ -72,13 +79,14 @@ class _FakeResponse:
 
 
 class _FakeSession:
-    def __init__(self, final_url: str) -> None:
+    def __init__(self, final_url: str, history: list[str] | None = None) -> None:
         self.final_url = final_url
+        self.history = history
         self.requested: list[str] = []
 
     def get(self, url, **kwargs):
         self.requested.append(url)
-        return _FakeResponse(self.final_url)
+        return _FakeResponse(self.final_url, self.history)
 
 
 @pytest.mark.asyncio()
@@ -89,6 +97,17 @@ async def test_resolve_follows_short_link():
     )
     assert session.requested == ["https://maps.app.goo.gl/W9bykxJhd8GsNXvUA"]
     assert location.latitude == pytest.approx(49.6542632)
+
+
+@pytest.mark.asyncio()
+async def test_resolve_uses_maps_url_from_consent_page():
+    """The EU consent page carries the Maps URL in its continue parameter."""
+    consent = "https://consent.google.com/m?continue=" + quote(DIR_URL, safe="")
+    session = _FakeSession(consent, history=["https://maps.app.goo.gl/x", DIR_URL])
+    location = await async_resolve_shared_location(
+        session, "https://maps.app.goo.gl/W9bykxJhd8GsNXvUA"
+    )
+    assert location.longitude == pytest.approx(8.5675885)
 
 
 @pytest.mark.asyncio()

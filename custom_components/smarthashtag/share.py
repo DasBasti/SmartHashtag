@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from urllib.parse import unquote_plus, urlparse
+from urllib.parse import parse_qs, unquote_plus, urlparse
 
 import aiohttp
 
@@ -95,6 +95,23 @@ def parse_maps_url(url: str) -> SharedLocation:
     return SharedLocation(latitude=lat, longitude=lon, name=name)
 
 
+def _candidate_urls(urls: list[str]) -> list[str]:
+    """Return the Maps URLs in a redirect chain.
+
+    From the EU Google redirects to a consent page, which carries the
+    actual Maps URL in its ``continue`` parameter.
+    """
+    result: list[str] = []
+    for url in urls:
+        host = urlparse(url).hostname or ""
+        if host.startswith("consent."):
+            for target in parse_qs(urlparse(url).query).get("continue", []):
+                result.append(target)
+        else:
+            result.append(url)
+    return [url for url in result if _host_allowed(urlparse(url).hostname)]
+
+
 async def async_resolve_shared_location(
     session: aiohttp.ClientSession, text: str
 ) -> SharedLocation:
@@ -110,11 +127,19 @@ async def async_resolve_shared_location(
             timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
             allow_redirects=True,
         ) as response:
-            final_url = str(response.url)
+            chain = [str(r.url) for r in response.history] + [str(response.url)]
     except (aiohttp.ClientError, TimeoutError) as err:
         raise SharedLocationError(f"the link could not be opened ({err})") from err
 
-    LOGGER.debug("Resolved shared link to %s", final_url.split("?")[0])
-    if not _host_allowed(urlparse(final_url).hostname):
+    candidates = _candidate_urls(chain)
+    LOGGER.debug("Shared link led to %s", [c.split("?")[0] for c in chain])
+    if not candidates:
         raise SharedLocationError("the link did not lead to Google Maps")
-    return parse_maps_url(final_url)
+    error: SharedLocationError | None = None
+    # Latest first: the final URL is the most specific one
+    for candidate in reversed(candidates):
+        try:
+            return parse_maps_url(candidate)
+        except SharedLocationError as err:
+            error = err
+    raise error
