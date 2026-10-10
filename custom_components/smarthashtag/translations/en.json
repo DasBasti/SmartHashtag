@@ -59,6 +59,9 @@
     "lock": {
       "door_lock": {
         "name": "Door lock"
+      },
+      "trunk_lock": {
+        "name": "Trunk lock"
       }
     },
     "select": {

@@ -43,7 +43,12 @@ async def async_setup_entry(
         )
         return
 
-    async_add_entities([SmartDoorLock(coordinator, vehicle)], update_before_add=True)
+    entities: list[SmartDoorLock] = [SmartDoorLock(coordinator, vehicle)]
+    # Requires a pysmarthashtag release that provides DoorLockControl.lock_trunk
+    if hasattr(vehicles[vehicle].door_lock_control, "lock_trunk"):
+        entities.append(SmartTrunkLock(coordinator, vehicle))
+
+    async_add_entities(entities, update_before_add=True)
 
 
 class SmartDoorLock(SmartHashtagEntity, LockEntity):
@@ -58,6 +63,9 @@ class SmartDoorLock(SmartHashtagEntity, LockEntity):
     """
 
     _attr_translation_key = "door_lock"
+    _unique_id_suffix = "door_lock"
+    _pending_key = "door_lock"
+    _target = "doors"
 
     def __init__(
         self,
@@ -74,14 +82,25 @@ class SmartDoorLock(SmartHashtagEntity, LockEntity):
             LOGGER.error("Vehicle %s not available for door lock", vehicle)
             self._attr_available = False
             return
-        self._attr_unique_id = f"{self._attr_unique_id}_door_lock"
+        self._attr_unique_id = f"{self._attr_unique_id}_{self._unique_id_suffix}"
+
+    def _locking_status(self) -> int | None:
+        """Return the locking status reported by the vehicle, 0 being unlocked."""
+        return self._vehicle.safety.central_locking_status
+
+    async def _send_lock_command(self, locked: bool) -> bool:
+        """Send the lock or unlock command to the vehicle."""
+        lock_control = self._vehicle.door_lock_control
+        if locked:
+            return await lock_control.lock()
+        return await lock_control.unlock()
 
     @property
     def is_locked(self) -> bool | None:
-        """Return true if the vehicle reports the central locking as locked."""
+        """Return true if the vehicle reports the locking as locked."""
         if self._vehicle is None or self._vehicle.safety is None:
             return None
-        status = self._vehicle.safety.central_locking_status
+        status = self._locking_status()
         if status is None:
             return None
         return status != 0
@@ -99,7 +118,7 @@ class SmartDoorLock(SmartHashtagEntity, LockEntity):
     def _clear_pending_state(self) -> None:
         self._pending_locked = None
         self._pending_until = None
-        self.coordinator.reset_update_interval("door_lock")
+        self.coordinator.reset_update_interval(self._pending_key)
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -115,13 +134,14 @@ class SmartDoorLock(SmartHashtagEntity, LockEntity):
         if self._vehicle is None:
             raise HomeAssistantError(f"Vehicle {self._vehicle_vin} is unavailable")
         action = "lock" if locked else "unlock"
-        LOGGER.debug("Sending %s command to vehicle %s", action, self._vehicle.vin)
-        lock_control = self._vehicle.door_lock_control
+        LOGGER.debug(
+            "Sending %s command for the %s of vehicle %s",
+            action,
+            self._target,
+            self._vehicle.vin,
+        )
         try:
-            if locked:
-                success = await lock_control.lock()
-            else:
-                success = await lock_control.unlock()
+            success = await self._send_lock_command(locked)
         except Exception as err:
             self._clear_pending_state()
             self.async_write_ha_state()
@@ -142,7 +162,7 @@ class SmartDoorLock(SmartHashtagEntity, LockEntity):
             seconds=PENDING_STATE_TIMEOUT
         )
         self.coordinator.set_update_interval(
-            "door_lock", timedelta(seconds=FAST_INTERVAL)
+            self._pending_key, timedelta(seconds=FAST_INTERVAL)
         )
         self.async_write_ha_state()
 
@@ -155,3 +175,28 @@ class SmartDoorLock(SmartHashtagEntity, LockEntity):
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock all doors of the vehicle."""
         await self._set_locked(False)
+
+
+class SmartTrunkLock(SmartDoorLock):
+    """
+    Lock entity for the trunk (tailgate) of a Smart vehicle.
+
+    The state follows the vehicle's reported `trunk_lock_status`, where 0
+    means unlocked. It behaves like the door lock otherwise.
+    """
+
+    _attr_translation_key = "trunk_lock"
+    _unique_id_suffix = "trunk_lock"
+    _pending_key = "trunk_lock"
+    _target = "trunk"
+
+    def _locking_status(self) -> int | None:
+        """Return the trunk lock status reported by the vehicle, 0 being unlocked."""
+        return self._vehicle.safety.trunk_lock_status
+
+    async def _send_lock_command(self, locked: bool) -> bool:
+        """Send the lock or unlock command for the trunk."""
+        lock_control = self._vehicle.door_lock_control
+        if locked:
+            return await lock_control.lock_trunk()
+        return await lock_control.unlock_trunk()
