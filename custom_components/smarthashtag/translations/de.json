@@ -574,6 +574,20 @@
           "description": "Adresse des Ziels, wie sie im Fahrzeug angezeigt wird."
         }
       }
+    },
+    "send_shared_destination": {
+      "name": "Geteiltes Ziel senden",
+      "description": "Löst einen aus Google Maps geteilten Ort auf und sendet ihn an das Navigationssystem des Fahrzeugs.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Fahrzeug, an das das Ziel gesendet wird."
+        },
+        "url": {
+          "name": "Link",
+          "description": "Der geteilte Google-Maps-Link oder ein Text, der ihn enthält."
+        }
+      }
     }
   },
   "exceptions": {
@@ -582,6 +596,9 @@
     },
     "entry_not_loaded": {
       "message": "Die Smart-Integration des ausgewählten Fahrzeugs ist nicht geladen."
+    },
+    "shared_location_unresolved": {
+      "message": "Der geteilte Ort konnte nicht verwendet werden: {reason}."
     }
   }
 }

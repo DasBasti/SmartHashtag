@@ -33,3 +33,16 @@ send_destination:
       example: Pariser Platz, 10117 Berlin
       selector:
         text:
+
+send_shared_destination:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: smarthashtag
+    url:
+      required: true
+      example: https://maps.app.goo.gl/W9bykxJhd8GsNXvUA
+      selector:
+        text:

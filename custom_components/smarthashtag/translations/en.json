@@ -574,6 +574,20 @@
           "description": "Address of the destination shown in the vehicle."
         }
       }
+    },
+    "send_shared_destination": {
+      "name": "Send shared destination",
+      "description": "Resolves a location shared from Google Maps and sends it to the navigation system of the vehicle.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The vehicle to send the destination to."
+        },
+        "url": {
+          "name": "Link",
+          "description": "The shared Google Maps link, or a text containing it."
+        }
+      }
     }
   },
   "exceptions": {
@@ -582,6 +596,9 @@
     },
     "entry_not_loaded": {
       "message": "The Smart integration of the selected vehicle is not loaded."
+    },
+    "shared_location_unresolved": {
+      "message": "The shared location could not be used: {reason}."
     }
   }
 }
