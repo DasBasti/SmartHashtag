@@ -94,6 +94,7 @@ async def async_setup_entry(
     await entry.runtime_data.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
     # Saved select profiles are local settings; only reload for other changes so a
     # multi-select followed by a climate start isn't interrupted by a reload.
     def _non_select_data() -> dict:
