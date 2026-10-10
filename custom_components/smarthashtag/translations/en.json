@@ -54,6 +54,12 @@
       },
       "defrost_control": {
         "name": "Front defrost"
+      },
+      "window_ventilation": {
+        "name": "Window ventilation"
+      },
+      "sunshade": {
+        "name": "Sunshade"
       }
     },
     "lock": {

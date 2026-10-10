@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.util import dt as dt_util
 
@@ -42,6 +43,11 @@ async def async_setup_entry(
     climate_control = getattr(vehicles[vehicle], "climate_control", None)
     if hasattr(climate_control, "set_defrost"):
         entities.append(SmartDefrostSwitch(coordinator, vehicle))
+
+    # Requires a pysmarthashtag release that provides Vehicle.window_control
+    if getattr(vehicles[vehicle], "window_control", None) is not None:
+        entities.append(SmartWindowVentilationSwitch(coordinator, vehicle))
+        entities.append(SmartSunshadeSwitch(coordinator, vehicle))
 
     async_add_entities(entities, update_before_add=True)
 
@@ -266,3 +272,165 @@ class SmartDefrostSwitch(SmartHashtagEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Stop the front windscreen defrost."""
         await self._set_defrost(False)
+
+
+class SmartWindowControlSwitch(SmartHashtagEntity, SwitchEntity):
+    """
+    Base class for the switches of the remote window service (RWS_2).
+
+    Turning the switch on opens, turning it off closes. The requested state is
+    shown until the vehicle reports it or `PENDING_STATE_TIMEOUT` expires;
+    meanwhile the coordinator polls fast.
+    """
+
+    _unique_id_suffix: str
+    _log_name: str
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        vehicle: str,
+    ) -> None:
+        """Initialize the window control switch."""
+        super().__init__(coordinator)
+        self._vehicle_vin = vehicle
+        self._pending_state: bool | None = None
+        self._pending_until = None
+        self._vehicle = self.coordinator.account.vehicles.get(vehicle)
+        if self._vehicle is None:
+            LOGGER.error("Vehicle %s not available for %s", vehicle, self._log_name)
+            self._attr_available = False
+            return
+        self._attr_unique_id = f"{self._attr_unique_id}_{self._unique_id_suffix}"
+
+    @property
+    def _reported_state(self) -> bool | None:
+        """Return the state reported by the vehicle, None if it does not report one."""
+        return None
+
+    async def _send_command(self, active: bool) -> bool:
+        """Send the open (True) or close (False) command to the vehicle."""
+        raise NotImplementedError
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if the windows or sunshade are open."""
+        if self._pending_state is not None:
+            return self._pending_state
+        return self._reported_state
+
+    def _clear_pending_state(self) -> None:
+        self._pending_state = None
+        self._pending_until = None
+        self.coordinator.reset_update_interval(self._unique_id_suffix)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Drop the requested state once the vehicle confirms it or it times out."""
+        if self._pending_state is not None and (
+            self._reported_state == self._pending_state
+            or dt_util.utcnow() >= self._pending_until
+        ):
+            self._clear_pending_state()
+        super()._handle_coordinator_update()
+
+    async def _set_active(self, active: bool) -> None:
+        if self._vehicle is None:
+            raise HomeAssistantError(f"Vehicle {self._vehicle_vin} is unavailable")
+        LOGGER.debug(
+            "Setting %s to %s for vehicle %s", self._log_name, active, self._vehicle.vin
+        )
+        try:
+            success = await self._send_command(active)
+        except Exception as err:
+            raise HomeAssistantError(
+                f"Failed to set the {self._log_name} of vehicle {self._vehicle.vin}: {err}"
+            ) from err
+
+        if not success:
+            raise HomeAssistantError(
+                f"Vehicle {self._vehicle.vin} did not accept the {self._log_name} command"
+            )
+
+        # Show the requested state until the vehicle reports it
+        self._pending_state = active
+        self._pending_until = dt_util.utcnow() + timedelta(
+            seconds=PENDING_STATE_TIMEOUT
+        )
+        self.coordinator.set_update_interval(
+            self._unique_id_suffix, timedelta(seconds=FAST_INTERVAL)
+        )
+        self.async_write_ha_state()
+
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Open the windows or the sunshade."""
+        await self._set_active(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Close the windows or the sunshade."""
+        await self._set_active(False)
+
+
+class SmartWindowVentilationSwitch(SmartWindowControlSwitch):
+    """
+    Switch entity for the window ventilation of a Smart vehicle.
+
+    Turning it on opens the windows to the ventilation position, turning it
+    off closes them. The vehicle does not report a ventilation state, so the
+    last requested state is assumed. It is shown as unknown until the first
+    command and reset when Home Assistant restarts.
+    """
+
+    _attr_icon = "mdi:window-open-variant"
+    _attr_translation_key = "window_ventilation"
+    _attr_assumed_state = True
+    _unique_id_suffix = "window_ventilation"
+    _log_name = "window ventilation"
+
+    def __init__(
+        self,
+        coordinator: SmartHashtagDataUpdateCoordinator,
+        vehicle: str,
+    ) -> None:
+        """Initialize the window ventilation switch."""
+        super().__init__(coordinator, vehicle)
+        self._assumed_state: bool | None = None
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return the last requested ventilation state."""
+        return self._assumed_state
+
+    async def _send_command(self, active: bool) -> bool:
+        return await self._vehicle.window_control.set_ventilation(active)
+
+    async def _set_active(self, active: bool) -> None:
+        await super()._set_active(active)
+        self._assumed_state = active
+        self.async_write_ha_state()
+
+
+class SmartSunshadeSwitch(SmartWindowControlSwitch):
+    """
+    Switch entity for the sunshade (sun curtain) of a Smart vehicle.
+
+    The state follows the vehicle's reported `curtain_open_status`. Turning
+    the switch on opens the sunshade, turning it off closes it.
+    """
+
+    _attr_icon = "mdi:blinds"
+    _attr_translation_key = "sunshade"
+    _unique_id_suffix = "sunshade"
+    _log_name = "sunshade"
+
+    @property
+    def _reported_state(self) -> bool | None:
+        """Return the sunshade state reported by the vehicle."""
+        if self._vehicle is None or self._vehicle.climate is None:
+            return None
+        return self._vehicle.climate.curtain_open_status
+
+    async def _send_command(self, active: bool) -> bool:
+        return await self._vehicle.window_control.set_sunshade(active)
