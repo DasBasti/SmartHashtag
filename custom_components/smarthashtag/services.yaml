@@ -1,0 +1,35 @@
+send_destination:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: smarthashtag
+    latitude:
+      required: true
+      example: 52.5163
+      selector:
+        number:
+          min: -90
+          max: 90
+          step: any
+          mode: box
+    longitude:
+      required: true
+      example: 13.3777
+      selector:
+        number:
+          min: -180
+          max: 180
+          step: any
+          mode: box
+    name:
+      required: true
+      example: Brandenburger Tor
+      selector:
+        text:
+    address:
+      required: false
+      example: Pariser Platz, 10117 Berlin
+      selector:
+        text:

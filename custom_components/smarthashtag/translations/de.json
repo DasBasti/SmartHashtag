@@ -547,5 +547,41 @@
         "name": "Hupen"
       }
     }
+  },
+  "services": {
+    "send_destination": {
+      "name": "Ziel senden",
+      "description": "Sendet ein Ziel an das Navigationssystem des Fahrzeugs.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Fahrzeug, an das das Ziel gesendet wird."
+        },
+        "latitude": {
+          "name": "Breitengrad",
+          "description": "Breitengrad des Ziels in Dezimalgrad."
+        },
+        "longitude": {
+          "name": "Längengrad",
+          "description": "Längengrad des Ziels in Dezimalgrad."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name des Ziels, wie er im Fahrzeug angezeigt wird."
+        },
+        "address": {
+          "name": "Adresse",
+          "description": "Adresse des Ziels, wie sie im Fahrzeug angezeigt wird."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_found": {
+      "message": "Das ausgewählte Gerät ist kein Smart-Fahrzeug dieser Integration."
+    },
+    "entry_not_loaded": {
+      "message": "Die Smart-Integration des ausgewählten Fahrzeugs ist nicht geladen."
+    }
   }
 }

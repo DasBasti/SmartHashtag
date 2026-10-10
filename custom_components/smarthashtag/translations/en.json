@@ -547,5 +547,41 @@
         "name": "Honk horn"
       }
     }
+  },
+  "services": {
+    "send_destination": {
+      "name": "Send destination",
+      "description": "Sends a destination to the navigation system of the vehicle.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The vehicle to send the destination to."
+        },
+        "latitude": {
+          "name": "Latitude",
+          "description": "Latitude of the destination in decimal degrees."
+        },
+        "longitude": {
+          "name": "Longitude",
+          "description": "Longitude of the destination in decimal degrees."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name of the destination shown in the vehicle."
+        },
+        "address": {
+          "name": "Address",
+          "description": "Address of the destination shown in the vehicle."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_found": {
+      "message": "The selected device is not a Smart vehicle of this integration."
+    },
+    "entry_not_loaded": {
+      "message": "The Smart integration of the selected vehicle is not loaded."
+    }
   }
 }

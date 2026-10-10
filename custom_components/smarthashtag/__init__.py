@@ -9,6 +9,7 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.typing import ConfigType
 from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.const import EndpointUrls
 
@@ -20,6 +21,7 @@ from .const import (
     REGION_CUSTOM,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
+from .services import async_setup_services
 
 PLATFORMS: list[Platform] = [
     Platform.SENSOR,
@@ -34,6 +36,13 @@ PLATFORMS: list[Platform] = [
 ]
 
 type SmartHashtagConfigEntry = ConfigEntry[SmartHashtagDataUpdateCoordinator]
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register the services of the integration."""
+    async_setup_services(hass)
+    return True
+
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 
