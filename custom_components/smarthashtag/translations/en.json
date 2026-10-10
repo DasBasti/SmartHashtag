@@ -538,6 +538,14 @@
       "charging_limit": {
         "name": "Charging limit"
       }
+    },
+    "button": {
+      "flash_lights": {
+        "name": "Flash lights"
+      },
+      "honk_horn": {
+        "name": "Honk horn"
+      }
     }
   }
 }

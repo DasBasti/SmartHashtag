@@ -30,6 +30,7 @@ PLATFORMS: list[Platform] = [
     Platform.SELECT,
     Platform.LOCK,
     Platform.NUMBER,
+    Platform.BUTTON,
 ]
 
 type SmartHashtagConfigEntry = ConfigEntry[SmartHashtagDataUpdateCoordinator]
