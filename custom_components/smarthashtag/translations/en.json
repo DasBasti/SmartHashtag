@@ -60,6 +60,12 @@
       },
       "sunshade": {
         "name": "Sunshade"
+      },
+      "seat_heating_control": {
+        "name": "Seat heating"
+      },
+      "steering_wheel_heating_control": {
+        "name": "Steering wheel heating"
       }
     },
     "lock": {

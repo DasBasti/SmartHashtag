@@ -215,6 +215,7 @@ class SmartPreHeatedLocation(SmartHashtagEntity, SelectEntity):
             self.coordinator.config_entry, data=new_data
         )
         LOGGER.debug(f"Setting {self._location} to %s", level)
+        self.async_write_ha_state()
 
     @property
     def current_option(self) -> str:

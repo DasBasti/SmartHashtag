@@ -60,6 +60,12 @@
       },
       "sunshade": {
         "name": "Sonnenschutzrollo"
+      },
+      "seat_heating_control": {
+        "name": "Sitzheizung"
+      },
+      "steering_wheel_heating_control": {
+        "name": "Lenkradheizung"
       }
     },
     "lock": {
