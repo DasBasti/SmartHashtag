@@ -1,2 +1,2 @@
 colorlog==6.12.0
-pysmarthashtag @ git+https://github.com/DasBasti/pySmartHashtag@claude/cool-johnson-b7pkum
+pysmarthashtag==0.14.0

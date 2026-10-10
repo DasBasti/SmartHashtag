@@ -1,5 +1,5 @@
 -r requirements.txt
-pysmarthashtag @ git+https://github.com/DasBasti/pySmartHashtag@claude/cool-johnson-b7pkum
+pysmarthashtag==0.14.0
 pytest-homeassistant-custom-component>=0.13.368
 pytest-cov
 pytest-asyncio
