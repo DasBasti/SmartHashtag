@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.util import dt as dt_util
-from pysmarthashtag.control.climate import HeatingLocation
+from pysmarthashtag.control.climate import HeatingLocation, RearHeatingLocation
 
 from .const import (
     CONF_VEHICLE,
@@ -52,6 +52,16 @@ async def async_setup_entry(
         entities.extend(
             SmartHeatingSwitch(coordinator, vehicle, description)
             for description in HEATING_SWITCH_DESCRIPTIONS
+        )
+
+    # Single seat switches for the Smart #5, disabled by default while experimental.
+    # Requires a pysmarthashtag release that provides ClimateControll.set_rear_heating
+    if getattr(climate_control, "use_zaf", False) and hasattr(
+        climate_control, "set_rear_heating"
+    ):
+        entities.extend(
+            SmartHeatingSwitch(coordinator, vehicle, description)
+            for description in SINGLE_SEAT_SWITCH_DESCRIPTIONS
         )
 
     # Requires a pysmarthashtag release that provides Vehicle.window_control
@@ -331,9 +341,11 @@ class HeatingSwitchDescription:
 
     key: str
     icon: str
-    locations: tuple[HeatingLocation, ...]
+    locations: tuple[HeatingLocation | RearHeatingLocation, ...]
     # Climate status attributes; the switch is on when any of them is true
     status_attributes: tuple[str, ...]
+    # Experimental switches are hidden until the user enables them
+    enabled_default: bool = True
 
 
 HEATING_SWITCH_DESCRIPTIONS = (
@@ -348,6 +360,38 @@ HEATING_SWITCH_DESCRIPTIONS = (
         icon="mdi:steering",
         locations=(HeatingLocation.STEERING_WHEEL,),
         status_attributes=("steering_wheel_heating_status",),
+    ),
+)
+
+# Smart #5: every seat on its own, as the cloud takes one seat per request
+SINGLE_SEAT_SWITCH_DESCRIPTIONS = (
+    HeatingSwitchDescription(
+        key="driver_seat_heating",
+        icon="mdi:car-seat-heater",
+        locations=(HeatingLocation.DRIVER_SEAT,),
+        status_attributes=("driver_heating_status",),
+        enabled_default=False,
+    ),
+    HeatingSwitchDescription(
+        key="passenger_seat_heating",
+        icon="mdi:car-seat-heater",
+        locations=(HeatingLocation.PASSENGER_SEAT,),
+        status_attributes=("passenger_heating_status",),
+        enabled_default=False,
+    ),
+    HeatingSwitchDescription(
+        key="rear_left_seat_heating",
+        icon="mdi:car-seat-heater",
+        locations=(RearHeatingLocation.REAR_LEFT,),
+        status_attributes=("rear_left_heating_status",),
+        enabled_default=False,
+    ),
+    HeatingSwitchDescription(
+        key="rear_right_seat_heating",
+        icon="mdi:car-seat-heater",
+        locations=(RearHeatingLocation.REAR_RIGHT,),
+        status_attributes=("rear_right_heating_status",),
+        enabled_default=False,
     ),
 )
 
@@ -372,6 +416,7 @@ class SmartHeatingSwitch(SmartPendingStateSwitch):
         self._interval_key = f"{description.key}_switch"
         self._command_name = description.key.replace("_", " ")
         self._attr_icon = description.icon
+        self._attr_entity_registry_enabled_default = description.enabled_default
         super().__init__(coordinator, vehicle)
 
     @property
@@ -388,7 +433,7 @@ class SmartHeatingSwitch(SmartPendingStateSwitch):
             for attr in self._description.status_attributes
         )
 
-    def _selected_levels(self) -> dict[HeatingLocation, int]:
+    def _selected_levels(self) -> dict[HeatingLocation | RearHeatingLocation, int]:
         """Return the levels from the heating selects for this switch."""
         selects = self.coordinator.config_entry.data.get("selects", {})
         levels = {
@@ -407,7 +452,15 @@ class SmartHeatingSwitch(SmartPendingStateSwitch):
             levels = self._selected_levels()
         else:
             levels = dict.fromkeys(self._description.locations, 0)
-        return await self._vehicle.climate_control.set_heating(active, levels)
+        climate_control = self._vehicle.climate_control
+        front = {k: v for k, v in levels.items() if isinstance(k, HeatingLocation)}
+        rear = {k: v for k, v in levels.items() if isinstance(k, RearHeatingLocation)}
+        results = []
+        if front:
+            results.append(await climate_control.set_heating(active, front))
+        if rear:
+            results.append(await climate_control.set_rear_heating(active, rear))
+        return all(results)
 
 
 class SmartWindowControlSwitch(SmartHashtagEntity, SwitchEntity):

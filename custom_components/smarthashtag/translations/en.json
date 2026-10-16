@@ -67,6 +67,18 @@
       "seat_heating_control": {
         "name": "Seat heating"
       },
+      "driver_seat_heating_control": {
+        "name": "Driver seat heating"
+      },
+      "passenger_seat_heating_control": {
+        "name": "Passenger seat heating"
+      },
+      "rear_left_seat_heating_control": {
+        "name": "Rear left seat heating"
+      },
+      "rear_right_seat_heating_control": {
+        "name": "Rear right seat heating"
+      },
       "steering_wheel_heating_control": {
         "name": "Steering wheel heating"
       }
