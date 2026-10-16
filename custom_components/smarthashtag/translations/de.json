@@ -64,6 +64,18 @@
       "seat_heating_control": {
         "name": "Sitzheizung"
       },
+      "driver_seat_heating_control": {
+        "name": "Fahrersitzheizung"
+      },
+      "passenger_seat_heating_control": {
+        "name": "Beifahrersitzheizung"
+      },
+      "rear_left_seat_heating_control": {
+        "name": "Sitzheizung hinten links"
+      },
+      "rear_right_seat_heating_control": {
+        "name": "Sitzheizung hinten rechts"
+      },
       "steering_wheel_heating_control": {
         "name": "Lenkradheizung"
       }

@@ -174,7 +174,7 @@ class SmartHashtagLockBinarySensor(SmartHashtagEntity, BinarySensorEntity):
             # smart: 0 means open (unlocked), 1 means closed (locked)
             # ha: on means open (True), off means closed (False)
             return state
-        except (AttributeError, KeyError, TypeError):
+        except AttributeError, KeyError, TypeError:
             # Return None if the required data isn't available
             return None
 
