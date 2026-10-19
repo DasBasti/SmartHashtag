@@ -59,6 +59,11 @@ async def async_setup_entry(
         entities.append(SmartWindowVentilationSwitch(coordinator, vehicle))
         entities.append(SmartSunshadeSwitch(coordinator, vehicle))
 
+    # Requires a pysmarthashtag release that provides Vehicle.charging_lid_control,
+    # which is only set on vehicles with a motorised charging lid (the Smart #5)
+    if getattr(vehicles[vehicle], "charging_lid_control", None) is not None:
+        entities.append(SmartChargingLidSwitch(coordinator, vehicle))
+
     async_add_entities(entities, update_before_add=True)
 
 
@@ -407,7 +412,8 @@ class SmartHeatingSwitch(SmartPendingStateSwitch):
 
 class SmartWindowControlSwitch(SmartHashtagEntity, SwitchEntity):
     """
-    Base class for the switches of the remote window service (RWS_2).
+    Base class for the open/close switches: windows and sunshade (remote window
+    service RWS_2) and the charging lid (RDO / RDC).
 
     Turning the switch on opens, turning it off closes. The requested state is
     shown until the vehicle reports it or `PENDING_STATE_TIMEOUT` expires;
@@ -445,7 +451,7 @@ class SmartWindowControlSwitch(SmartHashtagEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool | None:
-        """Return true if the windows or sunshade are open."""
+        """Return true if the windows, sunshade or charging lid are open."""
         if self._pending_state is not None:
             return self._pending_state
         return self._reported_state
@@ -496,11 +502,11 @@ class SmartWindowControlSwitch(SmartHashtagEntity, SwitchEntity):
         await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Open the windows or the sunshade."""
+        """Open the windows, the sunshade or the charging lid."""
         await self._set_active(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Close the windows or the sunshade."""
+        """Close the windows, the sunshade or the charging lid."""
         await self._set_active(False)
 
 
@@ -565,3 +571,29 @@ class SmartSunshadeSwitch(SmartWindowControlSwitch):
 
     async def _send_command(self, active: bool) -> bool:
         return await self._vehicle.window_control.set_sunshade(active)
+
+
+class SmartChargingLidSwitch(SmartWindowControlSwitch):
+    """
+    Switch entity for the motorised charging lid of a Smart #5.
+
+    The state follows the vehicle's reported `is_charging_lid_open`. Turning
+    the switch on opens the charging lid, turning it off closes it.
+    """
+
+    _attr_icon = "mdi:ev-plug-type2"
+    _attr_translation_key = "charging_lid"
+    _unique_id_suffix = "charging_lid"
+    _log_name = "charging lid"
+
+    @property
+    def _reported_state(self) -> bool | None:
+        """Return the charging lid state reported by the vehicle."""
+        if self._vehicle is None or self._vehicle.battery is None:
+            return None
+        return self._vehicle.battery.is_charging_lid_open
+
+    async def _send_command(self, active: bool) -> bool:
+        if active:
+            return await self._vehicle.charging_lid_control.open()
+        return await self._vehicle.charging_lid_control.close()
