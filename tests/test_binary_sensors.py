@@ -59,6 +59,10 @@ SENSOR_TESTS = {
         "device_class": "door",
         "expected_value": "off",
     },
+    "binary_sensor.smart_charging_lid": {
+        "device_class": "door",
+        "expected_value": "off",
+    },
 }
 
 
@@ -163,3 +167,52 @@ async def test_binary_sensor_updates(hass: HomeAssistant, smart_fixture: respx.R
     state = hass.states.get("binary_sensor.smart_central_locking_status")
     assert state
     assert state.state == "off"  # Locked
+
+
+@pytest.mark.asyncio()
+async def test_charging_lid_binary_sensor(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test the charging lid follows chargeLidDcAcStatus and is unknown when absent."""
+    lid_status: str | None = "1"
+
+    async def set_lid_status(request: Request, route: respx.Route) -> Response:
+        response = load_response(RESPONSE_DIR / "vehicle_info.json")
+        ev_status = response["data"]["vehicleStatus"]["additionalVehicleStatus"][
+            "electricVehicleStatus"
+        ]
+        if lid_status is None:
+            del ev_status["chargeLidDcAcStatus"]
+        else:
+            ev_status["chargeLidDcAcStatus"] = lid_status
+        return Response(200, json=response)
+
+    smart_fixture.get(
+        "https://api.ecloudeu.com/remote-control/vehicle/status/TestVIN0000000001?latest=True&target=basic%2Cmore&userId=112233",
+    ).mock(side_effect=set_lid_status)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+        },
+    )
+
+    entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("binary_sensor.smart_charging_lid")
+    assert state
+    assert state.state == "on"  # Open
+
+    # A car that does not report the lid must not read as closed
+    lid_status = None
+    await entry.runtime_data.async_refresh()
+
+    state = hass.states.get("binary_sensor.smart_charging_lid")
+    assert state
+    assert state.state == "unknown"

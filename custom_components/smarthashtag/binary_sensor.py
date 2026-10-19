@@ -137,6 +137,14 @@ LOCK_ENTITIES = (
         icon="mdi:car-back",
         is_on_fn=lambda state, key: state.safety.trunk_open_status == 1,
     ),
+    SmartHashtagBinarySensorEntityDescription(
+        key="charging_lid",
+        translation_key="charging_lid",
+        name="Charging lid",
+        device_class=BinarySensorDeviceClass.DOOR,
+        icon="mdi:ev-plug-type2",
+        is_on_fn=lambda state, key: state.battery.is_charging_lid_open,
+    ),
 )
 
 
