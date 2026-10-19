@@ -581,7 +581,7 @@ class SmartChargingLidSwitch(SmartWindowControlSwitch):
     the switch on opens the charging lid, turning it off closes it.
     """
 
-    _attr_icon = "mdi:ev-plug-type2"
+    _attr_icon = "mdi:ev-plug-ccs2"
     _attr_translation_key = "charging_lid"
     _unique_id_suffix = "charging_lid"
     _log_name = "charging lid"

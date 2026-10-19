@@ -142,7 +142,7 @@ LOCK_ENTITIES = (
         translation_key="charging_lid",
         name="Charging lid",
         device_class=BinarySensorDeviceClass.DOOR,
-        icon="mdi:ev-plug-type2",
+        icon="mdi:ev-plug-ccs2",
         is_on_fn=lambda state, key: state.battery.is_charging_lid_open,
     ),
 )
