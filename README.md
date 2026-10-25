@@ -42,6 +42,7 @@ All climate commands are sent to the car through the Smart cloud. The car takes 
 | Seat heating                                     | Switch  | Turns on the front seat heating without preconditioning                     |
 | Steering wheel heating                           | Switch  | Turns on the steering wheel heating without preconditioning                 |
 | Front defrost                                    | Switch  | Starts / stops the front windscreen defrost                                 |
+| Charging flap                                    | Switch  | Opens / closes the motorised charging flap (Smart #5 only)                  |
 
 ### Preconditioning
 

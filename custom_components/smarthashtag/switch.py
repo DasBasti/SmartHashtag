@@ -59,6 +59,11 @@ async def async_setup_entry(
         entities.append(SmartWindowVentilationSwitch(coordinator, vehicle))
         entities.append(SmartSunshadeSwitch(coordinator, vehicle))
 
+    # Requires a pysmarthashtag release that provides Vehicle.charging_lid_control
+    # (Smart #5 only, None on other models)
+    if getattr(vehicles[vehicle], "charging_lid_control", None) is not None:
+        entities.append(SmartChargingLidSwitch(coordinator, vehicle))
+
     async_add_entities(entities, update_before_add=True)
 
 
@@ -565,3 +570,30 @@ class SmartSunshadeSwitch(SmartWindowControlSwitch):
 
     async def _send_command(self, active: bool) -> bool:
         return await self._vehicle.window_control.set_sunshade(active)
+
+
+class SmartChargingLidSwitch(SmartWindowControlSwitch):
+    """
+    Switch entity for the motorised charging flap of the Smart #5.
+
+    The state follows the vehicle's reported `is_charging_lid_open`. Turning
+    the switch on opens the charging flap, turning it off closes it.
+    """
+
+    _attr_icon = "mdi:ev-plug-type2"
+    _attr_translation_key = "charging_lid"
+    _unique_id_suffix = "charging_lid"
+    _log_name = "charging flap"
+
+    @property
+    def _reported_state(self) -> bool | None:
+        """Return the charging flap state reported by the vehicle."""
+        if self._vehicle is None or self._vehicle.battery is None:
+            return None
+        return self._vehicle.battery.is_charging_lid_open
+
+    async def _send_command(self, active: bool) -> bool:
+        lid_control = self._vehicle.charging_lid_control
+        if active:
+            return await lid_control.open()
+        return await lid_control.close()
