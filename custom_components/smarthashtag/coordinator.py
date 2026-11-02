@@ -284,9 +284,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             self.set_update_interval(
                 "driving",
                 timedelta(
-                    seconds=options.get(
-                        CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
-                    )
+                    seconds=options.get(CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL)
                 ),
             )
         else:
