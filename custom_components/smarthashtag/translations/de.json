@@ -22,13 +22,23 @@
           "api_base_url": "API-Basis-URL",
           "api_base_url_v2": "API-Basis-URL v2"
         }
+      },
+      "reauth_confirm": {
+        "title": "Erneute Authentifizierung",
+        "description": "Smart.com hat die Anmeldung für {username} abgelehnt. Bitte gib das aktuelle Passwort ein.",
+        "data": {
+          "password": "Passwort"
+        }
       }
     },
     "error": {
       "auth": "Authentifizierung fehlgeschlagen, bitte überprüfen Sie Ihre Anmeldeinformationen und versuchen Sie es erneut.",
-      "custom_endpoints_required": "Mindestens eine benutzerdefinierte Endpunkt-URL muss angegeben werden"
+      "custom_endpoints_required": "Mindestens eine benutzerdefinierte Endpunkt-URL muss angegeben werden",
+      "account_locked": "Das Konto ist von Smart.com vorübergehend gesperrt. Warte ca. 30 Minuten, prüfe die Anmeldung in der Smart-App und versuche es erneut"
     },
-    "abort": {}
+    "abort": {
+      "reauth_successful": "Erneute Authentifizierung erfolgreich"
+    }
   },
   "options": {
     "step": {
