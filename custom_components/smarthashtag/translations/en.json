@@ -22,13 +22,23 @@
           "api_base_url": "API Base URL",
           "api_base_url_v2": "API Base URL v2"
         }
+      },
+      "reauth_confirm": {
+        "title": "Reauthentication",
+        "description": "Smart.com rejected the login for {username}. Enter the current password.",
+        "data": {
+          "password": "Password"
+        }
       }
     },
     "error": {
       "auth": "Auth failed, please check your username and password",
-      "custom_endpoints_required": "At least one custom endpoint URL must be provided"
+      "custom_endpoints_required": "At least one custom endpoint URL must be provided",
+      "account_locked": "Account is temporarily locked by Smart.com. Wait about 30 minutes, check the login in the Smart app, then try again"
     },
-    "abort": {}
+    "abort": {
+      "reauth_successful": "Reauthentication successful"
+    }
   },
   "options": {
     "step": {

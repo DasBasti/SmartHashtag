@@ -201,3 +201,50 @@ async def test_options_flow_update(hass: HomeAssistant, smart_fixture: respx.Rou
     assert result2["data"][CONF_CHARGING_INTERVAL] == 120
     assert result2["data"][CONF_DRIVING_INTERVAL] == 60
     assert result2["data"][CONF_CONDITIONING_TEMP] == 22
+
+
+@pytest.mark.asyncio()
+async def test_form_account_locked(hass: HomeAssistant):
+    """A Gigya lockout shows the dedicated error."""
+    from pysmarthashtag.models import SmartAuthError
+
+    err = SmartAuthError("Gigya login error (code=403120)")
+    err.gigya_code = 403120
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with patch(
+        "custom_components.smarthashtag.config_flow.SmartHashtagFlowHandler._test_credentials",
+        side_effect=err,
+    ):
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"username": "test", "password": "bad"}
+        )
+    assert result2["type"] == "form"
+    assert result2["errors"] == {"base": "account_locked"}
+
+
+@pytest.mark.asyncio()
+async def test_reauth_flow(hass: HomeAssistant):
+    """Reauth updates the stored password."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"username": "test", "password": "old", "vehicle": "TestVIN0000000001"},
+    )
+    entry.add_to_hass(hass)
+    result = await entry.start_reauth_flow(hass)
+    assert result["step_id"] == "reauth_confirm"
+
+    with (
+        patch(
+            "custom_components.smarthashtag.config_flow.SmartHashtagFlowHandler._test_credentials",
+            return_value=["TestVIN0000000001"],
+        ),
+        patch("custom_components.smarthashtag.async_setup_entry", return_value=True),
+    ):
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"password": "new"}
+        )
+    assert result2["type"] == "abort"
+    assert result2["reason"] == "reauth_successful"
+    assert entry.data["password"] == "new"
