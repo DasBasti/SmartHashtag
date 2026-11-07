@@ -18,6 +18,7 @@ from pysmarthashtag.account import SmartAccount
 from pysmarthashtag.const import EndpointUrls
 from pysmarthashtag.models import (
     SmartAPIError,
+    SmartAuthError,
 )
 
 from .const import (
@@ -42,6 +43,18 @@ from .const import (
     REGION_CUSTOM,
     REGIONS,
 )
+
+GIGYA_LOCKOUT_CODE = 403120
+
+
+def _error_key(exception: SmartAPIError) -> str:
+    """Map a login exception to a config flow error key."""
+    if (
+        isinstance(exception, SmartAuthError)
+        and getattr(exception, "gigya_code", None) == GIGYA_LOCKOUT_CODE
+    ):
+        return "account_locked"
+    return "auth"
 
 
 class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -73,7 +86,7 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 )
             except SmartAPIError as exception:
                 LOGGER.warning(exception)
-                _errors["base"] = "auth"
+                _errors["base"] = _error_key(exception)
             else:
                 self.init_info = user_input
                 self.init_info[CONF_VEHICLES] = list(vehicles)
@@ -110,6 +123,54 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                                 for k, v in REGIONS.items()
                             ],
                             mode=selector.SelectSelectorMode.DROPDOWN,
+                        ),
+                    ),
+                }
+            ),
+            errors=_errors,
+        )
+
+    async def async_step_reauth(
+        self,
+        entry_data: dict[str, Any],
+    ) -> config_entries.FlowResult:
+        """Start reauthentication after the stored credentials were rejected."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self,
+        user_input: dict | None = None,
+    ) -> config_entries.FlowResult:
+        """Ask for a new password and validate it."""
+        entry = self._get_reauth_entry()
+        _errors = {}
+        if user_input is not None:
+            try:
+                await self._test_credentials(
+                    username=entry.data[CONF_USERNAME],
+                    password=user_input[CONF_PASSWORD],
+                    region=entry.data.get(CONF_REGION, DEFAULT_REGION),
+                    custom_api_base_url=entry.data.get(CONF_API_BASE_URL),
+                    custom_api_base_url_v2=entry.data.get(CONF_API_BASE_URL_V2),
+                )
+            except SmartAPIError as exception:
+                LOGGER.warning(exception)
+                _errors["base"] = _error_key(exception)
+            else:
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data_updates={CONF_PASSWORD: user_input[CONF_PASSWORD]},
+                )
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            description_placeholders={CONF_USERNAME: entry.data[CONF_USERNAME]},
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_PASSWORD): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.PASSWORD,
+                            autocomplete="current-password",
                         ),
                     ),
                 }
@@ -161,7 +222,7 @@ class SmartHashtagFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     )
                 except SmartAPIError as exception:
                     LOGGER.warning(exception)
-                    _errors["base"] = "auth"
+                    _errors["base"] = _error_key(exception)
                 else:
                     # Merge custom endpoint info with init_info
                     self.init_info[CONF_API_BASE_URL] = api_base_url
