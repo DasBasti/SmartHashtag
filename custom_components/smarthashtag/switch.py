@@ -77,119 +77,6 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-class SmartChargingSwitch(SmartHashtagEntity, SwitchEntity):
-    """
-    Switch entity for controlling and monitoring the charging state of a Smart #1/#3 vehicle.
-
-    This switch reflects whether the vehicle is currently charging by monitoring the
-    `charging_status` attribute of the vehicle's battery. It considers the switch "on"
-    when `charging_status` is either "charging" or "dc_charging".
-
-    Turning the switch on or off will start or stop charging, respectively, by invoking
-    the vehicle API via the `ChargingControl` interface.
-
-    After a charging state change (on/off), the switch triggers a fast polling interval
-    (using `FAST_INTERVAL`) to quickly update the entity's state in Home Assistant.
-    Once the charging state stabilizes (i.e., no further change detected), the polling
-    interval is reset to normal to reduce API calls.
-    """
-
-    _attr_entity_category = EntityCategory.CONFIG
-    _attr_icon = "mdi:ev-station"
-
-    @property
-    def translation_key(self):
-        return "charging_control"
-
-    @property
-    def is_on(self) -> bool:
-        """Return true if charging is active."""
-        if self._vehicle is None:
-            return False
-        try:
-            return bool(
-                self._vehicle.battery
-                and self._vehicle.battery.charging_status
-                and self._vehicle.battery.charging_status.upper()
-                in ["CHARGING", "DC_CHARGING"]
-            )
-        except Exception as e:
-            LOGGER.warning(
-                "Error accessing charging status for vehicle %s: %s",
-                getattr(self._vehicle, "vin", "unknown"),
-                e,
-            )
-
-    def __init__(
-        self,
-        coordinator: SmartHashtagDataUpdateCoordinator,
-        vehicle: str,
-    ) -> None:
-        """Initialize the Charging Switch class."""
-        super().__init__(coordinator)
-        self._vehicle_vin = vehicle
-        self._vehicle = self.coordinator.account.vehicles.get(vehicle)
-        if self._vehicle is None:
-            LOGGER.error("Vehicle %s not available for charging switch", vehicle)
-            self._attr_available = False
-            return
-        self._attr_unique_id = f"{self._attr_unique_id}_charging_switch"
-        self._last_state: bool | None = None
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Start charging the vehicle."""
-        if self._vehicle is None:
-            LOGGER.warning(
-                "Cannot start charging; vehicle %s unavailable", self._vehicle_vin
-            )
-            return
-        LOGGER.debug("Starting charging for vehicle %s", self._vehicle.vin)
-        try:
-            await self._vehicle.charging_control.start_charging()
-            # Set fast polling to quickly reflect state changes
-            self.coordinator.set_update_interval(
-                "charging_switch", timedelta(seconds=FAST_INTERVAL)
-            )
-        except Exception:
-            # Log with exception info to avoid formatting errors and aid debugging
-            LOGGER.exception(
-                "Error turning on charging for vehicle %s",
-                getattr(self._vehicle, "vin", "unknown"),
-            )
-
-        await self.coordinator.async_request_refresh()
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Stop charging the vehicle."""
-        if self._vehicle is None:
-            LOGGER.warning(
-                "Cannot stop charging; vehicle %s unavailable", self._vehicle_vin
-            )
-            return
-        LOGGER.debug("Stopping charging for vehicle %s", self._vehicle.vin)
-        try:
-            await self._vehicle.charging_control.stop_charging()
-            # Set fast polling to quickly reflect state changes
-            self.coordinator.set_update_interval(
-                "charging_switch", timedelta(seconds=FAST_INTERVAL)
-            )
-        except Exception:
-            LOGGER.exception(
-                "Error turning off charging for vehicle %s",
-                getattr(self._vehicle, "vin", "unknown"),
-            )
-
-        await self.coordinator.async_request_refresh()
-
-    async def async_update(self) -> None:
-        """Update the entity state and reset polling interval when stable."""
-        current_state = self.is_on
-        # Reset to normal interval when state has stabilized
-        if self._last_state is not None and current_state == self._last_state:
-            self.coordinator.reset_update_interval("charging_switch")
-        self._last_state = current_state
-
-
 class SmartPendingStateSwitch(SmartHashtagEntity, SwitchEntity):
     """
     Base for switches that send a remote command the vehicle confirms with a delay.
@@ -224,8 +111,11 @@ class SmartPendingStateSwitch(SmartHashtagEntity, SwitchEntity):
         self._attr_unique_id = f"{self._attr_unique_id}_{self._interval_key}"
 
     @property
-    def _reported_state(self) -> bool:
-        """Return the state reported by the vehicle."""
+    def _reported_state(self) -> bool | None:
+        """Return the state reported by the vehicle, None if unknown.
+
+        An unknown state never confirms a pending command.
+        """
         raise NotImplementedError
 
     async def _send_command(self, active: bool) -> bool:
@@ -233,7 +123,7 @@ class SmartPendingStateSwitch(SmartHashtagEntity, SwitchEntity):
         raise NotImplementedError
 
     @property
-    def is_on(self) -> bool:
+    def is_on(self) -> bool | None:
         """Return the requested state while pending, else the reported state."""
         if self._pending_state is not None:
             return self._pending_state
@@ -305,6 +195,42 @@ class SmartPendingStateSwitch(SmartHashtagEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the function off."""
         await self._set_state(False)
+
+
+class SmartChargingSwitch(SmartPendingStateSwitch):
+    """
+    Switch entity for starting and stopping charging of a Smart vehicle.
+
+    The state follows the vehicle's reported `charging_status`; the switch is on
+    while it is "charging" or "dc_charging". Turning the switch on or off starts
+    or stops charging through the vehicle's `ChargingControl`. Like the other
+    remote commands, the requested state is shown until the vehicle confirms it
+    or `PENDING_STATE_TIMEOUT` expires, and only meanwhile the coordinator polls
+    fast.
+    """
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_icon = "mdi:ev-station"
+    _interval_key = "charging_switch"
+    _command_name = "charging"
+
+    @property
+    def translation_key(self):
+        return "charging_control"
+
+    @property
+    def _reported_state(self) -> bool | None:
+        """Return true if the vehicle reports that it is charging, None if unknown."""
+        battery = None if self._vehicle is None else self._vehicle.battery
+        if battery is None or battery.charging_status is None:
+            return None
+        return str(battery.charging_status).upper() in ("CHARGING", "DC_CHARGING")
+
+    async def _send_command(self, active: bool) -> bool:
+        charging_control = self._vehicle.charging_control
+        if active:
+            return await charging_control.start_charging()
+        return await charging_control.stop_charging()
 
 
 class SmartDefrostSwitch(SmartPendingStateSwitch):

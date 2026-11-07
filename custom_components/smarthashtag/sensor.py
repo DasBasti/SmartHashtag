@@ -3,19 +3,11 @@
 from __future__ import annotations
 
 import dataclasses
-from datetime import timedelta
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from pysmarthashtag.models import ValueWithUnit
 
-from .const import (
-    CONF_CHARGING_INTERVAL,
-    CONF_DRIVING_INTERVAL,
-    CONF_VEHICLE,
-    DEFAULT_CHARGING_INTERVAL,
-    DEFAULT_DRIVING_INTERVAL,
-    LOGGER,
-)
+from .const import CONF_VEHICLE, LOGGER
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
 from .sensor_groups import (
@@ -164,22 +156,6 @@ class SmartHashtagBatteryRangeSensor(SmartHashtagEntity, SensorEntity):
                 vehicle.battery,
                 remove_vin_from_key(self.entity_description.key),
             )
-
-            if "charging_current" in self.entity_description.key:
-                if data.value != 0:
-                    self.coordinator.set_update_interval(
-                        "charging",
-                        timedelta(
-                            seconds=self.coordinator.config_entry.options.get(
-                                CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
-                            )
-                        ),
-                    )
-                    self.hass.async_create_task(
-                        self.coordinator.async_request_refresh()
-                    )
-                else:
-                    self.coordinator.reset_update_interval("charging")
 
             if "charging_power" in self.entity_description.key:
                 # Store valid non-zero values for future use
@@ -354,21 +330,10 @@ class SmartHashtagUpdateSensor(SmartHashtagEntity, SensorEntity):
                 )
 
             if key == "engine_state":
+                # The coordinator speeds up polling while driving
                 if data == "engine_running":
-                    self.coordinator.set_update_interval(
-                        "driving",
-                        timedelta(
-                            seconds=self.coordinator.config_entry.options.get(
-                                CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL
-                            )
-                        ),
-                    )
-                    self.hass.async_create_task(
-                        self.coordinator.async_request_refresh()
-                    )
                     self.icon = "mdi:engine"
                 else:
-                    self.coordinator.reset_update_interval("driving")
                     self.icon = "mdi:engine-off"
 
             if isinstance(data, ValueWithUnit):
