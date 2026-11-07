@@ -91,16 +91,20 @@ class SmartConditioningMode(SmartHashtagEntity, ClimateEntity):
         return "car_climate"
 
     @property
-    def _reported_mode(self) -> HVACMode:
-        """Return the conditioning mode reported by the vehicle."""
-        if self._vehicle is None or self._vehicle.climate is None:
-            return HVACMode.OFF
-        if self._vehicle.climate.pre_climate_active:
+    def _reported_mode(self) -> HVACMode | None:
+        """Return the conditioning mode reported by the vehicle, None if unknown.
+
+        An unknown mode never confirms a pending command.
+        """
+        climate = None if self._vehicle is None else self._vehicle.climate
+        if climate is None or climate.pre_climate_active is None:
+            return None
+        if climate.pre_climate_active:
             return HVACMode.HEAT_COOL
         return HVACMode.OFF
 
     @property
-    def hvac_mode(self) -> HVACMode:
+    def hvac_mode(self) -> HVACMode | None:
         """Return the requested mode while pending, else the reported mode."""
         if self._pending_mode is not None:
             return self._pending_mode

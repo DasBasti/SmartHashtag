@@ -1,7 +1,7 @@
 """Tests that fast polling after commands and while charging/driving ends again."""
 
 from datetime import timedelta
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import respx
@@ -94,6 +94,46 @@ async def test_charging_switch_fast_polling_ends_after_timeout(
     await hass.async_block_till_done()
 
     assert hass.states.get(entity_id).state == "off"
+    assert "charging_switch" not in coordinator._update_intervals
+
+
+@pytest.mark.asyncio()
+@pytest.mark.parametrize("missing", ["battery", "charging_status"])
+async def test_charging_stop_stays_pending_while_state_unknown(
+    hass: HomeAssistant, smart_fixture: respx.Router, freezer, missing
+):
+    """Missing charging data must not count as confirmation of a stop."""
+    coordinator, vehicle = await _setup_entry(hass)
+    entity_id = _entity_id(hass, "switch", "charging")
+    vehicle.battery.charging_status = "CHARGING"
+    coordinator.async_update_listeners()
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "on"
+
+    # Hold back the refresh after the command; the test feeds the vehicle data
+    with patch.object(coordinator, "async_request_refresh", AsyncMock()):
+        await hass.services.async_call(
+            "switch", "turn_off", {"entity_id": entity_id}, blocking=True
+        )
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "off"
+    assert "charging_switch" in coordinator._update_intervals
+
+    if missing == "battery":
+        vehicle.battery = None
+    else:
+        vehicle.battery.charging_status = None
+    coordinator.async_update_listeners()
+    await hass.async_block_till_done()
+
+    # Still pending: requested state shown, fast polling continues
+    assert hass.states.get(entity_id).state == "off"
+    assert "charging_switch" in coordinator._update_intervals
+
+    freezer.tick(timedelta(seconds=PENDING_STATE_TIMEOUT + 1))
+    coordinator.async_update_listeners()
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == "unknown"
     assert "charging_switch" not in coordinator._update_intervals
 
 
@@ -207,13 +247,50 @@ async def test_charging_interval_follows_charging_current(
 
 
 @pytest.mark.asyncio()
-async def test_unknown_charging_current_is_not_charging(
+async def test_unknown_charging_current_falls_back_to_status(
     hass: HomeAssistant, smart_fixture: respx.Router
 ):
-    """A missing charging current must not switch to the charging interval."""
+    """Without a charging current the charging status decides."""
+    coordinator, vehicle = await _setup_entry(hass)
+    vehicle.battery.charging_current = ValueWithUnit(None, None)
+
+    vehicle.battery.charging_status = "NOT_CHARGING"
+    coordinator._update_activity_intervals()
+    assert "charging" not in coordinator._update_intervals
+
+    vehicle.battery.charging_status = "DC_CHARGING"
+    coordinator._update_activity_intervals()
+    assert "charging" in coordinator._update_intervals
+
+
+@pytest.mark.asyncio()
+async def test_unknown_charging_data_keeps_interval(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """A refresh without any charging data neither starts nor ends fast polling."""
     coordinator, vehicle = await _setup_entry(hass)
 
     vehicle.battery.charging_current = ValueWithUnit(None, None)
+    vehicle.battery.charging_status = None
+    coordinator._update_activity_intervals()
+    assert "charging" not in coordinator._update_intervals
+
+    vehicle.battery.charging_current = ValueWithUnit(16.0, "A")
+    coordinator._update_activity_intervals()
+    assert "charging" in coordinator._update_intervals
+
+    vehicle.battery.charging_current = ValueWithUnit(None, None)
+    coordinator._update_activity_intervals()
+    assert "charging" in coordinator._update_intervals
+
+    battery = vehicle.battery
+    vehicle.battery = None
+    coordinator._update_activity_intervals()
+    assert "charging" in coordinator._update_intervals
+
+    # Only a reported zero current ends it
+    vehicle.battery = battery
+    vehicle.battery.charging_current = ValueWithUnit(0.0, "A")
     coordinator._update_activity_intervals()
     assert "charging" not in coordinator._update_intervals
 
