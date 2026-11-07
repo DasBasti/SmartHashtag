@@ -90,8 +90,18 @@ jobs:
       - name: Tests suite
         run: |
           pytest --cov=custom_components --cov-report=xml --cov-report=term-missing --cov-fail-under=80 tests/
+      # A pull request from a fork only gets a read-only GITHUB_TOKEN, so the
+      # comment cannot be posted there and the step would fail the job. Those
+      # runs write the report to the job summary instead. Do not switch to
+      # pull_request_target to get a write token: this job installs and runs
+      # the code of the pull request.
       - name: Pytest coverage comment
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: MishaKav/pytest-coverage-comment@main
         id: coverageComment
         with:
           pytest-xml-coverage-path: ./coverage.xml
+      - name: Coverage summary (fork pull requests)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        # setup.cfg sets fail_under = 100; the threshold is enforced by pytest above
+        run: coverage report --format=markdown --fail-under=0 >> "$GITHUB_STEP_SUMMARY"

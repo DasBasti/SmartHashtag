@@ -9,8 +9,10 @@ from homeassistant.const import (
     ATTR_TEMPERATURE,
     UnitOfTemperature,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.util import dt as dt_util
 from pysmarthashtag.control.climate import (
     HeatingLocation,
     RearHeatingLocation,
@@ -23,6 +25,7 @@ from .const import (
     DEFAULT_CONDITIONING_TEMP,
     FAST_INTERVAL,
     LOGGER,
+    PENDING_STATE_TIMEOUT,
 )
 from .coordinator import SmartHashtagDataUpdateCoordinator
 from .entity import SmartHashtagEntity
@@ -80,28 +83,51 @@ class SmartConditioningMode(SmartHashtagEntity, ClimateEntity):
     _attr_has_entity_name = False
     _attr_icon = "mdi:thermostat-auto"
     _enable_turn_on_off_backwards_compatibility = False
-    _last_mode = HVACMode.OFF
+    _pending_mode: HVACMode | None = None
+    _pending_until = None
 
     @property
     def translation_key(self):
         return "car_climate"
 
     @property
-    def hvac_mode(self) -> HVACMode:
-        """Return hvac operating mode: heat, cool"""
-        if self._vehicle is None:
-            return HVACMode.OFF
-        current_mode = (
-            HVACMode.HEAT_COOL
-            if self._vehicle.climate.pre_climate_active
-            else HVACMode.OFF
-        )
+    def _reported_mode(self) -> HVACMode | None:
+        """Return the conditioning mode reported by the vehicle, None if unknown.
 
-        # value is true, last setting is off -> keep on requesting
-        if current_mode == self._last_mode:
-            self.coordinator.reset_update_interval("climate")
+        An unknown mode never confirms a pending command.
+        """
+        climate = None if self._vehicle is None else self._vehicle.climate
+        if climate is None or climate.pre_climate_active is None:
+            return None
+        if climate.pre_climate_active:
+            return HVACMode.HEAT_COOL
+        return HVACMode.OFF
 
-        return current_mode
+    @property
+    def hvac_mode(self) -> HVACMode | None:
+        """Return the requested mode while pending, else the reported mode."""
+        if self._pending_mode is not None:
+            return self._pending_mode
+        return self._reported_mode
+
+    def _clear_pending_mode(self) -> None:
+        self._pending_mode = None
+        self._pending_until = None
+        self.coordinator.reset_update_interval("climate")
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Drop the requested mode once the vehicle confirms it or it times out.
+
+        Fast polling ends with it, also when the vehicle never confirms the
+        command or ends the preconditioning on its own later.
+        """
+        if self._pending_mode is not None and (
+            self._reported_mode == self._pending_mode
+            or dt_util.utcnow() >= self._pending_until
+        ):
+            self._clear_pending_mode()
+        super()._handle_coordinator_update()
 
     @property
     def temperature_unit(self):
@@ -189,14 +215,7 @@ class SmartConditioningMode(SmartHashtagEntity, ClimateEntity):
         await self.coordinator.account.select_active_vehicle(self._vehicle_vin)
         self._restore_heating_levels()
         self._restore_ventilation_levels()
-        await self._vehicle.climate_control.set_climate_conditioning(
-            self._temperature, True
-        )
-        self._last_mode = HVACMode.HEAT_COOL
-        self.coordinator.set_update_interval(
-            "climate", timedelta(seconds=FAST_INTERVAL)
-        )
-        await self.coordinator.async_request_refresh()
+        await self._set_conditioning(HVACMode.HEAT_COOL)
 
     async def async_turn_off(self) -> None:
         """Turn off the climate system."""
@@ -205,13 +224,30 @@ class SmartConditioningMode(SmartHashtagEntity, ClimateEntity):
                 "Cannot turn off climate; vehicle %s unavailable", self._vehicle_vin
             )
             return
-        await self._vehicle.climate_control.set_climate_conditioning(
-            self._temperature, False
+        await self._set_conditioning(HVACMode.OFF)
+
+    async def _set_conditioning(self, mode: HVACMode) -> None:
+        """Send the conditioning command and poll fast until the vehicle confirms."""
+        active = mode == HVACMode.HEAT_COOL
+        success = await self._vehicle.climate_control.set_climate_conditioning(
+            self._temperature, active
         )
-        self._last_mode = HVACMode.OFF
+        if not success:
+            self._clear_pending_mode()
+            self.async_write_ha_state()
+            raise HomeAssistantError(
+                f"Vehicle {self._vehicle_vin} did not accept the climate command"
+            )
+
+        # Show the requested mode until the vehicle reports it
+        self._pending_mode = mode
+        self._pending_until = dt_util.utcnow() + timedelta(
+            seconds=PENDING_STATE_TIMEOUT
+        )
         self.coordinator.set_update_interval(
             "climate", timedelta(seconds=FAST_INTERVAL)
         )
+        self.async_write_ha_state()
         await self.coordinator.async_request_refresh()
 
     async def async_set_temperature(self, **kwargs: Any) -> None:

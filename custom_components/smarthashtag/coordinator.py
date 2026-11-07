@@ -27,7 +27,16 @@ except ImportError:  # pragma: no cover - depends on installed pysmarthashtag
         """Placeholder for older pysmarthashtag without the typed unbound error."""
 
 
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER, UNBOUND_VIN_AUTH_MESSAGE
+from .const import (
+    CONF_CHARGING_INTERVAL,
+    CONF_DRIVING_INTERVAL,
+    DEFAULT_CHARGING_INTERVAL,
+    DEFAULT_DRIVING_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    LOGGER,
+    UNBOUND_VIN_AUTH_MESSAGE,
+)
 
 # Maximum consecutive transient failures before raising UpdateFailed
 # Set high enough to tolerate multiple internal API calls failing within a single refresh
@@ -60,9 +69,9 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
         Initialize a SmartHashtagDataUpdateCoordinator instance.
 
         This constructor sets up the data update coordinator with the provided Home Assistant
-        instance, Smart account, and configuration entry. It initializes the coordinator with a
-        default update interval of 5 minutes and prepares an internal dictionary to track update
-        intervals for various keys.
+        instance, Smart account, and configuration entry. It initializes the coordinator with the
+        scan interval from the entry options (default 5 minutes) and prepares an internal
+        dictionary to track update intervals for various keys.
 
         Parameters:
             hass (HomeAssistant): The Home Assistant instance.
@@ -74,7 +83,9 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             hass=hass,
             logger=LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(minutes=5),
+            update_interval=timedelta(
+                seconds=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            ),
             config_entry=entry,
         )
         self._update_intervals = {}
@@ -143,6 +154,7 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
                 self._consecutive_failures = 0
                 self._unbound_failures = 0
                 self._last_error = None
+                self._update_activity_intervals()
                 return self.account.vehicles
         except SmartVehicleUnboundError as exception:
             # Only terminal once it repeats: a lone 8040 is usually the cloud
@@ -246,9 +258,47 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             f"API unavailable after {self._consecutive_failures} attempts: {error_msg}"
         ) from exception
 
+    def _update_activity_intervals(self) -> None:
+        """Poll faster while a vehicle is charging or driving.
+
+        Runs once per successful refresh. Deciding this here instead of in the
+        sensors' state getters keeps rendering free of side effects and stops
+        every state write from requesting yet another refresh.
+        """
+        options = self.config_entry.options if self.config_entry else {}
+        vehicles = list((self.account.vehicles or {}).values())
+
+        charging = [_is_charging(vehicle) for vehicle in vehicles]
+        if any(state is True for state in charging):
+            self.set_update_interval(
+                "charging",
+                timedelta(
+                    seconds=options.get(
+                        CONF_CHARGING_INTERVAL, DEFAULT_CHARGING_INTERVAL
+                    )
+                ),
+            )
+        elif any(state is None for state in charging):
+            # No usable charging data in this refresh: keep the current interval
+            pass
+        else:
+            self.reset_update_interval("charging")
+
+        if any(_is_driving(vehicle) for vehicle in vehicles):
+            self.set_update_interval(
+                "driving",
+                timedelta(
+                    seconds=options.get(CONF_DRIVING_INTERVAL, DEFAULT_DRIVING_INTERVAL)
+                ),
+            )
+        else:
+            self.reset_update_interval("driving")
+
     def set_update_interval(self, key: str, deltatime: timedelta) -> None:
         """Update intervals by key and select the shortest"""
-        LOGGER.info(f"Updatefrequency set for {key}: {deltatime}")
+        if self._update_intervals.get(key) == deltatime:
+            return
+        LOGGER.info("Update frequency set for %s: %s", key, deltatime)
         self._update_intervals[key] = deltatime
         sorted_intervals = list(self._update_intervals.values())
         sorted_intervals.sort()
@@ -277,3 +327,27 @@ class SmartHashtagDataUpdateCoordinator(DataUpdateCoordinator):
             # Fallback to default if no config entry
             self.update_interval = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
             LOGGER.warning("Using fallback update interval due to missing config_entry")
+
+
+_CHARGING_STATES = ("CHARGING", "DC_CHARGING")
+
+
+def _is_charging(vehicle: Any) -> bool | None:
+    """Return whether the vehicle is charging, None if it does not say.
+
+    The charging current decides; without one the charging status does.
+    None only when the refresh carries neither.
+    """
+    battery = getattr(vehicle, "battery", None)
+    current = getattr(getattr(battery, "charging_current", None), "value", None)
+    if current is not None:
+        return bool(current)
+    status = getattr(battery, "charging_status", None)
+    if status is not None:
+        return str(status).upper() in _CHARGING_STATES
+    return None
+
+
+def _is_driving(vehicle: Any) -> bool:
+    """Return true if the vehicle reports a running engine."""
+    return getattr(vehicle, "engine_state", None) == "engine_running"
