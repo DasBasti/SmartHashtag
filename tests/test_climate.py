@@ -465,3 +465,72 @@ async def test_climate_entity_has_device_info(
     device_registry = dr.async_get(hass)
     device = device_registry.async_get(entity_entry.device_id)
     assert device is not None, "Device must exist for the climate entity"
+
+
+@pytest.mark.asyncio()
+async def test_climate_turn_off_smart5_switches_selected_functions_off(
+    hass: HomeAssistant, smart_fixture: respx.Router
+):
+    """Test that a Smart #5 stop sends the AC off and the selected seats off (#515)."""
+    import json
+    from unittest.mock import patch
+
+    from pysmarthashtag.control.climate import ClimateControll
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            "username": "sample_user",
+            "password": "sample_password",
+            "vehicle": "TestVIN0000000001",
+            "selects": {HeatingLocation.DRIVER_SEAT.value: 2},
+        },
+        options={},
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = entry.runtime_data
+    vehicle = coordinator.account.vehicles.get("TestVIN0000000001")
+    sent = []
+
+    async def fake_send(account, vin, payload):
+        sent.append(
+            {p["key"]: p["value"] for p in json.loads(payload)["serviceParameters"]}
+        )
+        return True
+
+    def smart5_control(*args, **kwargs):
+        return ClimateControll(coordinator.account, "TestVIN0000000001", use_zaf=True)
+
+    # Every refresh replaces the climate control, so keep it a Smart #5 one
+    with (
+        patch("pysmarthashtag.control.climate.send_telematics_command", fake_send),
+        patch("pysmarthashtag.control.climate.ClimateControll", smart5_control),
+    ):
+        vehicle.climate_control = smart5_control()
+        entity_id = get_climate_entity_id(hass)
+        await hass.services.async_call(
+            "climate", "turn_on", {"entity_id": entity_id}, blocking=True
+        )
+        await hass.async_block_till_done()
+        assert sent[0]["AC"] == "true"
+        assert (
+            sent[0]["AC.temp"]
+            == f"{float(hass.states.get(entity_id).attributes['temperature']):.1f}"
+        )
+        assert [sorted(p) for p in sent[1:]] == [
+            ["SH.11", "SH.11.duration", "SH.11.level", "operation"]
+        ]
+
+        sent.clear()
+        vehicle.climate_control = smart5_control()
+        await hass.services.async_call(
+            "climate", "turn_off", {"entity_id": entity_id}, blocking=True
+        )
+        await hass.async_block_till_done()
+        assert sent == [
+            {"operation": "4", "AC": "false"},
+            {"operation": "4", "SH.11": "false"},
+        ]

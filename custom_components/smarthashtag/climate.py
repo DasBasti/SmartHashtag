@@ -224,6 +224,11 @@ class SmartConditioningMode(SmartHashtagEntity, ClimateEntity):
                 "Cannot turn off climate; vehicle %s unavailable", self._vehicle_vin
             )
             return
+        if getattr(self._vehicle.climate_control, "use_zaf", False):
+            # The Smart #5 switches every comfort function off by itself, and
+            # the library forgets the levels on each refresh
+            self._restore_heating_levels()
+            self._restore_ventilation_levels()
         await self._set_conditioning(HVACMode.OFF)
 
     async def _set_conditioning(self, mode: HVACMode) -> None:
