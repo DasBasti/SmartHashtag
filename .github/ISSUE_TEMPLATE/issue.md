@@ -9,6 +9,7 @@ Issues not containing the minimum requirements will be take longer to be process
 
 - Issues must have a description (using the header is not good enough).
 - Issues should have a debug logging.
+- Issues should attach the diagnostics file (see below).
 - Issues should explain the configuration
 
 -->
@@ -38,3 +39,8 @@ A clear and concise description of what the bug is.
 Add your logs here.
 
 ```
+
+## Diagnostics
+
+<!-- Settings -> Devices & services -> Smart #1/#3/#5 -> three-dot menu -> Download diagnostics.
+Attach the downloaded JSON file here. VIN, credentials and location are redacted, but skim it before posting. -->
